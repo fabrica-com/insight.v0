@@ -332,6 +332,19 @@ export function MarketTrends() {
   const [selectedVehicle, setSelectedVehicle] = useState<typeof rankingData[0] | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
 
+  // 新しいフィルター用state
+  const [yearMin, setYearMin] = useState<string>("none")
+  const [yearMax, setYearMax] = useState<string>("none")
+  const [selectedPrefecture, setSelectedPrefecture] = useState<string>("none")
+  const [selectedCity, setSelectedCity] = useState<string>("none")
+  const [priceSliderValue, setPriceSliderValue] = useState<number[]>([0, 250])
+  const [loanPaymentMin, setLoanPaymentMin] = useState<string>("none")
+  const [loanPaymentMax, setLoanPaymentMax] = useState<string>("none")
+  const [loanTypeNormal, setLoanTypeNormal] = useState(false)
+  const [loanTypeResidual, setLoanTypeResidual] = useState(false)
+  const [loanDownPayment, setLoanDownPayment] = useState<string>("none")
+  const [selectedColors, setSelectedColors] = useState<string[]>([])
+
   // メーカーリスト（国産＋輸入）
   const allMakers = [...manufacturers.domestic, ...manufacturers.imported]
 
@@ -342,6 +355,21 @@ export function MarketTrends() {
   const availableVariants = selectedModel
     ? availableModels.find(m => m.id === selectedModel)?.variants || []
     : []
+
+  // 本体色の選択
+  const handleColorToggle = (color: string) => {
+    setSelectedColors(prev =>
+      prev.includes(color)
+        ? prev.filter(c => c !== color)
+        : [...prev, color]
+    )
+  }
+
+  // 年式オプション
+  const yearOptions = Array.from({ length: 30 }, (_, i) => {
+    const year = new Date().getFullYear() - i
+    return { value: String(year), label: `${year}年` }
+  })
 
   // 走行距離フィルターの処理
   const handleAllMileagesChange = (checked: boolean) => {
@@ -407,27 +435,27 @@ export function MarketTrends() {
         <TabsContent value="trends" className="space-y-6">
           {/* フィルター */}
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Filter className="h-5 w-5" />
                 車両絞り込み
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-3">
-                {/* メーカー選択 */}
-                <div className="space-y-2">
-                  <Label>メーカー</Label>
-                  <Select value={selectedMaker} onValueChange={(v) => {
-                    setSelectedMaker(v)
+            <CardContent className="space-y-4">
+              {/* Row 1: メーカー車名, モデル・グレード, 年式 */}
+              <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
+                <div className="flex items-center gap-2">
+                  <Label className="shrink-0 text-sm font-semibold whitespace-nowrap">メーカー<br/>車名</Label>
+                  <Select value={selectedMaker || "none"} onValueChange={(v) => {
+                    setSelectedMaker(v === "none" ? "" : v)
                     setSelectedModel("")
                     setSelectedVariant("")
                   }}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="メーカーを選択" />
+                    <SelectTrigger className="h-8 w-[120px] text-xs">
+                      <SelectValue placeholder="選択する" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">すべて</SelectItem>
+                      <SelectItem value="none">選択する</SelectItem>
                       <div className="px-2 py-1 text-xs font-semibold text-muted-foreground">国産車</div>
                       {manufacturers.domestic.map(m => (
                         <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
@@ -440,22 +468,21 @@ export function MarketTrends() {
                   </Select>
                 </div>
 
-                {/* 車種選択 */}
-                <div className="space-y-2">
-                  <Label>車種</Label>
+                <div className="flex items-center gap-2">
+                  <Label className="shrink-0 text-sm font-semibold whitespace-nowrap">モデル・<br/>グレード</Label>
                   <Select 
-                    value={selectedModel} 
+                    value={selectedModel || "none"} 
                     onValueChange={(v) => {
-                      setSelectedModel(v)
+                      setSelectedModel(v === "none" ? "" : v)
                       setSelectedVariant("")
                     }}
-                    disabled={!selectedMaker || selectedMaker === "all"}
+                    disabled={!selectedMaker || selectedMaker === "none"}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="車種を選択" />
+                    <SelectTrigger className="h-8 w-[120px] text-xs">
+                      <SelectValue placeholder="選択する" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">すべて</SelectItem>
+                      <SelectItem value="none">選択する</SelectItem>
                       {availableModels.map(m => (
                         <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                       ))}
@@ -463,53 +490,254 @@ export function MarketTrends() {
                   </Select>
                 </div>
 
-                {/* グレード選択 */}
-                <div className="space-y-2">
-                  <Label>グレード</Label>
-                  <Select 
-                    value={selectedVariant} 
-                    onValueChange={setSelectedVariant}
-                    disabled={!selectedModel || selectedModel === "all"}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="グレードを選択" />
+                <div className="flex items-center gap-2">
+                  <Label className="shrink-0 text-sm font-semibold">年式</Label>
+                  <Select value={yearMin} onValueChange={setYearMin}>
+                    <SelectTrigger className="h-8 w-[100px] text-xs">
+                      <SelectValue placeholder="下限なし" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">すべて</SelectItem>
-                      {availableVariants.map(v => (
-                        <SelectItem key={v} value={v}>{v}</SelectItem>
+                      <SelectItem value="none">下限なし</SelectItem>
+                      {yearOptions.map(y => (
+                        <SelectItem key={y.value} value={y.value}>{y.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm text-muted-foreground">~</span>
+                  <Select value={yearMax} onValueChange={setYearMax}>
+                    <SelectTrigger className="h-8 w-[100px] text-xs">
+                      <SelectValue placeholder="上限なし" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">上限なし</SelectItem>
+                      {yearOptions.map(y => (
+                        <SelectItem key={y.value} value={y.value}>{y.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              {/* 走行距離フィルター */}
-              <div className="mt-6 space-y-3">
-                <Label>走行距離フィルター</Label>
-                <div className="flex flex-wrap gap-4">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="all-mileage" 
-                      checked={allMileagesSelected}
-                      onCheckedChange={handleAllMileagesChange}
-                    />
-                    <label htmlFor="all-mileage" className="text-sm font-medium">
-                      すべて
-                    </label>
-                  </div>
-                  <div className="h-6 w-px bg-border" />
-                  {mileageOptions.map(option => (
-                    <div key={option.id} className="flex items-center space-x-2">
+              {/* Row 2: 地域, 市区町村, 走行距離 */}
+              <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
+                <div className="flex items-center gap-2">
+                  <Label className="shrink-0 text-sm font-semibold">地域</Label>
+                  <Select value={selectedPrefecture} onValueChange={(v) => {
+                    setSelectedPrefecture(v)
+                    setSelectedCity("none")
+                  }}>
+                    <SelectTrigger className="h-8 w-[120px] text-xs">
+                      <SelectValue placeholder="選択する" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">選択する</SelectItem>
+                      <SelectItem value="13">東京都</SelectItem>
+                      <SelectItem value="14">神奈川県</SelectItem>
+                      <SelectItem value="11">埼玉県</SelectItem>
+                      <SelectItem value="12">千葉県</SelectItem>
+                      <SelectItem value="27">大阪府</SelectItem>
+                      <SelectItem value="23">愛知県</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Label className="shrink-0 text-sm font-semibold">市区町村</Label>
+                  <Select 
+                    value={selectedCity} 
+                    onValueChange={setSelectedCity}
+                    disabled={selectedPrefecture === "none"}
+                  >
+                    <SelectTrigger className="h-8 w-[120px] text-xs">
+                      <SelectValue placeholder="選択する" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">選択する</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* 走行距離 - 既存のチェックボックス方式を維持 */}
+                <div className="flex items-center gap-2">
+                  <Label className="shrink-0 text-sm font-semibold">走行距離</Label>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center space-x-1.5">
                       <Checkbox 
-                        id={option.id}
-                        checked={selectedMileages.includes(option.value)}
-                        onCheckedChange={(checked) => handleMileageChange(option.value, checked as boolean)}
+                        id="all-mileage" 
+                        checked={allMileagesSelected}
+                        onCheckedChange={handleAllMileagesChange}
+                        className="h-3.5 w-3.5"
                       />
-                      <label htmlFor={option.id} className="text-sm">
-                        {option.label}
+                      <label htmlFor="all-mileage" className="text-xs font-medium">
+                        すべて
                       </label>
                     </div>
+                    <div className="h-4 w-px bg-border" />
+                    {mileageOptions.map(option => (
+                      <div key={option.id} className="flex items-center space-x-1.5">
+                        <Checkbox 
+                          id={option.id}
+                          checked={selectedMileages.includes(option.value)}
+                          onCheckedChange={(checked) => handleMileageChange(option.value, checked as boolean)}
+                          className="h-3.5 w-3.5"
+                        />
+                        <label htmlFor={option.id} className="text-xs whitespace-nowrap">
+                          {option.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-px bg-border" />
+
+              {/* Row 3: 価格スライダー */}
+              <div className="flex items-center gap-3">
+                <Label className="shrink-0 text-sm font-semibold">価格</Label>
+                <div className="flex flex-1 items-center gap-3">
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    {priceSliderValue[0] === 0 ? "下限なし" : `${priceSliderValue[0]}万円`}
+                  </span>
+                  <div className="relative flex-1 max-w-md">
+                    {/* Histogram background */}
+                    <div className="absolute bottom-full mb-0.5 flex h-8 w-full items-end gap-px">
+                      {Array.from({ length: 25 }, (_, i) => {
+                        const h = Math.max(4, Math.random() * 100)
+                        return (
+                          <div
+                            key={i}
+                            className="flex-1 rounded-t-sm bg-muted-foreground/20"
+                            style={{ height: `${h}%` }}
+                          />
+                        )
+                      })}
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={250}
+                      step={10}
+                      value={priceSliderValue[1]}
+                      onChange={(e) => setPriceSliderValue([priceSliderValue[0], parseInt(e.target.value)])}
+                      className="w-full accent-chart-1"
+                    />
+                  </div>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">{priceSliderValue[1]}万円</span>
+                </div>
+              </div>
+
+              {/* Row 4: ローン月々支払い価格, ローン種類 */}
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+                <div className="flex items-center gap-2">
+                  <Label className="shrink-0 text-xs font-semibold whitespace-nowrap">ローン月々支払い価格</Label>
+                  <Select value={loanPaymentMin} onValueChange={setLoanPaymentMin}>
+                    <SelectTrigger className="h-8 w-[100px] text-xs">
+                      <SelectValue placeholder="下限なし" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">下限なし</SelectItem>
+                      <SelectItem value="10000">1万円</SelectItem>
+                      <SelectItem value="20000">2万円</SelectItem>
+                      <SelectItem value="30000">3万円</SelectItem>
+                      <SelectItem value="40000">4万円</SelectItem>
+                      <SelectItem value="50000">5万円</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm text-muted-foreground">~</span>
+                  <Select value={loanPaymentMax} onValueChange={setLoanPaymentMax}>
+                    <SelectTrigger className="h-8 w-[100px] text-xs">
+                      <SelectValue placeholder="上限なし" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">上限なし</SelectItem>
+                      <SelectItem value="30000">3万円</SelectItem>
+                      <SelectItem value="50000">5万円</SelectItem>
+                      <SelectItem value="70000">7万円</SelectItem>
+                      <SelectItem value="100000">10万円</SelectItem>
+                      <SelectItem value="150000">15万円</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Label className="shrink-0 text-xs font-semibold">ローン種類</Label>
+                  <div className="flex items-center space-x-1.5">
+                    <Checkbox 
+                      id="loan-normal" 
+                      checked={loanTypeNormal}
+                      onCheckedChange={(c) => setLoanTypeNormal(c as boolean)}
+                      className="h-3.5 w-3.5"
+                    />
+                    <label htmlFor="loan-normal" className="text-xs">通常ローン</label>
+                  </div>
+                  <div className="flex items-center space-x-1.5">
+                    <Checkbox 
+                      id="loan-residual" 
+                      checked={loanTypeResidual}
+                      onCheckedChange={(c) => setLoanTypeResidual(c as boolean)}
+                      className="h-3.5 w-3.5"
+                    />
+                    <label htmlFor="loan-residual" className="text-xs">残価・据置ローン</label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 5: ローン頭金（上限） */}
+              <div className="flex items-center gap-2">
+                <Label className="shrink-0 text-xs font-semibold">ローン頭金（上限）</Label>
+                <Select value={loanDownPayment} onValueChange={setLoanDownPayment}>
+                  <SelectTrigger className="h-8 w-[100px] text-xs">
+                    <SelectValue placeholder="上限なし" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">上限なし</SelectItem>
+                    <SelectItem value="0">0円</SelectItem>
+                    <SelectItem value="100000">10万円</SelectItem>
+                    <SelectItem value="300000">30万円</SelectItem>
+                    <SelectItem value="500000">50万円</SelectItem>
+                    <SelectItem value="1000000">100万円</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="h-px bg-border" />
+
+              {/* Row 6: 本体色 */}
+              <div className="flex items-start gap-2">
+                <Label className="shrink-0 pt-1 text-sm font-semibold">本体色</Label>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { name: "ホワイト", color: "#FFFFFF", border: true },
+                    { name: "ブラック", color: "#1a1a1a", border: false },
+                    { name: "ダークグレー", color: "#3d3d3d", border: false },
+                    { name: "グレー", color: "#808080", border: false },
+                    { name: "ダークブラウン", color: "#5c3317", border: false },
+                    { name: "ゴールド", color: "#b8860b", border: false },
+                    { name: "ブルー", color: "#2563eb", border: false },
+                    { name: "ライトブルー", color: "#60a5fa", border: false },
+                    { name: "レッド", color: "#dc2626", border: false },
+                    { name: "シルバー", color: "#c0c0c0", border: true },
+                    { name: "パープル", color: "#7c3aed", border: false },
+                    { name: "ピンク", color: "#ec4899", border: false },
+                    { name: "イエロー", color: "#eab308", border: false },
+                    { name: "ライトイエロー", color: "#fde68a", border: true },
+                    { name: "オレンジ", color: "#ea580c", border: false },
+                    { name: "グリーン", color: "#16a34a", border: false },
+                    { name: "ベージュ", color: "#d2b48c", border: true },
+                  ].map((c) => (
+                    <button
+                      key={c.name}
+                      type="button"
+                      title={c.name}
+                      onClick={() => handleColorToggle(c.name)}
+                      className={`h-7 w-7 rounded-sm transition-all ${
+                        selectedColors.includes(c.name) 
+                          ? "ring-2 ring-primary ring-offset-1" 
+                          : c.border ? "ring-1 ring-border" : ""
+                      }`}
+                      style={{ backgroundColor: c.color }}
+                    />
                   ))}
                 </div>
               </div>
