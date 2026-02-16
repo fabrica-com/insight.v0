@@ -326,7 +326,7 @@ export function SharedChatLayout({
                 )}
                 <div
                   className={cn(
-                    "max-w-[min(95%,800px)] rounded-xl px-4 py-3 whitespace-pre-wrap text-sm leading-relaxed",
+                    "max-w-[600px] rounded-xl px-4 py-3 whitespace-pre-wrap text-sm leading-relaxed",
                     message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted/70",
                   )}
                 >
