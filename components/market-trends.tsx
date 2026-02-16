@@ -477,12 +477,12 @@ export function MarketTrends() {
       return "maker" as const
     }
     return "default" as const
-  }, [selectedMaker, selectedModelType, availableGrades])
+  }, [selectedMaker, selectedModelType, availableGrades.length])
 
   // モード変更時に非表示ラベルをリセット
   useEffect(() => {
     setHiddenComparisonLabels(new Set())
-  }, [comparisonChartMode, selectedMaker, availableGrades])
+  }, [comparisonChartMode, selectedMaker, selectedModelType])
 
   const { comparisonData, comparisonLabels, comparisonTitle, comparisonDesc } = useMemo(() => {
     if (comparisonChartMode === "grade") {
@@ -513,7 +513,8 @@ export function MarketTrends() {
       comparisonTitle: "グレード別 下落率推移（過去2年）",
       comparisonDesc: "2年前を起点(0%)としたグレードごとの平均価格下落率",
     }
-  }, [comparisonChartMode, selectedMaker, availableGrades])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [comparisonChartMode, selectedMaker, selectedModelType])
 
   // 走行距離フィルターの処理
   const handleAllMileagesChange = (checked: boolean) => {
