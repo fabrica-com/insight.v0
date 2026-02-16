@@ -154,36 +154,30 @@ const marketSummaryStats = {
   depreciation6m: Math.round(((currentAvg - avg6mAgo) / avg6mAgo) * 1000) / 10,
 }
 
-// グレード別の下落率データを生成（過去2年前を起点、週次平均値のみ）
+// グレード別の下落率データを生成（weeklyPriceHistoryDataの全体トレンドをベースに、グレード間で差異をつける）
 const gradeColors = ["#3b82f6", "#ef4444", "#22c55e", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316"]
-const generateGradeDepreciationData = (grades: string[]) => {
-  const totalWeeks = 104
-  const data = []
-  // グレードごとの初期値と変動率
-  const gradeParams = grades.map((_, idx) => ({
-    rate: 0, // 0%から開始
-    volatility: 0.003 + idx * 0.001,
-    trend: -(0.1 + idx * 0.03) / totalWeeks, // グレードごとに異なる下落トレンド
-  }))
-
-  for (let i = 0; i < totalWeeks; i++) {
-    const date = new Date(Date.now() - (totalWeeks - 1 - i) * 7 * 24 * 60 * 60 * 1000)
-    const weekStr = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`
-    const point: Record<string, string | number> = { week: weekStr }
+const generateGradeDepreciationData = (grades: string[], baseData: typeof weeklyPriceHistoryData) => {
+  const baseStartPrice = baseData[0].average
+  const data = baseData.map((weekData, i) => {
+    const point: Record<string, string | number> = { week: weekData.week }
+    // 全体平均の変動率を算出
+    const baseRate = ((weekData.average - baseStartPrice) / baseStartPrice) * 100
 
     grades.forEach((grade, idx) => {
-      const noise = (Math.random() - 0.5) * gradeParams[idx].volatility
-      gradeParams[idx].rate += gradeParams[idx].trend + noise
-      point[grade] = Math.round(gradeParams[idx].rate * 1000) / 10 // %表示
+      // グレードごとにベースの変動率にオフセットを加える
+      // 上位グレードほどリセール率が良い（下落が緩い）、下位グレードほど下落が大きい傾向
+      const gradeOffset = (idx - grades.length / 2) * 0.02 * (i / baseData.length)
+      const noise = (Math.random() - 0.3) * 0.3
+      point[grade] = Math.round((baseRate + gradeOffset * 100 + noise) * 10) / 10
     })
-    data.push(point)
-  }
+    return point
+  })
   return data
 }
 
 // デフォルトのグレード別データ（アルファード30系のグレードをデフォルト表示用）
 const defaultGrades = ["S", "SC", "Executive Lounge", "S Cパッケージ"]
-const defaultGradeDepreciationData = generateGradeDepreciationData(defaultGrades)
+const defaultGradeDepreciationData = generateGradeDepreciationData(defaultGrades, weeklyPriceHistoryData)
 
 // 変動率に連動した価格履歴を生成（開始価格から終了価格への推移）
 const generateLinkedPriceHistory = (startPrice: number, endPrice: number, months: number) => {
@@ -437,7 +431,7 @@ export function MarketTrends() {
   // グレード別下落率データ（選択されたモデルに連動）
   const gradeDepreciationData = useMemo(() => {
     if (availableGrades.length > 0) {
-      return generateGradeDepreciationData(availableGrades)
+      return generateGradeDepreciationData(availableGrades, weeklyPriceHistoryData)
     }
     return defaultGradeDepreciationData
   }, [availableGrades])
