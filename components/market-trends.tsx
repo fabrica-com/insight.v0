@@ -901,7 +901,7 @@ export function MarketTrends() {
                 <div className="rounded-lg border border-border p-4">
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <TrendingDown className="h-4 w-4" />
-                    <p className="text-xs">過去半年の下落率</p>
+                    <p className="text-xs">過去��年の下落率</p>
                   </div>
                   <p className="mt-2 text-2xl font-bold text-red-600">{marketSummaryStats.depreciation6m}%</p>
                 </div>
@@ -1411,7 +1411,16 @@ export function MarketTrends() {
                     </ResponsiveContainer>
                   </div>
                   {/* 価格サマリー */}
-                  <div className="mt-4 grid grid-cols-4 gap-3">
+                  <div className="mt-4 grid grid-cols-5 gap-3">
+                    <div className="rounded-lg border border-border p-3 text-center">
+                      <p className="text-xs text-muted-foreground">掲載期間</p>
+                      <p className="text-lg font-bold">
+                        {individualPriceData.length}<span className="text-sm font-normal text-muted-foreground ml-0.5">週</span>
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        ({individualPriceData.length > 0 ? `${individualPriceData[0]?.week} ~` : ""})
+                      </p>
+                    </div>
                     <div className="rounded-lg border border-border p-3 text-center">
                       <p className="text-xs text-muted-foreground">初回掲載価格</p>
                       <p className="text-lg font-bold">
