@@ -363,7 +363,7 @@ const generateRankingData = () => {
     { maker: "日産", carName: "サクラ", model: "B6AW型", category: "kei", type: "軽自動車" },
     { maker: "三菱", carName: "eKクロスEV", model: "B5AW型", category: "kei", type: "軽自動車" },
     { maker: "ホンダ", carName: "ZR-V", model: "RZ系", category: "domestic", type: "SUV" },
-    { maker: "マツダ", carName: "MX-30", model: "DR系", category: "domestic", type: "SUV" },
+    { maker: "マツダ", carName: "MX-30", model: "DR��", category: "domestic", type: "SUV" },
     { maker: "レクサス", carName: "RZ", model: "450e", category: "domestic", type: "SUV" },
     { maker: "レクサス", carName: "UX", model: "300e", category: "domestic", type: "SUV" },
   ]
@@ -559,7 +559,7 @@ export function MarketTrends() {
     <div className="space-y-6">
       {/* ヘッダー */}
       <div className="border-b border-border pb-6">
-        <h1 className="text-2xl font-bold tracking-tight">車種別相場推移</h1>
+        <h1 className="text-2xl font-bold tracking-tight">メーカー・車種別相場推移</h1>
         <p className="text-muted-foreground mt-0.5 text-sm">過去2年間の相場推移とリセールバリューランキング</p>
       </div>
 

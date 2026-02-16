@@ -543,7 +543,7 @@ export function MarketTrendsAnalysis() {
         <TabsList className="grid w-full max-w-md grid-cols-2">
           <TabsTrigger value="market" className="gap-2">
             <BarChart3 className="h-4 w-4" />
-            車種別相場
+            メーカー・車種別相場推移
           </TabsTrigger>
           <TabsTrigger value="resale" className="gap-2">
             <Award className="h-4 w-4" />
@@ -551,7 +551,7 @@ export function MarketTrendsAnalysis() {
           </TabsTrigger>
         </TabsList>
 
-        {/* 車種別相場タブ */}
+        {/* メーカー・車種別相場推移タブ */}
         <TabsContent value="market" className="space-y-6">
           {/* ソートボタン */}
           <div className="flex items-center gap-2 flex-wrap">

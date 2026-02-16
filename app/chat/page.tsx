@@ -27,7 +27,7 @@ function ChatPageContent() {
           <main className="flex-1 overflow-y-auto p-6">
             <div className="mx-auto w-full max-w-4xl space-y-6">
               <div className="border-b border-border pb-6">
-                <h1 className="text-2xl font-bold tracking-tight">AIチャット</h1>
+                <h1 className="text-2xl font-bold tracking-tight">AI分析・コンサルティング</h1>
                 <p className="text-muted-foreground mt-0.5 text-sm">データ分析または経営コンサルタントを選択してください</p>
               </div>
 
