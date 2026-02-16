@@ -108,33 +108,34 @@ const mileageOptions = [
   { id: "over100k", label: "10万km以上", value: "over100k" },
 ]
 
-// 過去24ヶ月の相場データを生成
-const generatePriceHistory = (basePrice: number, volatility: number = 0.05) => {
-  const months = []
+// 過去24ヶ月の週次相場データを生成
+const generateWeeklyPriceHistory = (basePrice: number, volatility: number = 0.02) => {
+  const weeks = []
   const now = new Date()
   let avgPrice = basePrice
-  let highPrice = basePrice * 1.15
-  let lowPrice = basePrice * 0.85
+  const totalWeeks = 104 // 約24ヶ月分
 
-  for (let i = 23; i >= 0; i--) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const monthStr = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, "0")}`
+  for (let i = totalWeeks - 1; i >= 0; i--) {
+    const date = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000)
+    const weekStr = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`
     
-    // 価格変動をシミュレート
+    // 週次の価格変動をシミュレート
     const change = (Math.random() - 0.5) * volatility
     avgPrice = avgPrice * (1 + change)
-    highPrice = avgPrice * (1.1 + Math.random() * 0.1)
-    lowPrice = avgPrice * (0.8 + Math.random() * 0.1)
+    const highPrice = avgPrice * (1.1 + Math.random() * 0.1)
+    const lowPrice = avgPrice * (0.8 + Math.random() * 0.1)
 
-    months.push({
-      month: monthStr,
+    weeks.push({
+      week: weekStr,
       average: Math.round(avgPrice),
       top20: Math.round(highPrice),
       bottom20: Math.round(lowPrice),
     })
   }
-  return months
+  return weeks
 }
+
+const weeklyPriceHistoryData = generateWeeklyPriceHistory(3500000)
 
 // 変動率に連動した価格履歴を生成（開始価格から終了価格への推移）
 const generateLinkedPriceHistory = (startPrice: number, endPrice: number, months: number) => {
@@ -349,7 +350,6 @@ const generateRankingData = () => {
   }))
 }
 
-const priceHistoryData = generatePriceHistory(3500000)
 const rankingData = generateRankingData()
 
 export function MarketTrends() {
@@ -360,6 +360,7 @@ export function MarketTrends() {
   const [selectedVariant, setSelectedVariant] = useState<string>("")
   const [selectedMileages, setSelectedMileages] = useState<string[]>(mileageOptions.map(o => o.value))
   const [allMileagesSelected, setAllMileagesSelected] = useState(true)
+  const [showChart, setShowChart] = useState(false)
 
   // ランキングフィルター
   const [rankingCategory, setRankingCategory] = useState<string>("all")
@@ -581,26 +582,40 @@ export function MarketTrends() {
                 </div>
               </div>
             </CardContent>
+            <div className="flex justify-center border-t border-border px-6 py-4">
+              <Button 
+                size="lg"
+                onClick={() => setShowChart(true)}
+                className="gap-2 px-8"
+              >
+                <BarChart3 className="h-4 w-4" />
+                相場情報を見る
+              </Button>
+            </div>
           </Card>
 
-          {/* 相場グラフ */}
+          {/* 相場グラフ（ボタン押下後に表示） */}
+          {showChart && (
           <Card>
             <CardHeader>
-              <CardTitle>過去24ヶ月の相場推移</CardTitle>
+              <CardTitle>過去24ヶ月の相場推移（週次平均）</CardTitle>
               <CardDescription>
-                外れ値を除いた平均値、上位20%平均、下位20%平均を表示
+                週次の平均値、上位20%平均、下位20%平均を表示
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={priceHistoryData}>
+                  <LineChart data={weeklyPriceHistoryData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis 
-                      dataKey="month" 
-                      tick={{ fontSize: 12 }}
-                      tickFormatter={(value) => value.split("/")[1] + "月"}
-                      interval={2}
+                      dataKey="week" 
+                      tick={{ fontSize: 11 }}
+                      tickFormatter={(value) => {
+                        const parts = value.split("/")
+                        return `${parts[0].slice(2)}/${parts[1]}`
+                      }}
+                      interval={7}
                     />
                     <YAxis 
                       tick={{ fontSize: 12 }}
@@ -609,31 +624,31 @@ export function MarketTrends() {
                     />
                     <Tooltip 
                       formatter={(value: number) => [`${(value / 10000).toFixed(1)}万円`, ""]}
-                      labelFormatter={(label) => `${label}`}
+                      labelFormatter={(label) => `週: ${label}`}
                     />
                     <Legend />
                     <Line 
-                      type="monotone" 
+                      type="stepAfter" 
                       dataKey="top20" 
                       name="上位20%平均" 
                       stroke="#22c55e" 
-                      strokeWidth={2}
+                      strokeWidth={1.5}
                       dot={false}
                     />
                     <Line 
-                      type="monotone" 
+                      type="stepAfter" 
                       dataKey="average" 
                       name="全体平均" 
                       stroke="#3b82f6" 
-                      strokeWidth={3}
+                      strokeWidth={2.5}
                       dot={false}
                     />
                     <Line 
-                      type="monotone" 
+                      type="stepAfter" 
                       dataKey="bottom20" 
                       name="下位20%平均" 
                       stroke="#f97316" 
-                      strokeWidth={2}
+                      strokeWidth={1.5}
                       dot={false}
                     />
                   </LineChart>
@@ -645,24 +660,25 @@ export function MarketTrends() {
                 <div className="rounded-lg bg-green-500/10 p-4 text-center">
                   <p className="text-sm text-muted-foreground">上位20%平均</p>
                   <p className="text-2xl font-bold text-green-600">
-                    {(priceHistoryData[priceHistoryData.length - 1].top20 / 10000).toFixed(0)}万円
+                    {(weeklyPriceHistoryData[weeklyPriceHistoryData.length - 1].top20 / 10000).toFixed(0)}万円
                   </p>
                 </div>
                 <div className="rounded-lg bg-blue-500/10 p-4 text-center">
                   <p className="text-sm text-muted-foreground">全体平均</p>
                   <p className="text-2xl font-bold text-blue-600">
-                    {(priceHistoryData[priceHistoryData.length - 1].average / 10000).toFixed(0)}万円
+                    {(weeklyPriceHistoryData[weeklyPriceHistoryData.length - 1].average / 10000).toFixed(0)}万円
                   </p>
                 </div>
                 <div className="rounded-lg bg-orange-500/10 p-4 text-center">
                   <p className="text-sm text-muted-foreground">下位20%平均</p>
                   <p className="text-2xl font-bold text-orange-600">
-                    {(priceHistoryData[priceHistoryData.length - 1].bottom20 / 10000).toFixed(0)}万円
+                    {(weeklyPriceHistoryData[weeklyPriceHistoryData.length - 1].bottom20 / 10000).toFixed(0)}万円
                   </p>
                 </div>
               </div>
             </CardContent>
           </Card>
+          )}
         </TabsContent>
 
         {/* リセールランキングタブ */}
