@@ -3,6 +3,8 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Symphony Insight カラーテーマ (primary: 青系) */
+
 @theme {
   --color-background: oklch(0.985 0.001 250);
   --color-foreground: oklch(0.14 0.02 250);
