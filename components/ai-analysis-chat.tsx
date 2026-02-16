@@ -89,7 +89,7 @@ export function AIAnalysisChat() {
       id: "1",
       role: "assistant",
       content:
-        "こんにちは。Symphony Insight AIアシスタントです。市場データや販売分析について、お気軽にご質問ください。",
+        "こんにちは。Symphony Insight データ分析です。市場データや販売分析について、お気軽にご質問ください。",
       timestamp: new Date(),
     },
   ])
@@ -179,7 +179,7 @@ export function AIAnalysisChat() {
         id: "1",
         role: "assistant",
         content:
-          "こんにちは。Symphony Insight AIアシスタントです。市場データや販売分析について、お気軽にご質問ください。",
+          "こんにちは。Symphony Insight データ分析です。市場データや販売分析について、お気軽にご質問ください。",
         timestamp: new Date(),
       },
     ])

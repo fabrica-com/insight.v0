@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useMemo } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
 import {
   Dialog,
   DialogContent,
@@ -42,17 +41,13 @@ import {
   Link2,
   Store,
   MapPin,
-  ExternalLink,
   Loader2,
-  CheckCircle2,
-  Info,
-  Settings,
   Check,
   Search,
+  Info,
 } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ExtensionSetupModal } from "@/components/extension-setup-modal"
 import { PREFECTURES, MUNICIPALITIES, suggestStores } from "@/lib/location-data"
 
 const PIE_COLORS = ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#6b7280"]
@@ -113,36 +108,6 @@ export function CompetitorComparison() {
   const [storeNameQuery, setStoreNameQuery] = useState("")
   const [isStorePopoverOpen, setIsStorePopoverOpen] = useState(false)
   const [registrationMode, setRegistrationMode] = useState<"location" | "url">("location")
-
-  const [isFeatureEnabled, setIsFeatureEnabled] = useState(false)
-  const [isExtensionSetup, setIsExtensionSetup] = useState(false)
-  const [showSetupModal, setShowSetupModal] = useState(false)
-  const [showSettingsDialog, setShowSettingsDialog] = useState(false)
-
-  useEffect(() => {
-    const savedEnabled = localStorage.getItem("competitorAnalysisEnabled")
-    const savedSetup = localStorage.getItem("competitorExtensionSetup")
-    if (savedEnabled === "true" && savedSetup === "true") {
-      setIsFeatureEnabled(true)
-      setIsExtensionSetup(true)
-    }
-  }, [])
-
-  const handleFeatureToggle = (enabled: boolean) => {
-    if (enabled && !isExtensionSetup) {
-      setShowSetupModal(true)
-    } else {
-      setIsFeatureEnabled(enabled)
-      localStorage.setItem("competitorAnalysisEnabled", enabled.toString())
-    }
-  }
-
-  const handleExtensionSetupComplete = () => {
-    setIsExtensionSetup(true)
-    setIsFeatureEnabled(true)
-    localStorage.setItem("competitorExtensionSetup", "true")
-    localStorage.setItem("competitorAnalysisEnabled", "true")
-  }
 
   const filteredMunicipalities = useMemo(() => {
     if (!selectedPrefecture) return []
@@ -1182,67 +1147,6 @@ export function CompetitorComparison() {
     return trendPeriodType === "yearly" ? "year" : "month"
   }
 
-  if (!isFeatureEnabled) {
-    return (
-      <div className="space-y-6">
-        <Card className="border-dashed">
-          <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-chart-4/10 mb-6">
-              <Store className="h-10 w-10 text-primary" />
-            </div>
-            <h2 className="text-2xl font-bold">競合店分析機能</h2>
-            <p className="mt-3 max-w-md text-muted-foreground">
-              競合店のWEBサイトから公開情報を収集・分析し、在庫構成や価格動向を比較できます。
-            </p>
-
-            <div className="mt-8 grid gap-4 sm:grid-cols-3 max-w-2xl">
-              <div className="rounded-lg border border-border bg-muted/30 p-4 text-left">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 mb-3">
-                  <TrendingUp className="h-5 w-5 text-blue-500" />
-                </div>
-                <h3 className="font-medium text-sm">在庫・価格分析</h3>
-                <p className="mt-1 text-xs text-muted-foreground">競合店の在庫構成と価格帯を可視化</p>
-              </div>
-              <div className="rounded-lg border border-border bg-muted/30 p-4 text-left">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10 mb-3">
-                  <BarChart className="h-5 w-5 text-green-500" />
-                </div>
-                <h3 className="font-medium text-sm">販売動向追跡</h3>
-                <p className="mt-1 text-xs text-muted-foreground">掲載・削除から販売傾向を推定</p>
-              </div>
-              <div className="rounded-lg border border-border bg-muted/30 p-4 text-left">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10 mb-3">
-                  <MapPin className="h-5 w-5 text-purple-500" />
-                </div>
-                <h3 className="font-medium text-sm">エリア比較</h3>
-                <p className="mt-1 text-xs text-muted-foreground">商圏内の競合状況を一覧表示</p>
-              </div>
-            </div>
-
-            <div className="mt-8 flex items-center gap-4">
-              <div className="flex items-center gap-3 rounded-full border border-border bg-background px-6 py-3">
-                <span className="text-sm font-medium">機能を有効にする</span>
-                <Switch checked={isFeatureEnabled} onCheckedChange={handleFeatureToggle} />
-              </div>
-            </div>
-
-            <p className="mt-6 text-xs text-muted-foreground max-w-md">
-              この機能を利用するには、ブラウザ拡張機能のインストールが必要です。
-              <br />
-              拡張機能は公開情報のみを低頻度で収集し、サイトへの負荷を最小限に抑えます。
-            </p>
-          </div>
-        </Card>
-
-        <ExtensionSetupModal
-          open={showSetupModal}
-          onOpenChange={setShowSetupModal}
-          onComplete={handleExtensionSetupComplete}
-        />
-      </div>
-    )
-  }
-
   return (
     <div className="flex-1 space-y-6 p-8 overflow-y-auto bg-background">
       {/* Header section with add competitor dialog */}
@@ -1255,9 +1159,6 @@ export function CompetitorComparison() {
           <p className="text-sm text-muted-foreground mt-0.5">比較したい競合店を選択してください（最大6店舗）</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => setShowSettingsDialog(true)} title="設定">
-            <Settings className="h-4 w-4" />
-          </Button>
           <Dialog
             open={isAddDialogOpen}
             onOpenChange={(open) => {
@@ -1568,18 +1469,11 @@ export function CompetitorComparison() {
         </div>
       )}
 
-      <Alert className="border-red-200 bg-red-50/50 dark:bg-red-950/20 dark:border-red-900">
-        <Info className="h-4 w-4 text-red-600 dark:text-red-400" />
-        <AlertDescription className="text-xs text-red-800 dark:text-red-300">
-          <strong className="text-red-600 dark:text-red-400">注記：</strong>
-          表示される分析データは、お客様のブラウザ機能を利用して、お客様の指定したエリア・条件の公開情報を収集・解析したものです。
-          <br />
-          ※情報の取得は、参照先サイトへの負荷を考慮し、通常閲覧の範囲内（低頻度）で行われます。
-          <br />
-          ※取得したデータは貴社内での検討資料としてのみご利用ください。
-          <span className="ml-2 text-red-600 dark:text-red-400 underline cursor-pointer hover:text-red-700">
-            [詳しい利用条件はこちら &gt;]
-          </span>
+      <Alert className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-900">
+        <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+        <AlertDescription className="text-xs text-amber-800 dark:text-amber-300">
+          <strong className="text-amber-600 dark:text-amber-400">注記：</strong>
+          表示される分析データは、お客様の指定したエリア・条件の公開情報を基にしたものです。取得したデータは貴社内での検討資料としてのみご利用ください。
         </AlertDescription>
       </Alert>
 
@@ -2295,84 +2189,6 @@ export function CompetitorComparison() {
         </>
       )}
 
-      {/* Settings Dialog */}
-      <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>競合店分析の設定</DialogTitle>
-            <DialogDescription>機能のオン/オフや拡張機能の設定を管理します。</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-6 py-4">
-            <div className="flex items-center justify-between rounded-lg border border-border p-4">
-              <div className="space-y-1">
-                <Label htmlFor="feature-toggle" className="text-base font-medium">
-                  競合店分析機能
-                </Label>
-                <p className="text-sm text-muted-foreground">機能をオフにすると、データ収集が停止します</p>
-              </div>
-              <Switch
-                id="feature-toggle"
-                checked={isFeatureEnabled}
-                onCheckedChange={(checked) => {
-                  setIsFeatureEnabled(checked)
-                  localStorage.setItem("competitorAnalysisEnabled", checked.toString())
-                  if (!checked) {
-                    setShowSettingsDialog(false)
-                  }
-                }}
-              />
-            </div>
-
-            <div className="rounded-lg border border-border p-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <Label className="text-base font-medium">ブラウザ拡張機能</Label>
-                  <p className="text-sm text-muted-foreground">データ収集用の拡張機能の状態</p>
-                </div>
-                <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
-                  <CheckCircle2 className="mr-1 h-3 w-3" />
-                  接続済み
-                </Badge>
-              </div>
-              <div className="mt-4 flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setShowSetupModal(true)}>
-                  再設定
-                </Button>
-                <Button variant="outline" size="sm">
-                  <ExternalLink className="mr-2 h-3 w-3" />
-                  拡張機能を開く
-                </Button>
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-border p-4">
-              <Label className="text-base font-medium">データ収集頻度</Label>
-              <p className="mt-1 text-sm text-muted-foreground">現在の設定: 1日1回（推奨）</p>
-              <Select defaultValue="daily">
-                <SelectTrigger className="mt-3">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="daily">1日1回（推奨）</SelectItem>
-                  <SelectItem value="twice">1日2回</SelectItem>
-                  <SelectItem value="weekly">週1回</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowSettingsDialog(false)}>
-              閉じる
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <ExtensionSetupModal
-        open={showSetupModal}
-        onOpenChange={setShowSetupModal}
-        onComplete={handleExtensionSetupComplete}
-      />
     </div>
   )
 }

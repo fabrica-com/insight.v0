@@ -149,22 +149,7 @@ export function StoreRankings() {
   }
 
   return (
-    <div className="flex-1 space-y-6 p-8 overflow-y-auto bg-background">
-      {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-chart-4/10 to-chart-1/10 p-8 border border-primary/20">
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 shadow-lg shadow-orange-500/30">
-              <Trophy className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">店舗ランキング</h1>
-              <p className="text-sm text-muted-foreground mt-1">各種指標による店舗パフォーマンスランキング</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <div className="flex-1 space-y-6 overflow-y-auto">
       <Alert className="border-red-200 bg-red-50/50 dark:bg-red-950/20 dark:border-red-900">
         <Info className="h-4 w-4 text-red-600 dark:text-red-400" />
         <AlertDescription className="text-xs text-red-800 dark:text-red-300">
