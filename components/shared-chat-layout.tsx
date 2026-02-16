@@ -230,7 +230,7 @@ export function SharedChatLayout({
   return (
     <div className="flex h-full min-h-0 gap-4">
       <div
-        className={cn("flex min-h-0 flex-col gap-3 transition-all duration-300", showHistory ? "w-72" : "w-0 overflow-hidden")}
+        className={cn("flex min-h-0 flex-col gap-3 transition-all duration-300", showHistory ? "hidden md:flex w-64 lg:w-72" : "w-0 overflow-hidden")}
       >
         {showHistory && (
           <Card className="flex h-full min-h-0 flex-col border-border/50">
@@ -326,7 +326,7 @@ export function SharedChatLayout({
                 )}
                 <div
                   className={cn(
-                    "max-w-[80%] rounded-xl px-4 py-3 whitespace-pre-wrap text-sm leading-relaxed",
+                    "max-w-[85%] lg:max-w-[75%] rounded-xl px-4 py-3 whitespace-pre-wrap text-sm leading-relaxed",
                     message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted/70",
                   )}
                 >
@@ -382,7 +382,7 @@ export function SharedChatLayout({
           {messages.length === 1 && (
             <div className="shrink-0 border-t border-border/50 bg-muted/30 p-4">
               <p className="text-xs font-medium mb-3 text-muted-foreground">{suggestedLabel}</p>
-              <div className="grid gap-2 sm:grid-cols-3">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {suggestedItems.map((item, index) => (
                   <button
                     key={index}

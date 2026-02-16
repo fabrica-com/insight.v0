@@ -25,7 +25,7 @@ function ChatPageContent() {
         <div className="flex flex-1 flex-col overflow-hidden">
           <DashboardHeader />
           <main className="flex-1 overflow-y-auto p-6">
-            <div className="mx-auto max-w-[800px] space-y-6">
+            <div className="mx-auto w-full max-w-4xl space-y-6">
               <div className="border-b border-border pb-6">
                 <h1 className="text-2xl font-bold tracking-tight">AIチャット</h1>
                 <p className="text-muted-foreground mt-0.5 text-sm">データ分析または経営コンサルタントを選択してください</p>
@@ -79,9 +79,9 @@ function ChatPageContent() {
       <DashboardSidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <DashboardHeader />
-        <main className="flex-1 flex flex-col overflow-hidden p-6">
-          <div className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 flex-col gap-6">
-            <div className="flex shrink-0 items-center gap-4 border-b border-border pb-6">
+        <main className="flex-1 flex flex-col overflow-hidden p-3 md:p-4 lg:p-6">
+          <div className="flex min-h-0 w-full flex-1 flex-col gap-3 md:gap-4 lg:gap-6">
+            <div className="flex shrink-0 items-center gap-3 md:gap-4 border-b border-border pb-3 md:pb-4 lg:pb-6">
               <Link href="/chat">
                 <Button variant="ghost" size="icon" className="h-9 w-9">
                   <ArrowLeft className="h-4 w-4" />
