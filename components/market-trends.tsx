@@ -423,7 +423,7 @@ export function MarketTrends() {
     ? availableVehicles.find(m => m.id === selectedModel)?.models || []
     : []
 
-  // 選択されたモデルのグレードリスト
+  // 選択されたモデルのグレードリ���ト
   const availableGrades = selectedModelType
     ? availableModelTypes.find(m => m.id === selectedModelType)?.grades || []
     : []
@@ -647,7 +647,7 @@ export function MarketTrends() {
           </Card>
 
           {/* 相場グラフ（ボタン押下後に表示） */}
-          {showChart && (
+          {showChart && (<>
           <Card>
             <CardHeader>
               <CardTitle>過去24ヶ月の相場推移（週次平均）</CardTitle>
@@ -829,7 +829,7 @@ export function MarketTrends() {
               </div>
             </CardContent>
           </Card>
-          )}
+          </>)}
         </TabsContent>
 
         {/* リセールランキングタブ */}
