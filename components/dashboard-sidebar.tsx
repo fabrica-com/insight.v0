@@ -11,11 +11,10 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   Zap,
   Trophy,
   BarChart3,
-  Flame,
+  MessageSquare,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -28,11 +27,10 @@ const navigation = [
   { name: "価格最適化", icon: DollarSign, href: "/pricing" },
   { name: "車種別相場", icon: BarChart3, href: "/market-trends" },
   { name: "売れ筋分析", icon: TrendingUp, href: "/trending" },
-  { name: "データ分析", icon: Sparkles, href: "/regional" },
+  { name: "AIチャット", icon: MessageSquare, href: "/chat" },
   { name: "買取・仕入推奨価格", icon: ShoppingCart, href: "/purchase-pricing" },
   { name: "レポート", icon: FileText, href: "/reports" },
   { name: "ランキング", icon: Trophy, href: "/rankings" },
-  { name: "経営コンサルタント", icon: Flame, href: "/consultant" },
 ]
 
 export function DashboardSidebar({ defaultCollapsed = false }: { defaultCollapsed?: boolean }) {
