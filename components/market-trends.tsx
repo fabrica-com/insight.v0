@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -154,7 +154,7 @@ const marketSummaryStats = {
   depreciation6m: Math.round(((currentAvg - avg6mAgo) / avg6mAgo) * 1000) / 10,
 }
 
-// グレード別の下落率データを生成（weeklyPriceHistoryDataの全体トレンドをベースに、グレード間で差異をつける）
+// グレード別の下落率データを生成（weeklyPriceHistoryDataの全体トレ��ドをベースに、グレード間で差異をつける）
 const gradeColors = ["#3b82f6", "#ef4444", "#22c55e", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316"]
 const generateGradeDepreciationData = (grades: string[], baseData: typeof weeklyPriceHistoryData) => {
   const baseStartPrice = baseData[0].average
@@ -440,6 +440,7 @@ export function MarketTrends() {
   const [selectedMileages, setSelectedMileages] = useState<string[]>(mileageOptions.map(o => o.value))
   const [allMileagesSelected, setAllMileagesSelected] = useState(true)
   const [showChart, setShowChart] = useState(false)
+  const [hiddenComparisonLabels, setHiddenComparisonLabels] = useState<Set<string>>(new Set())
 
   // ランキングフィルター
   const [rankingCategory, setRankingCategory] = useState<string>("all")
@@ -477,6 +478,11 @@ export function MarketTrends() {
     }
     return "default" as const
   }, [selectedMaker, selectedModelType, availableGrades])
+
+  // モード変更時に非表示ラベルをリセット
+  useEffect(() => {
+    setHiddenComparisonLabels(new Set())
+  }, [comparisonChartMode, selectedMaker, availableGrades])
 
   const { comparisonData, comparisonLabels, comparisonTitle, comparisonDesc } = useMemo(() => {
     if (comparisonChartMode === "grade") {
@@ -883,7 +889,29 @@ export function MarketTrends() {
                       formatter={(value: number, name: string) => [`${value.toFixed(1)}%`, name]}
                       labelFormatter={(label) => `週: ${label}`}
                     />
-                    <Legend />
+                    <Legend 
+                      onClick={(e) => {
+                        const label = e.dataKey as string
+                        setHiddenComparisonLabels(prev => {
+                          const next = new Set(prev)
+                          if (next.has(label)) {
+                            next.delete(label)
+                          } else {
+                            next.add(label)
+                          }
+                          return next
+                        })
+                      }}
+                      formatter={(value) => (
+                        <span style={{ 
+                          color: hiddenComparisonLabels.has(value) ? "#ccc" : undefined,
+                          textDecoration: hiddenComparisonLabels.has(value) ? "line-through" : undefined,
+                          cursor: "pointer",
+                        }}>
+                          {value}
+                        </span>
+                      )}
+                    />
                     {comparisonLabels.map((label, idx) => (
                       <Line 
                         key={label}
@@ -893,6 +921,7 @@ export function MarketTrends() {
                         stroke={gradeColors[idx % gradeColors.length]} 
                         strokeWidth={2}
                         dot={false}
+                        hide={hiddenComparisonLabels.has(label)}
                       />
                     ))}
                   </LineChart>
