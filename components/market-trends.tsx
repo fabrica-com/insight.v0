@@ -36,30 +36,66 @@ const manufacturers = {
   ],
 }
 
-const vehicleModels: Record<string, { id: string; name: string; variants: string[] }[]> = {
+const vehicleModels: Record<string, { id: string; name: string; models: { id: string; name: string; grades: string[] }[] }[]> = {
   toyota: [
-    { id: "prius", name: "プリウス", variants: ["S", "A", "Aプレミアム", "G", "Z"] },
-    { id: "alphard", name: "アルファード", variants: ["S", "SC", "Executive Lounge", "Z", "Z Premium"] },
-    { id: "harrier", name: "ハリアー", variants: ["S", "G", "Z", "Z Leather Package"] },
-    { id: "landcruiser", name: "ランドクルーザー", variants: ["GX", "AX", "VX", "ZX", "GR SPORT"] },
-    { id: "crown", name: "クラウン", variants: ["Crossover RS", "Crossover G", "Sport RS", "Sedan"] },
+    { id: "prius", name: "プリウス", models: [
+      { id: "prius-60", name: "60系 (2023-)", grades: ["S", "A", "Aプレミアム", "G", "Z"] },
+      { id: "prius-50", name: "50系 (2015-2023)", grades: ["S", "A", "Aプレミアム", "E"] },
+    ]},
+    { id: "alphard", name: "アルファード", models: [
+      { id: "alphard-40", name: "40系 (2023-)", grades: ["Z", "Z Premium", "Executive Lounge"] },
+      { id: "alphard-30", name: "30系 (2015-2023)", grades: ["S", "SC", "Executive Lounge", "S Cパッケージ"] },
+    ]},
+    { id: "harrier", name: "ハリアー", models: [
+      { id: "harrier-80", name: "80系 (2020-)", grades: ["S", "G", "Z", "Z Leather Package"] },
+    ]},
+    { id: "landcruiser", name: "ランドクルーザー", models: [
+      { id: "lc-300", name: "300系 (2021-)", grades: ["GX", "AX", "VX", "ZX", "GR SPORT"] },
+      { id: "lc-250", name: "250系 (2024-)", grades: ["GX", "VX", "ZX"] },
+    ]},
+    { id: "crown", name: "クラウン", models: [
+      { id: "crown-16", name: "16代目 (2022-)", grades: ["Crossover RS", "Crossover G", "Sport RS", "Sedan"] },
+    ]},
   ],
   honda: [
-    { id: "nbox", name: "N-BOX", variants: ["G", "L", "EX", "Custom L", "Custom EX"] },
-    { id: "freed", name: "フリード", variants: ["G", "CROSSTAR", "Modulo X"] },
-    { id: "vezel", name: "ヴェゼル", variants: ["G", "e:HEV X", "e:HEV Z", "e:HEV PLaY"] },
-    { id: "stepwgn", name: "ステップワゴン", variants: ["AIR", "SPADA", "SPADA Premium Line"] },
+    { id: "nbox", name: "N-BOX", models: [
+      { id: "nbox-3", name: "3代目 (2023-)", grades: ["G", "L", "EX", "Custom L", "Custom EX"] },
+      { id: "nbox-2", name: "2代目 (2017-2023)", grades: ["G", "L", "EX", "Custom G", "Custom L"] },
+    ]},
+    { id: "freed", name: "フリード", models: [
+      { id: "freed-3", name: "3代目 (2024-)", grades: ["G", "CROSSTAR", "Modulo X"] },
+    ]},
+    { id: "vezel", name: "ヴェゼル", models: [
+      { id: "vezel-2", name: "2代目 (2021-)", grades: ["G", "e:HEV X", "e:HEV Z", "e:HEV PLaY"] },
+    ]},
+    { id: "stepwgn", name: "ステップワゴン", models: [
+      { id: "stepwgn-6", name: "6代目 (2022-)", grades: ["AIR", "SPADA", "SPADA Premium Line"] },
+    ]},
   ],
   bmw: [
-    { id: "3series", name: "3シリーズ", variants: ["318i", "320i", "330i", "M340i", "320d"] },
-    { id: "5series", name: "5シリーズ", variants: ["520i", "530i", "540i", "M550i"] },
-    { id: "x3", name: "X3", variants: ["xDrive20i", "xDrive30i", "M40i"] },
-    { id: "x5", name: "X5", variants: ["xDrive35d", "xDrive45e", "M50i"] },
+    { id: "3series", name: "3シリーズ", models: [
+      { id: "3series-g20", name: "G20/G21 (2019-)", grades: ["318i", "320i", "330i", "M340i", "320d"] },
+    ]},
+    { id: "5series", name: "5シリーズ", models: [
+      { id: "5series-g60", name: "G60 (2023-)", grades: ["520i", "530i", "540i", "M550i"] },
+    ]},
+    { id: "x3", name: "X3", models: [
+      { id: "x3-g45", name: "G45 (2024-)", grades: ["xDrive20i", "xDrive30i", "M40i"] },
+    ]},
+    { id: "x5", name: "X5", models: [
+      { id: "x5-g05", name: "G05 (2019-)", grades: ["xDrive35d", "xDrive45e", "M50i"] },
+    ]},
   ],
   mercedes: [
-    { id: "cclass", name: "Cクラス", variants: ["C180", "C200", "C220d", "C300", "AMG C43"] },
-    { id: "eclass", name: "Eクラス", variants: ["E200", "E300", "E350", "AMG E53"] },
-    { id: "glc", name: "GLC", variants: ["GLC200", "GLC220d", "GLC300", "AMG GLC43"] },
+    { id: "cclass", name: "Cクラス", models: [
+      { id: "cclass-w206", name: "W206 (2021-)", grades: ["C180", "C200", "C220d", "C300", "AMG C43"] },
+    ]},
+    { id: "eclass", name: "Eクラス", models: [
+      { id: "eclass-w214", name: "W214 (2023-)", grades: ["E200", "E300", "E350", "AMG E53"] },
+    ]},
+    { id: "glc", name: "GLC", models: [
+      { id: "glc-x254", name: "X254 (2022-)", grades: ["GLC200", "GLC220d", "GLC300", "AMG GLC43"] },
+    ]},
   ],
 }
 
@@ -226,7 +262,7 @@ const generateRankingData = () => {
     { maker: "ホンダ", carName: "シビック タイプR", model: "FL5型", category: "domestic", type: "スポーツ" },
     { maker: "日産", carName: "フェアレディZ", model: "RZ34型", category: "domestic", type: "スポーツ" },
     { maker: "スズキ", carName: "アルト", model: "HA37S型", category: "kei", type: "軽自動車" },
-    { maker: "ダイハツ", carName: "ミライース", model: "LA350S型", category: "kei", type: "軽自動車" },
+    { maker: "ダイハ���", carName: "ミライース", model: "LA350S型", category: "kei", type: "軽自動車" },
     { maker: "ホンダ", carName: "N-WGN", model: "JH3/4型", category: "kei", type: "軽自動車" },
     { maker: "日産", carName: "デイズ", model: "B40W型", category: "kei", type: "軽自動車" },
     { maker: "三菱", carName: "eKクロス", model: "B30W型", category: "kei", type: "軽自動車" },
@@ -320,6 +356,7 @@ export function MarketTrends() {
   const [activeTab, setActiveTab] = useState<"trends" | "ranking">("trends")
   const [selectedMaker, setSelectedMaker] = useState<string>("")
   const [selectedModel, setSelectedModel] = useState<string>("")
+  const [selectedModelType, setSelectedModelType] = useState<string>("")
   const [selectedVariant, setSelectedVariant] = useState<string>("")
   const [selectedMileages, setSelectedMileages] = useState<string[]>(mileageOptions.map(o => o.value))
   const [allMileagesSelected, setAllMileagesSelected] = useState(true)
@@ -336,11 +373,16 @@ export function MarketTrends() {
   const allMakers = [...manufacturers.domestic, ...manufacturers.imported]
 
   // 選択されたメーカーの車種リスト
-  const availableModels = selectedMaker ? vehicleModels[selectedMaker] || [] : []
+  const availableVehicles = selectedMaker ? vehicleModels[selectedMaker] || [] : []
 
-  // 選択された車種のグレードリスト
-  const availableVariants = selectedModel
-    ? availableModels.find(m => m.id === selectedModel)?.variants || []
+  // 選択された車種のモデルリスト
+  const availableModelTypes = selectedModel
+    ? availableVehicles.find(m => m.id === selectedModel)?.models || []
+    : []
+
+  // 選択されたモデルのグレードリスト
+  const availableGrades = selectedModelType
+    ? availableModelTypes.find(m => m.id === selectedModelType)?.grades || []
     : []
 
   // 走行距離フィルターの処理
@@ -414,13 +456,14 @@ export function MarketTrends() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {/* メーカー選択 */}
                 <div className="space-y-2">
                   <Label>メーカー</Label>
                   <Select value={selectedMaker} onValueChange={(v) => {
                     setSelectedMaker(v)
                     setSelectedModel("")
+                    setSelectedModelType("")
                     setSelectedVariant("")
                   }}>
                     <SelectTrigger>
@@ -447,6 +490,7 @@ export function MarketTrends() {
                     value={selectedModel} 
                     onValueChange={(v) => {
                       setSelectedModel(v)
+                      setSelectedModelType("")
                       setSelectedVariant("")
                     }}
                     disabled={!selectedMaker || selectedMaker === "all"}
@@ -456,7 +500,30 @@ export function MarketTrends() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">すべて</SelectItem>
-                      {availableModels.map(m => (
+                      {availableVehicles.map(m => (
+                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* モデル選択 */}
+                <div className="space-y-2">
+                  <Label>モデル</Label>
+                  <Select 
+                    value={selectedModelType} 
+                    onValueChange={(v) => {
+                      setSelectedModelType(v)
+                      setSelectedVariant("")
+                    }}
+                    disabled={!selectedModel || selectedModel === "all"}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="モデルを選択" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">すべて</SelectItem>
+                      {availableModelTypes.map(m => (
                         <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -469,14 +536,14 @@ export function MarketTrends() {
                   <Select 
                     value={selectedVariant} 
                     onValueChange={setSelectedVariant}
-                    disabled={!selectedModel || selectedModel === "all"}
+                    disabled={!selectedModelType || selectedModelType === "all"}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="グレードを選択" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">すべて</SelectItem>
-                      {availableVariants.map(v => (
+                      {availableGrades.map(v => (
                         <SelectItem key={v} value={v}>{v}</SelectItem>
                       ))}
                     </SelectContent>
