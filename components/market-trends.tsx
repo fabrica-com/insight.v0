@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from "recharts"
-import { TrendingUp, TrendingDown, Minus, Filter, BarChart3, X, ChevronRight, Calendar, Car, Gauge } from "lucide-react"
+import { TrendingUp, TrendingDown, Minus, Filter, BarChart3, X, ChevronRight, Calendar, Car, Gauge, Clock, ArrowDownRight } from "lucide-react"
 import { Label } from "@/components/ui/label"
 
 // メーカーと車種のデータ
@@ -136,6 +136,48 @@ const generateWeeklyPriceHistory = (basePrice: number, volatility: number = 0.02
 }
 
 const weeklyPriceHistoryData = generateWeeklyPriceHistory(3500000)
+
+// 相場サマリー統計データ
+const marketSummaryStats = {
+  avgInventoryDays: 42, // 平均在庫期間（日）
+  newCarPrice: 5200000, // 新車価格
+  currentAvgPrice: weeklyPriceHistoryData[weeklyPriceHistoryData.length - 1].average,
+  depreciationFromNew: -32.7, // 新車からの下落率(%)
+  depreciation2y: -18.4, // 過去2年の下落率(%)
+  depreciation1y: -9.2, // 過去1年の下落率(%)
+  depreciation6m: -3.8, // 過去半年の下落率(%)
+}
+
+// グレード別の下落率データを生成（過去2年前を起点、週次平均値のみ）
+const gradeColors = ["#3b82f6", "#ef4444", "#22c55e", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316"]
+const generateGradeDepreciationData = (grades: string[]) => {
+  const totalWeeks = 104
+  const data = []
+  // グレードごとの初期値と変動率
+  const gradeParams = grades.map((_, idx) => ({
+    rate: 0, // 0%から開始
+    volatility: 0.003 + idx * 0.001,
+    trend: -(0.1 + idx * 0.03) / totalWeeks, // グレードごとに異なる下落トレンド
+  }))
+
+  for (let i = 0; i < totalWeeks; i++) {
+    const date = new Date(Date.now() - (totalWeeks - 1 - i) * 7 * 24 * 60 * 60 * 1000)
+    const weekStr = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`
+    const point: Record<string, string | number> = { week: weekStr }
+
+    grades.forEach((grade, idx) => {
+      const noise = (Math.random() - 0.5) * gradeParams[idx].volatility
+      gradeParams[idx].rate += gradeParams[idx].trend + noise
+      point[grade] = Math.round(gradeParams[idx].rate * 1000) / 10 // %表示
+    })
+    data.push(point)
+  }
+  return data
+}
+
+// デフォルトのグレード別データ（アルファード30系のグレードをデフォルト表示用）
+const defaultGrades = ["S", "SC", "Executive Lounge", "S Cパッケージ"]
+const defaultGradeDepreciationData = generateGradeDepreciationData(defaultGrades)
 
 // 変動率に連動した価格履歴を生成（開始価格から終了価格への推移）
 const generateLinkedPriceHistory = (startPrice: number, endPrice: number, months: number) => {
@@ -385,6 +427,16 @@ export function MarketTrends() {
   const availableGrades = selectedModelType
     ? availableModelTypes.find(m => m.id === selectedModelType)?.grades || []
     : []
+
+  // グレード別下落率データ（選択されたモデルに連動）
+  const gradeDepreciationData = useMemo(() => {
+    if (availableGrades.length > 0) {
+      return generateGradeDepreciationData(availableGrades)
+    }
+    return defaultGradeDepreciationData
+  }, [availableGrades])
+
+  const displayGrades = availableGrades.length > 0 ? availableGrades : defaultGrades
 
   // 走行距離フィルターの処理
   const handleAllMileagesChange = (checked: boolean) => {
@@ -678,6 +730,105 @@ export function MarketTrends() {
               </div>
             </CardContent>
           </Card>
+
+          {/* 相場推移データ */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                相場推移データ
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+                <div className="rounded-lg border border-border p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <p className="text-xs">平均在庫期間</p>
+                  </div>
+                  <p className="mt-2 text-2xl font-bold">{marketSummaryStats.avgInventoryDays}<span className="text-sm font-normal text-muted-foreground ml-0.5">日</span></p>
+                </div>
+                <div className="rounded-lg border border-border p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <ArrowDownRight className="h-4 w-4" />
+                    <p className="text-xs">新車からの下落率</p>
+                  </div>
+                  <p className="mt-2 text-2xl font-bold text-red-600">{marketSummaryStats.depreciationFromNew}%</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">新車価格 {(marketSummaryStats.newCarPrice / 10000).toFixed(0)}万円</p>
+                </div>
+                <div className="rounded-lg border border-border p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <TrendingDown className="h-4 w-4" />
+                    <p className="text-xs">過去2年の下落率</p>
+                  </div>
+                  <p className="mt-2 text-2xl font-bold text-red-600">{marketSummaryStats.depreciation2y}%</p>
+                </div>
+                <div className="rounded-lg border border-border p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <TrendingDown className="h-4 w-4" />
+                    <p className="text-xs">過去1年の下落率</p>
+                  </div>
+                  <p className="mt-2 text-2xl font-bold text-red-600">{marketSummaryStats.depreciation1y}%</p>
+                </div>
+                <div className="rounded-lg border border-border p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <TrendingDown className="h-4 w-4" />
+                    <p className="text-xs">過去半年の下落率</p>
+                  </div>
+                  <p className="mt-2 text-2xl font-bold text-red-600">{marketSummaryStats.depreciation6m}%</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* グレード別下落率グラフ */}
+          <Card>
+            <CardHeader>
+              <CardTitle>グレード別 下落率推移（過去2年）</CardTitle>
+              <CardDescription>
+                2年前を起点(0%)としたグレードごとの平均価格下落率
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[400px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={gradeDepreciationData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="week" 
+                      tick={{ fontSize: 11 }}
+                      tickFormatter={(value) => {
+                        const parts = value.split("/")
+                        return `${parts[0].slice(2)}/${parts[1]}`
+                      }}
+                      interval={7}
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => `${value}%`}
+                      domain={["dataMin - 2", "dataMax + 2"]}
+                    />
+                    <Tooltip 
+                      formatter={(value: number, name: string) => [`${value.toFixed(1)}%`, name]}
+                      labelFormatter={(label) => `週: ${label}`}
+                    />
+                    <Legend />
+                    {displayGrades.map((grade, idx) => (
+                      <Line 
+                        key={grade}
+                        type="stepAfter" 
+                        dataKey={grade} 
+                        name={grade} 
+                        stroke={gradeColors[idx % gradeColors.length]} 
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
           )}
         </TabsContent>
 
@@ -892,7 +1043,7 @@ export function MarketTrends() {
                                 domain={["dataMin - 200000", "dataMax + 200000"]}
                               />
                               <Tooltip 
-                                formatter={(value: number) => [`${(value / 10000).toFixed(1)}万円`, ""]}
+                                formatter={(value: number) => [`${(value / 10000).toFixed(1)}��円`, ""]}
                                 labelFormatter={(label) => `${label}`}
                               />
                               <Legend />
