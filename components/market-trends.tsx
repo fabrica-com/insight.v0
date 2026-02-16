@@ -9,8 +9,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from "recharts"
-import { TrendingUp, TrendingDown, Minus, Filter, BarChart3, X, ChevronRight, Calendar, Car, Gauge, Clock, ArrowDownRight } from "lucide-react"
+import { TrendingUp, TrendingDown, Minus, Filter, BarChart3, X, ChevronRight, Calendar, Car, Gauge, Clock, ArrowDownRight, ExternalLink, Search, Loader2 } from "lucide-react"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 
 // メーカーと車種のデータ
 const manufacturers = {
@@ -432,7 +433,12 @@ const generateRankingData = () => {
 const rankingData = generateRankingData()
 
 export function MarketTrends() {
-  const [activeTab, setActiveTab] = useState<"trends" | "ranking">("trends")
+  const [activeTab, setActiveTab] = useState<"trends" | "ranking" | "individual">("trends")
+  const [vehicleUrl, setVehicleUrl] = useState("")
+  const [iframeUrl, setIframeUrl] = useState("")
+  const [individualPriceData, setIndividualPriceData] = useState<{week: string; price: number}[]>([])
+  const [individualLoading, setIndividualLoading] = useState(false)
+  const [vehicleTitle, setVehicleTitle] = useState("")
   const [selectedMaker, setSelectedMaker] = useState<string>("")
   const [selectedModel, setSelectedModel] = useState<string>("")
   const [selectedModelType, setSelectedModelType] = useState<string>("")
@@ -517,6 +523,46 @@ export function MarketTrends() {
   }, [comparisonChartMode, selectedMaker, selectedModelType])
 
   // 走行距離フィルターの処理
+  // 個別車両URL処理
+  const isValidVehicleUrl = (url: string) => {
+    return url.includes("carsensor.net") || url.includes("kurumaerabi.com")
+  }
+
+  const handleVehicleUrlSubmit = () => {
+    if (!vehicleUrl || !isValidVehicleUrl(vehicleUrl)) return
+
+    setIndividualLoading(true)
+    setIframeUrl(vehicleUrl)
+
+    // URLからサイト名を判定してタイトル生成
+    const siteName = vehicleUrl.includes("carsensor.net") ? "カーセンサー" : "車選びドットコム"
+    setVehicleTitle(`${siteName}掲載車両`)
+
+    // 個別車両の価格推移データ生成（シミュレーション）
+    const basePrice = 2000000 + Math.random() * 5000000
+    const weeks = 52 // 1年分
+    const priceData: {week: string; price: number}[] = []
+    let currentPrice = basePrice
+
+    for (let i = weeks - 1; i >= 0; i--) {
+      const date = new Date(Date.now() - i * 7 * 24 * 60 * 60 * 1000)
+      const weekStr = `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`
+
+      // 段階的に価格が下がるステップパターン（カーセンサーのような値下げ表現）
+      if (Math.random() < 0.08) {
+        // 約8%の確率で値下げ（週次）
+        currentPrice = currentPrice * (0.95 + Math.random() * 0.03)
+      }
+      priceData.push({
+        week: weekStr,
+        price: Math.round(currentPrice),
+      })
+    }
+
+    setIndividualPriceData(priceData)
+    setTimeout(() => setIndividualLoading(false), 1000)
+  }
+
   const handleAllMileagesChange = (checked: boolean) => {
     setAllMileagesSelected(checked)
     if (checked) {
@@ -564,8 +610,8 @@ export function MarketTrends() {
       </div>
 
       {/* タブ */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "trends" | "ranking")}>
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "trends" | "ranking" | "individual")}>
+        <TabsList className="grid w-full max-w-2xl grid-cols-3">
           <TabsTrigger value="trends" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             相場推移
@@ -573,6 +619,10 @@ export function MarketTrends() {
           <TabsTrigger value="ranking" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             リセールランキング
+          </TabsTrigger>
+          <TabsTrigger value="individual" className="flex items-center gap-2">
+            <Car className="h-4 w-4" />
+            個別車両価格推移
           </TabsTrigger>
         </TabsList>
 
@@ -1254,6 +1304,207 @@ export function MarketTrends() {
               )}
             </DialogContent>
           </Dialog>
+        </TabsContent>
+
+        {/* 個別車両価格推移タブ */}
+        <TabsContent value="individual" className="space-y-6">
+          {/* URL入力 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Search className="h-5 w-5" />
+                車両情報を取得
+              </CardTitle>
+              <CardDescription>
+                カーセンサーまたは車選びドットコムの車両ページURLを入力してください
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-3">
+                <div className="relative flex-1">
+                  <Input
+                    type="url"
+                    placeholder="https://www.carsensor.net/... または https://www.kurumaerabi.com/..."
+                    value={vehicleUrl}
+                    onChange={(e) => setVehicleUrl(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleVehicleUrlSubmit()
+                    }}
+                    className="pr-10"
+                  />
+                  {vehicleUrl && !isValidVehicleUrl(vehicleUrl) && (
+                    <p className="mt-1.5 text-xs text-destructive">
+                      カーセンサー(carsensor.net)または車選びドットコム(kurumaerabi.com)のURLを入力してください
+                    </p>
+                  )}
+                </div>
+                <Button 
+                  onClick={handleVehicleUrlSubmit}
+                  disabled={!vehicleUrl || !isValidVehicleUrl(vehicleUrl) || individualLoading}
+                  className="gap-2 shrink-0"
+                >
+                  {individualLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <ExternalLink className="h-4 w-4" />
+                  )}
+                  表示
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 価格推移グラフ＋iframe表示 */}
+          {iframeUrl && (
+            <>
+              {/* 価格推移チャート */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5" />
+                        {vehicleTitle} - 価格推移
+                      </CardTitle>
+                      <CardDescription className="mt-1">
+                        過去1年間の当該車両の掲載価格推移（週次）
+                      </CardDescription>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold">
+                        {(individualPriceData[individualPriceData.length - 1]?.price / 10000).toFixed(1)}万円
+                      </p>
+                      <p className="text-xs text-muted-foreground">現在の掲載価格</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[250px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={individualPriceData}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis 
+                          dataKey="week" 
+                          tick={{ fontSize: 11 }}
+                          interval={3}
+                        />
+                        <YAxis 
+                          tick={{ fontSize: 12 }}
+                          tickFormatter={(value) => `${(value / 10000).toFixed(0)}万`}
+                          domain={["dataMin - 100000", "dataMax + 100000"]}
+                        />
+                        <Tooltip 
+                          formatter={(value: number) => [`${(value / 10000).toFixed(1)}万円`, "掲載価格"]}
+                          labelFormatter={(label) => `${label}`}
+                        />
+                        <Line 
+                          type="stepAfter" 
+                          dataKey="price" 
+                          name="掲載価格" 
+                          stroke="#3b82f6" 
+                          strokeWidth={2.5}
+                          dot={false}
+                          fill="#3b82f6"
+                          fillOpacity={0.05}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  {/* 価格サマリー */}
+                  <div className="mt-4 grid grid-cols-4 gap-3">
+                    <div className="rounded-lg border border-border p-3 text-center">
+                      <p className="text-xs text-muted-foreground">初回掲載価格</p>
+                      <p className="text-lg font-bold">
+                        {(individualPriceData[0]?.price / 10000).toFixed(1)}万円
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border p-3 text-center">
+                      <p className="text-xs text-muted-foreground">現在価格</p>
+                      <p className="text-lg font-bold text-blue-600">
+                        {(individualPriceData[individualPriceData.length - 1]?.price / 10000).toFixed(1)}万円
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border p-3 text-center">
+                      <p className="text-xs text-muted-foreground">値下げ幅</p>
+                      <p className="text-lg font-bold text-red-600">
+                        -{((individualPriceData[0]?.price - individualPriceData[individualPriceData.length - 1]?.price) / 10000).toFixed(1)}万円
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border p-3 text-center">
+                      <p className="text-xs text-muted-foreground">下落率</p>
+                      <p className="text-lg font-bold text-red-600">
+                        {(((individualPriceData[individualPriceData.length - 1]?.price - individualPriceData[0]?.price) / individualPriceData[0]?.price) * 100).toFixed(1)}%
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 外部サイト表示（iframe） */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <ExternalLink className="h-4 w-4" />
+                      {vehicleTitle}
+                    </CardTitle>
+                    <a 
+                      href={iframeUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+                    >
+                      新しいタブで開く
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="relative w-full border-t border-border" style={{ height: "70vh" }}>
+                    {individualLoading && (
+                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80">
+                        <div className="flex flex-col items-center gap-3">
+                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                          <p className="text-sm text-muted-foreground">車両情報を読み込んでいます...</p>
+                        </div>
+                      </div>
+                    )}
+                    <iframe
+                      src={iframeUrl}
+                      className="h-full w-full"
+                      title={vehicleTitle}
+                      sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+
+          {/* 未入力時のガイド */}
+          {!iframeUrl && (
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-16">
+                <Car className="h-12 w-12 text-muted-foreground/40" />
+                <h3 className="mt-4 text-lg font-semibold text-muted-foreground">車両URLを入力してください</h3>
+                <p className="mt-2 max-w-sm text-center text-sm text-muted-foreground/70">
+                  カーセンサーまたは車選びドットコムの車両詳細ページURLを入力すると、
+                  価格推移グラフと車両情報を表示します。
+                </p>
+                <div className="mt-6 flex flex-wrap gap-2 justify-center">
+                  <Badge variant="outline" className="gap-1">
+                    <span className="text-green-600">carsensor.net</span>
+                    対応
+                  </Badge>
+                  <Badge variant="outline" className="gap-1">
+                    <span className="text-blue-600">kurumaerabi.com</span>
+                    対応
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>
