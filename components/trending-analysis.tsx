@@ -7,7 +7,17 @@ import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Filter, MapPin, TrendingUp, ArrowUpRight, ArrowDownRight, Calendar, X, ShoppingCart, ExternalLink } from 'lucide-react'
+import {
+  Filter,
+  MapPin,
+  TrendingUp,
+  ArrowUpRight,
+  ArrowDownRight,
+  Calendar,
+  X,
+  ShoppingCart,
+  ExternalLink,
+} from "lucide-react"
 
 const getRecommendedSpecs = (vehicle: any) => {
   return [
@@ -490,14 +500,32 @@ export function TrendingAnalysis() {
           <div className="space-y-4">
             <Label className="text-base font-semibold">車両カテゴリー</Label>
             <div className="flex flex-wrap gap-2">
-              {["all", "国産車", "輸入車", "軽自動車"].map((cat) => (
+              {[
+                { value: "all", label: "すべて" },
+                { value: "国産車", label: "国産車" },
+                { value: "輸入車", label: "輸入車" },
+                { value: "軽自動車", label: "軽自動車" },
+                { value: "segment-all", label: "すべて", desc: "" },
+                { value: "segment-A", label: "Aセグメント", desc: "軽・小型コンパクト" },
+                { value: "segment-B", label: "Bセグメント", desc: "コンパクトカー" },
+                { value: "segment-C", label: "Cセグメント", desc: "大型コンパクト・小型セダン" },
+                { value: "segment-D", label: "Dセグメント", desc: "中型セダン・ワゴン" },
+                { value: "segment-E", label: "Eセグメント", desc: "大型セダン" },
+                { value: "segment-F", label: "Fセグメント", desc: "フルサイズ高級車" },
+              ].map((cat) => (
                 <Button
-                  key={cat}
-                  variant={vehicleCategory === cat ? "default" : "outline"}
+                  key={cat.value}
+                  variant={vehicleCategory === cat.value ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setVehicleCategory(cat)}
+                  onClick={() => setVehicleCategory(cat.value)}
+                  className={cat.desc ? "relative group" : ""}
                 >
-                  {cat === "all" ? "すべて" : cat}
+                  {cat.label}
+                  {cat.desc && (
+                    <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-muted-foreground whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                      {cat.desc}
+                    </span>
+                  )}
                 </Button>
               ))}
             </div>
@@ -532,11 +560,26 @@ export function TrendingAnalysis() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">すべて</SelectItem>
-                  <SelectItem value="0-100">100万円以下</SelectItem>
-                  <SelectItem value="100-200">100万〜200万円</SelectItem>
-                  <SelectItem value="200-300">200万〜300万円</SelectItem>
-                  <SelectItem value="300-500">300万〜500万円</SelectItem>
-                  <SelectItem value="500+">500万円以上</SelectItem>
+                  <SelectItem value="0-30">30万円以下</SelectItem>
+                  <SelectItem value="30-50">30万円〜50万円</SelectItem>
+                  <SelectItem value="50-100">50万円〜100万円</SelectItem>
+                  <SelectItem value="100-150">100万円〜150万円</SelectItem>
+                  <SelectItem value="150-200">150万円〜200万円</SelectItem>
+                  <SelectItem value="200-250">200万円〜250万円</SelectItem>
+                  <SelectItem value="250-300">250万円〜300万円</SelectItem>
+                  <SelectItem value="300-400">300万円〜400万円</SelectItem>
+                  <SelectItem value="400-500">400万円〜500万円</SelectItem>
+                  <SelectItem value="500-600">500万円〜600万円</SelectItem>
+                  <SelectItem value="600-700">600万円〜700万円</SelectItem>
+                  <SelectItem value="700-800">700万円〜800万円</SelectItem>
+                  <SelectItem value="800-900">800万円〜900万円</SelectItem>
+                  <SelectItem value="900-1000">900万円〜1000万円</SelectItem>
+                  <SelectItem value="1000-1200">1000万円〜1200万円</SelectItem>
+                  <SelectItem value="1200-1400">1200万円〜1400万円</SelectItem>
+                  <SelectItem value="1400-1600">1400万円〜1600万円</SelectItem>
+                  <SelectItem value="1600-1800">1600万円〜1800万円</SelectItem>
+                  <SelectItem value="1800-2000">1800万円〜2000万円</SelectItem>
+                  <SelectItem value="2000+">2000万円以上</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -544,7 +587,7 @@ export function TrendingAnalysis() {
 
           <div className="h-px bg-border" />
 
-          {/* Body Type Visual Grid */}
+          {/* Body Type Visual Grid - カーセンサー風 */}
           <div className="space-y-3">
             <Label className="text-base font-semibold">ボディタイプから検索</Label>
             <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-8">
