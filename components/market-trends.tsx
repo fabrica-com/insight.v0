@@ -179,6 +179,43 @@ const generateGradeDepreciationData = (grades: string[], baseData: typeof weekly
 const defaultGrades = ["S", "SC", "Executive Lounge", "S Cパッケージ"]
 const defaultGradeDepreciationData = generateGradeDepreciationData(defaultGrades, weeklyPriceHistoryData)
 
+// 輸入車の国別マッピング
+const importedCountryMap: Record<string, string> = {
+  bmw: "ドイツ", mercedes: "ドイツ", audi: "ドイツ", volkswagen: "ドイツ", porsche: "ドイツ",
+  volvo: "スウェーデン", mini: "イギリス", jeep: "アメリカ",
+}
+
+// メーカー別の比較データ生成（日本車: メーカー名別、輸入車: 国別）
+const generateMakerComparisonData = (
+  selectedMakerId: string,
+  baseData: typeof weeklyPriceHistoryData
+) => {
+  const isDomestic = manufacturers.domestic.some(m => m.id === selectedMakerId)
+
+  let comparisonLabels: string[]
+  if (isDomestic) {
+    // 国産車：日本メーカー同士の比較
+    comparisonLabels = manufacturers.domestic.map(m => m.name)
+  } else {
+    // 輸入車：国別の比較（重複除去）
+    comparisonLabels = [...new Set(Object.values(importedCountryMap))]
+  }
+
+  const baseStartPrice = baseData[0].average
+  const data = baseData.map((weekData, i) => {
+    const point: Record<string, string | number> = { week: weekData.week }
+    const baseRate = ((weekData.average - baseStartPrice) / baseStartPrice) * 100
+
+    comparisonLabels.forEach((label, idx) => {
+      const gradeOffset = (idx - comparisonLabels.length / 2) * 0.015 * (i / baseData.length)
+      const noise = (Math.random() - 0.3) * 0.4
+      point[label] = Math.round((baseRate + gradeOffset * 100 + noise) * 10) / 10
+    })
+    return point
+  })
+  return { data, labels: comparisonLabels }
+}
+
 // 変動率に連動した価格履歴を生成（開始価格から終了価格への推移）
 const generateLinkedPriceHistory = (startPrice: number, endPrice: number, months: number) => {
   const history = []
@@ -428,15 +465,49 @@ export function MarketTrends() {
     ? availableModelTypes.find(m => m.id === selectedModelType)?.grades || []
     : []
 
-  // グレード別下落率データ（選択されたモデルに連動）
-  const gradeDepreciationData = useMemo(() => {
-    if (availableGrades.length > 0) {
-      return generateGradeDepreciationData(availableGrades, weeklyPriceHistoryData)
+  // 選択状態に応じた比較チャートの切り替え
+  // モデルまで選択 → グレード別比較
+  // メーカーのみ → メーカー別(国産)または国別(輸入)比較
+  const comparisonChartMode = useMemo(() => {
+    if (selectedModelType && selectedModelType !== "all" && availableGrades.length > 0) {
+      return "grade" as const
     }
-    return defaultGradeDepreciationData
-  }, [availableGrades])
+    if (selectedMaker && selectedMaker !== "all") {
+      return "maker" as const
+    }
+    return "default" as const
+  }, [selectedMaker, selectedModelType, availableGrades])
 
-  const displayGrades = availableGrades.length > 0 ? availableGrades : defaultGrades
+  const { comparisonData, comparisonLabels, comparisonTitle, comparisonDesc } = useMemo(() => {
+    if (comparisonChartMode === "grade") {
+      return {
+        comparisonData: generateGradeDepreciationData(availableGrades, weeklyPriceHistoryData),
+        comparisonLabels: availableGrades,
+        comparisonTitle: "グレード別 下落率推移（過去2年）",
+        comparisonDesc: "2年前を起点(0%)としたグレードごとの平均価格下落率",
+      }
+    }
+    if (comparisonChartMode === "maker") {
+      const isDomestic = manufacturers.domestic.some(m => m.id === selectedMaker)
+      const result = generateMakerComparisonData(selectedMaker, weeklyPriceHistoryData)
+      return {
+        comparisonData: result.data,
+        comparisonLabels: result.labels,
+        comparisonTitle: isDomestic
+          ? "国産メーカー別 下落率推移（過去2年）"
+          : "輸入車 国別 下落率推移（過去2年）",
+        comparisonDesc: isDomestic
+          ? "2年前を起点(0%)とした国産メーカーごとの平均価格下落率"
+          : "2年前を起点(0%)とした輸入車の国別平均価格下落率",
+      }
+    }
+    return {
+      comparisonData: defaultGradeDepreciationData,
+      comparisonLabels: defaultGrades,
+      comparisonTitle: "グレード別 下落率推移（過去2年）",
+      comparisonDesc: "2年前を起点(0%)としたグレードごとの平均価格下落率",
+    }
+  }, [comparisonChartMode, selectedMaker, availableGrades])
 
   // 走行距離フィルターの処理
   const handleAllMileagesChange = (checked: boolean) => {
@@ -781,18 +852,18 @@ export function MarketTrends() {
             </CardContent>
           </Card>
 
-          {/* グレード別下落率グラフ */}
+          {/* 比較チャート（メーカー別 or グレード別） */}
           <Card>
             <CardHeader>
-              <CardTitle>グレード別 下落率推移（過去2年）</CardTitle>
+              <CardTitle>{comparisonTitle}</CardTitle>
               <CardDescription>
-                2年前を起点(0%)としたグレードごとの平均価格下落率
+                {comparisonDesc}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={gradeDepreciationData}>
+                  <LineChart data={comparisonData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis 
                       dataKey="week" 
@@ -813,12 +884,12 @@ export function MarketTrends() {
                       labelFormatter={(label) => `週: ${label}`}
                     />
                     <Legend />
-                    {displayGrades.map((grade, idx) => (
+                    {comparisonLabels.map((label, idx) => (
                       <Line 
-                        key={grade}
+                        key={label}
                         type="stepAfter" 
-                        dataKey={grade} 
-                        name={grade} 
+                        dataKey={label} 
+                        name={label} 
                         stroke={gradeColors[idx % gradeColors.length]} 
                         strokeWidth={2}
                         dot={false}
