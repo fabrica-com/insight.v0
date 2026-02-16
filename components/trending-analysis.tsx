@@ -531,8 +531,8 @@ export function TrendingAnalysis() {
             </div>
           </div>
 
-          {/* Detail Filters */}
-          <div className="grid gap-4 md:grid-cols-3">
+          {/* Detail Filters - Maker & Price */}
+          <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label>メーカー</Label>
               <Select value={maker} onValueChange={setMaker}>
@@ -549,22 +549,6 @@ export function TrendingAnalysis() {
                   <SelectItem value="ダイハツ">ダイハツ</SelectItem>
                   <SelectItem value="メルセデス・ベンツ">メルセデス・ベンツ</SelectItem>
                   <SelectItem value="BMW">BMW</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>ボディータイプ</Label>
-              <Select value={bodyType} onValueChange={setBodyType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">すべて</SelectItem>
-                  <SelectItem value="セダン">セダン</SelectItem>
-                  <SelectItem value="SUV">SUV</SelectItem>
-                  <SelectItem value="ミニバン">ミニバン</SelectItem>
-                  <SelectItem value="ワゴン">ワゴン</SelectItem>
-                  <SelectItem value="コンパクト">コンパクト</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -599,6 +583,178 @@ export function TrendingAnalysis() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="h-px bg-border" />
+
+          {/* Body Type Visual Grid - カーセンサー風 */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">ボディタイプから検索</Label>
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-8">
+              {[
+                { value: "軽自動車", label: "軽自動車", icon: (
+                  <svg viewBox="0 0 64 40" fill="none" className="h-8 w-14">
+                    <rect x="8" y="12" width="48" height="18" rx="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <rect x="14" y="8" width="20" height="10" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <circle cx="18" cy="32" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <circle cx="46" cy="32" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <line x1="36" y1="12" x2="36" y2="8" stroke="currentColor" strokeWidth="1"/>
+                    <line x1="36" y1="8" x2="42" y2="8" stroke="currentColor" strokeWidth="1"/>
+                    <line x1="42" y1="8" x2="42" y2="12" stroke="currentColor" strokeWidth="1"/>
+                  </svg>
+                )},
+                { value: "コンパクト", label: "コンパクト", icon: (
+                  <svg viewBox="0 0 64 40" fill="none" className="h-8 w-14">
+                    <path d="M8 26 L14 14 L40 10 L52 14 L58 22 L58 28 L8 28 Z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+                    <line x1="28" y1="12" x2="30" y2="26" stroke="currentColor" strokeWidth="1"/>
+                    <circle cx="18" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <circle cx="48" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                  </svg>
+                )},
+                { value: "ミニバン", label: "ミニバン", icon: (
+                  <svg viewBox="0 0 64 40" fill="none" className="h-8 w-14">
+                    <path d="M6 28 L6 12 Q6 8 10 8 L44 8 L54 14 L58 20 L58 28 Z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+                    <line x1="20" y1="8" x2="20" y2="24" stroke="currentColor" strokeWidth="1"/>
+                    <line x1="36" y1="8" x2="38" y2="24" stroke="currentColor" strokeWidth="1"/>
+                    <circle cx="16" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <circle cx="48" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                  </svg>
+                )},
+                { value: "ワゴン", label: "ステーション\nワゴン", icon: (
+                  <svg viewBox="0 0 64 40" fill="none" className="h-8 w-14">
+                    <path d="M6 28 L6 16 L10 10 L42 8 L52 14 L58 22 L58 28 Z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+                    <line x1="22" y1="10" x2="24" y2="24" stroke="currentColor" strokeWidth="1"/>
+                    <line x1="40" y1="8" x2="42" y2="24" stroke="currentColor" strokeWidth="1"/>
+                    <circle cx="16" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <circle cx="48" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                  </svg>
+                )},
+                { value: "SUV", label: "SUV・クロカン", icon: (
+                  <svg viewBox="0 0 64 40" fill="none" className="h-8 w-14">
+                    <path d="M6 28 L6 16 L12 10 L38 8 L50 12 L58 18 L58 28 Z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+                    <line x1="24" y1="9" x2="26" y2="22" stroke="currentColor" strokeWidth="1"/>
+                    <line x1="40" y1="9" x2="42" y2="22" stroke="currentColor" strokeWidth="1"/>
+                    <circle cx="16" cy="30" r="5" stroke="currentColor" strokeWidth="2" fill="none"/>
+                    <circle cx="48" cy="30" r="5" stroke="currentColor" strokeWidth="2" fill="none"/>
+                  </svg>
+                )},
+                { value: "セダン", label: "セダン", icon: (
+                  <svg viewBox="0 0 64 40" fill="none" className="h-8 w-14">
+                    <path d="M4 28 L4 22 L14 14 L26 10 L40 10 L52 14 L58 22 L60 28 Z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+                    <line x1="24" y1="10" x2="24" y2="24" stroke="currentColor" strokeWidth="1"/>
+                    <line x1="42" y1="11" x2="42" y2="24" stroke="currentColor" strokeWidth="1"/>
+                    <circle cx="16" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <circle cx="48" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                  </svg>
+                )},
+                { value: "クーペ", label: "クーペ", icon: (
+                  <svg viewBox="0 0 64 40" fill="none" className="h-8 w-14">
+                    <path d="M4 28 L6 22 L18 10 L38 8 L52 14 L58 22 L60 28 Z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+                    <line x1="30" y1="9" x2="30" y2="24" stroke="currentColor" strokeWidth="1"/>
+                    <circle cx="16" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <circle cx="48" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                  </svg>
+                )},
+                { value: "オープン", label: "オープンカー", icon: (
+                  <svg viewBox="0 0 64 40" fill="none" className="h-8 w-14">
+                    <path d="M4 28 L6 22 L18 16 L38 14 L52 18 L58 22 L60 28 Z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+                    <path d="M22 16 L24 12 L32 11" stroke="currentColor" strokeWidth="1" fill="none"/>
+                    <circle cx="16" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <circle cx="48" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                  </svg>
+                )},
+                { value: "ハッチバック", label: "ハッチバック", icon: (
+                  <svg viewBox="0 0 64 40" fill="none" className="h-8 w-14">
+                    <path d="M4 28 L6 22 L16 12 L38 10 L48 12 L56 18 L56 28 Z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+                    <line x1="30" y1="10" x2="30" y2="24" stroke="currentColor" strokeWidth="1"/>
+                    <circle cx="16" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <circle cx="46" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                  </svg>
+                )},
+                { value: "ピックアップ", label: "ピックアップ\nトラック", icon: (
+                  <svg viewBox="0 0 64 40" fill="none" className="h-8 w-14">
+                    <path d="M4 28 L4 12 Q4 8 8 8 L28 8 L28 18 L54 18 L58 22 L58 28 Z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+                    <line x1="28" y1="8" x2="28" y2="28" stroke="currentColor" strokeWidth="1"/>
+                    <circle cx="14" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <circle cx="48" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                  </svg>
+                )},
+                { value: "商用車", label: "商用車・バン", icon: (
+                  <svg viewBox="0 0 64 40" fill="none" className="h-8 w-14">
+                    <rect x="4" y="8" width="52" height="22" rx="3" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <line x1="36" y1="8" x2="36" y2="30" stroke="currentColor" strokeWidth="1"/>
+                    <circle cx="14" cy="32" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <circle cx="46" cy="32" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                  </svg>
+                )},
+                { value: "トラック", label: "トラック", icon: (
+                  <svg viewBox="0 0 64 40" fill="none" className="h-8 w-14">
+                    <rect x="2" y="10" width="24" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <path d="M26 16 L50 16 L58 22 L58 28 L26 28 Z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+                    <circle cx="14" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <circle cx="48" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                  </svg>
+                )},
+                { value: "福祉車両", label: "福祉車両", icon: (
+                  <svg viewBox="0 0 64 40" fill="none" className="h-8 w-14">
+                    <path d="M8 28 L8 14 L14 8 L42 8 L52 14 L56 22 L56 28 Z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+                    <circle cx="32" cy="18" r="5" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <line x1="32" y1="13" x2="32" y2="23" stroke="currentColor" strokeWidth="1.5"/>
+                    <line x1="27" y1="18" x2="37" y2="18" stroke="currentColor" strokeWidth="1.5"/>
+                    <circle cx="16" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <circle cx="46" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                  </svg>
+                )},
+                { value: "キャンピング", label: "キャンピング\nカー", icon: (
+                  <svg viewBox="0 0 64 40" fill="none" className="h-8 w-14">
+                    <path d="M4 28 L4 8 Q4 4 8 4 L42 4 Q46 4 46 8 L46 16 L56 16 L58 22 L58 28 Z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+                    <rect x="10" y="10" width="8" height="6" rx="1" stroke="currentColor" strokeWidth="1" fill="none"/>
+                    <rect x="24" y="10" width="8" height="6" rx="1" stroke="currentColor" strokeWidth="1" fill="none"/>
+                    <circle cx="14" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <circle cx="48" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                  </svg>
+                )},
+                { value: "ハイブリッド", label: "ハイブリッド", icon: (
+                  <svg viewBox="0 0 64 40" fill="none" className="h-8 w-14">
+                    <path d="M4 28 L6 22 L16 12 L38 10 L50 14 L58 22 L60 28 Z" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
+                    <path d="M30 14 L34 18 L28 22 L32 26" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+                    <circle cx="16" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                    <circle cx="48" cy="30" r="4" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                  </svg>
+                )},
+                { value: "その他", label: "その他", icon: (
+                  <svg viewBox="0 0 64 40" fill="none" className="h-8 w-14">
+                    <circle cx="20" cy="20" r="3" fill="currentColor"/>
+                    <circle cx="32" cy="20" r="3" fill="currentColor"/>
+                    <circle cx="44" cy="20" r="3" fill="currentColor"/>
+                  </svg>
+                )},
+              ].map((type) => (
+                <button
+                  key={type.value}
+                  type="button"
+                  onClick={() => setBodyType(bodyType === type.value ? "all" : type.value)}
+                  className={`flex flex-col items-center gap-1 rounded-lg border p-2 transition-all hover:bg-muted/60 ${
+                    bodyType === type.value
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <span className="flex h-10 w-full items-center justify-center">{type.icon}</span>
+                  <span className="text-[10px] leading-tight text-center font-medium whitespace-pre-line">{type.label}</span>
+                </button>
+              ))}
+            </div>
+            {bodyType !== "all" && (
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="gap-1">
+                  {bodyType}
+                  <button type="button" onClick={() => setBodyType("all")} className="ml-1 hover:text-destructive">
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-2">
