@@ -137,15 +137,21 @@ const generateWeeklyPriceHistory = (basePrice: number, volatility: number = 0.02
 
 const weeklyPriceHistoryData = generateWeeklyPriceHistory(3500000)
 
-// 相場サマリー統計データ
+// 相場サマリー統計データ（実データから算出）
+const newCarPrice = 5200000
+const currentAvg = weeklyPriceHistoryData[weeklyPriceHistoryData.length - 1].average
+const avg2yAgo = weeklyPriceHistoryData[0].average // 104週前 = 約2年前
+const avg1yAgo = weeklyPriceHistoryData[52].average // 52週前 = 約1年前
+const avg6mAgo = weeklyPriceHistoryData[78].average // 78週前 = 約半年前
+
 const marketSummaryStats = {
   avgInventoryDays: 42, // 平均在庫期間（日）
-  newCarPrice: 5200000, // 新車価格
-  currentAvgPrice: weeklyPriceHistoryData[weeklyPriceHistoryData.length - 1].average,
-  depreciationFromNew: -32.7, // 新車からの下落率(%)
-  depreciation2y: -18.4, // 過去2年の下落率(%)
-  depreciation1y: -9.2, // 過去1年の下落率(%)
-  depreciation6m: -3.8, // 過去半年の下落率(%)
+  newCarPrice,
+  currentAvgPrice: currentAvg,
+  depreciationFromNew: Math.round(((currentAvg - newCarPrice) / newCarPrice) * 1000) / 10,
+  depreciation2y: Math.round(((currentAvg - avg2yAgo) / avg2yAgo) * 1000) / 10,
+  depreciation1y: Math.round(((currentAvg - avg1yAgo) / avg1yAgo) * 1000) / 10,
+  depreciation6m: Math.round(((currentAvg - avg6mAgo) / avg6mAgo) * 1000) / 10,
 }
 
 // グレード別の下落率データを生成（過去2年前を起点、週次平均値のみ）
