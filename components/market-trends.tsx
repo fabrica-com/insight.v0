@@ -217,6 +217,70 @@ const generateMakerComparisonData = (
   return { data, labels: comparisonLabels }
 }
 
+// ボディタイプ定義（建設機械除く）
+const bodyTypes = [
+  { id: "hybrid", name: "ハイブリッド" },
+  { id: "kei", name: "軽自動車" },
+  { id: "keivan", name: "軽バン/軽ワゴン" },
+  { id: "keirv", name: "軽RV" },
+  { id: "compact", name: "コンパクト/ハッチバック" },
+  { id: "minivan", name: "ミニバン/ワンボックス" },
+  { id: "wagon", name: "ステーションワゴン" },
+  { id: "suv", name: "SUV/クロカン" },
+  { id: "sedan", name: "セダン" },
+  { id: "coupe", name: "クーペ" },
+  { id: "open", name: "オープン" },
+  { id: "van", name: "バン/商用車" },
+  { id: "pickup", name: "ピックアップトラック" },
+  { id: "truck", name: "トラック" },
+  { id: "camper", name: "キャンピングカー" },
+  { id: "welfare", name: "福祉車両" },
+]
+
+// ボディタイプ別指数データ生成（基準時点を100とした騰落率）
+const generateBodyTypeIndexData = (selectedTypes: string[]) => {
+  const totalWeeks = 104
+  const data: Record<string, string | number>[] = []
+
+  // ボディタイプごとのトレンド特性
+  const typeTraits: Record<string, { trend: number; volatility: number }> = {
+    "ハイブリッド": { trend: 0.0005, volatility: 0.008 },
+    "軽自動車": { trend: -0.0002, volatility: 0.005 },
+    "軽バン/軽ワゴン": { trend: -0.0003, volatility: 0.005 },
+    "軽RV": { trend: 0.0001, volatility: 0.006 },
+    "コンパクト/ハッチバック": { trend: -0.0003, volatility: 0.006 },
+    "ミニバン/ワンボックス": { trend: 0.0003, volatility: 0.007 },
+    "ステーションワゴン": { trend: -0.0005, volatility: 0.007 },
+    "SUV/クロカン": { trend: 0.0004, volatility: 0.008 },
+    "セダン": { trend: -0.0006, volatility: 0.006 },
+    "クーペ": { trend: 0.0002, volatility: 0.009 },
+    "オープン": { trend: 0.0001, volatility: 0.010 },
+    "バン/商用車": { trend: -0.0001, volatility: 0.005 },
+    "ピックアップトラック": { trend: 0.0006, volatility: 0.009 },
+    "トラック": { trend: -0.0002, volatility: 0.005 },
+    "キャンピングカー": { trend: 0.0003, volatility: 0.008 },
+    "福祉車両": { trend: -0.0001, volatility: 0.004 },
+  }
+
+  const indices: Record<string, number> = {}
+  selectedTypes.forEach(t => { indices[t] = 100 })
+
+  for (let i = 0; i < totalWeeks; i++) {
+    const date = new Date(Date.now() - (totalWeeks - 1 - i) * 7 * 24 * 60 * 60 * 1000)
+    const weekStr = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`
+    const point: Record<string, string | number> = { week: weekStr }
+
+    selectedTypes.forEach(t => {
+      const traits = typeTraits[t] || { trend: 0, volatility: 0.006 }
+      const noise = (Math.random() - 0.5) * traits.volatility * 100
+      indices[t] = indices[t] + traits.trend * 100 + noise
+      point[t] = Math.round(indices[t] * 10) / 10
+    })
+    data.push(point)
+  }
+  return data
+}
+
 // 変動率に連動した価格履歴を生成（開始価格から終了価格への推移）
 const generateLinkedPriceHistory = (startPrice: number, endPrice: number, months: number) => {
   const history = []
@@ -433,7 +497,9 @@ const generateRankingData = () => {
 const rankingData = generateRankingData()
 
 export function MarketTrends() {
-  const [activeTab, setActiveTab] = useState<"trends" | "ranking" | "individual">("trends")
+  const [activeTab, setActiveTab] = useState<"trends" | "ranking" | "individual" | "bodytype">("trends")
+  const [selectedBodyTypes, setSelectedBodyTypes] = useState<string[]>(["SUV/クロカン", "ミニバン/ワンボックス", "セダン", "軽自動車", "コンパクト/ハッチバック"])
+  const [hiddenBodyTypes, setHiddenBodyTypes] = useState<Set<string>>(new Set())
   const [vehicleUrl, setVehicleUrl] = useState("")
   const [iframeUrl, setIframeUrl] = useState("")
   const [individualPriceData, setIndividualPriceData] = useState<{week: string; price: number}[]>([])
@@ -595,6 +661,23 @@ export function MarketTrends() {
     })
   }, [rankingCategory, rankingMaker])
 
+  // ボディタイプ別指数データ
+  const bodyTypeIndexData = useMemo(() => {
+    return generateBodyTypeIndexData(selectedBodyTypes)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedBodyTypes.join(",")])
+
+  const handleBodyTypeToggle = useCallback((typeName: string) => {
+    setSelectedBodyTypes(prev => {
+      if (prev.includes(typeName)) {
+        if (prev.length <= 1) return prev // 最低1つは選択
+        return prev.filter(t => t !== typeName)
+      }
+      return [...prev, typeName]
+    })
+    setHiddenBodyTypes(new Set())
+  }, [])
+
   // ユニークなメーカーリスト
   const uniqueMakers = useMemo(() => {
     const makers = new Set(rankingData.map(item => item.maker))
@@ -610,8 +693,8 @@ export function MarketTrends() {
       </div>
 
       {/* タブ */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "trends" | "ranking" | "individual")}>
-        <TabsList className="grid w-full max-w-2xl grid-cols-3">
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "trends" | "ranking" | "individual" | "bodytype")}>
+        <TabsList className="grid w-full max-w-3xl grid-cols-4">
           <TabsTrigger value="trends" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             相場推移
@@ -623,6 +706,10 @@ export function MarketTrends() {
           <TabsTrigger value="individual" className="flex items-center gap-2">
             <Car className="h-4 w-4" />
             個別車両価格推移
+          </TabsTrigger>
+          <TabsTrigger value="bodytype" className="flex items-center gap-2">
+            <Gauge className="h-4 w-4" />
+            ボディタイプ別
           </TabsTrigger>
         </TabsList>
 
@@ -1514,6 +1601,154 @@ export function MarketTrends() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+        {/* ボディタイプ別相場推移タブ */}
+        <TabsContent value="bodytype" className="space-y-6">
+          {/* ボディタイプ選択 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Filter className="h-5 w-5" />
+                ボディタイプを選択
+              </CardTitle>
+              <CardDescription>
+                比較したいボディタイプを選択してください（複数選択可）
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-8">
+                {bodyTypes.map((bt) => {
+                  const isSelected = selectedBodyTypes.includes(bt.name)
+                  return (
+                    <button
+                      key={bt.id}
+                      type="button"
+                      onClick={() => handleBodyTypeToggle(bt.name)}
+                      className={`flex flex-col items-center gap-1.5 rounded-lg border p-3 text-center transition-all hover:border-primary/50 ${
+                        isSelected
+                          ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                          : "border-border"
+                      }`}
+                    >
+                      <Car className={`h-5 w-5 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                      <span className={`text-[11px] leading-tight ${isSelected ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
+                        {bt.name}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                {selectedBodyTypes.length}件選択中 -- 凡例クリックで個別に表示/非表示を切り替えできます
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* 騰落率グラフ */}
+          <Card>
+            <CardHeader>
+              <CardTitle>ボディタイプ別 騰落率推移（過去2年）</CardTitle>
+              <CardDescription>
+                2年前を基準値(100)とした各ボディタイプの相場指数推移
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[450px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={bodyTypeIndexData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis
+                      dataKey="week"
+                      tick={{ fontSize: 11 }}
+                      tickFormatter={(value) => {
+                        const parts = value.split("/")
+                        return `${parts[0].slice(2)}/${parts[1]}`
+                      }}
+                      interval={7}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => `${value}`}
+                      domain={["dataMin - 3", "dataMax + 3"]}
+                    />
+                    <Tooltip
+                      formatter={(value: number, name: string) => [`${value.toFixed(1)}`, name]}
+                      labelFormatter={(label) => `週: ${label}`}
+                    />
+                    <Legend
+                      onClick={(e) => {
+                        const label = e.dataKey as string
+                        setHiddenBodyTypes(prev => {
+                          const next = new Set(prev)
+                          if (next.has(label)) {
+                            next.delete(label)
+                          } else {
+                            next.add(label)
+                          }
+                          return next
+                        })
+                      }}
+                      formatter={(value) => (
+                        <span style={{
+                          color: hiddenBodyTypes.has(value) ? "#ccc" : undefined,
+                          textDecoration: hiddenBodyTypes.has(value) ? "line-through" : undefined,
+                          cursor: "pointer",
+                        }}>
+                          {value}
+                        </span>
+                      )}
+                    />
+                    {/* 基準線 100 */}
+                    <Line
+                      type="stepAfter"
+                      dataKey={() => 100}
+                      name="基準値(100)"
+                      stroke="#9ca3af"
+                      strokeWidth={1}
+                      strokeDasharray="5 5"
+                      dot={false}
+                      legendType="none"
+                    />
+                    {selectedBodyTypes.map((typeName, idx) => (
+                      <Line
+                        key={typeName}
+                        type="stepAfter"
+                        dataKey={typeName}
+                        name={typeName}
+                        stroke={gradeColors[idx % gradeColors.length]}
+                        strokeWidth={2}
+                        dot={false}
+                        hide={hiddenBodyTypes.has(typeName)}
+                      />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* 現在値サマリー */}
+              <div className="mt-6">
+                <h4 className="mb-3 text-sm font-semibold">現在の指数（2年前 = 100）</h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedBodyTypes.map((typeName, idx) => {
+                    const lastVal = bodyTypeIndexData[bodyTypeIndexData.length - 1]?.[typeName] as number
+                    const diff = lastVal - 100
+                    return (
+                      <div key={typeName} className="flex items-center gap-2 rounded-lg border border-border px-3 py-2">
+                        <div className="h-3 w-3 rounded-full" style={{ backgroundColor: gradeColors[idx % gradeColors.length] }} />
+                        <span className="text-xs font-medium">{typeName}</span>
+                        <span className={`text-sm font-bold ${diff >= 0 ? "text-green-600" : "text-red-600"}`}>
+                          {lastVal?.toFixed(1)}
+                        </span>
+                        <span className={`text-[10px] ${diff >= 0 ? "text-green-600" : "text-red-600"}`}>
+                          ({diff >= 0 ? "+" : ""}{diff?.toFixed(1)})
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
