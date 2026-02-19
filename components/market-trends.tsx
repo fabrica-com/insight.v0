@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -9,8 +9,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from "recharts"
-import { TrendingUp, TrendingDown, Minus, Filter, BarChart3, X, ChevronRight, Calendar, Car, Gauge } from "lucide-react"
+import { TrendingUp, TrendingDown, Minus, Filter, BarChart3, X, ChevronRight, Calendar, Car, Gauge, Clock, ArrowDownRight, ExternalLink, Search, Loader2 } from "lucide-react"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 
 // メーカーと車種のデータ
 const manufacturers = {
@@ -36,30 +37,66 @@ const manufacturers = {
   ],
 }
 
-const vehicleModels: Record<string, { id: string; name: string; variants: string[] }[]> = {
+const vehicleModels: Record<string, { id: string; name: string; models: { id: string; name: string; grades: string[] }[] }[]> = {
   toyota: [
-    { id: "prius", name: "プリウス", variants: ["S", "A", "Aプレミアム", "G", "Z"] },
-    { id: "alphard", name: "アルファード", variants: ["S", "SC", "Executive Lounge", "Z", "Z Premium"] },
-    { id: "harrier", name: "ハリアー", variants: ["S", "G", "Z", "Z Leather Package"] },
-    { id: "landcruiser", name: "ランドクルーザー", variants: ["GX", "AX", "VX", "ZX", "GR SPORT"] },
-    { id: "crown", name: "クラウン", variants: ["Crossover RS", "Crossover G", "Sport RS", "Sedan"] },
+    { id: "prius", name: "プリウス", models: [
+      { id: "prius-60", name: "60系 (2023-)", grades: ["S", "A", "Aプレミアム", "G", "Z"] },
+      { id: "prius-50", name: "50系 (2015-2023)", grades: ["S", "A", "Aプレミアム", "E"] },
+    ]},
+    { id: "alphard", name: "アルファード", models: [
+      { id: "alphard-40", name: "40系 (2023-)", grades: ["Z", "Z Premium", "Executive Lounge"] },
+      { id: "alphard-30", name: "30系 (2015-2023)", grades: ["S", "SC", "Executive Lounge", "S Cパッケージ"] },
+    ]},
+    { id: "harrier", name: "ハリアー", models: [
+      { id: "harrier-80", name: "80系 (2020-)", grades: ["S", "G", "Z", "Z Leather Package"] },
+    ]},
+    { id: "landcruiser", name: "ランドクルーザー", models: [
+      { id: "lc-300", name: "300系 (2021-)", grades: ["GX", "AX", "VX", "ZX", "GR SPORT"] },
+      { id: "lc-250", name: "250系 (2024-)", grades: ["GX", "VX", "ZX"] },
+    ]},
+    { id: "crown", name: "クラウン", models: [
+      { id: "crown-16", name: "16代目 (2022-)", grades: ["Crossover RS", "Crossover G", "Sport RS", "Sedan"] },
+    ]},
   ],
   honda: [
-    { id: "nbox", name: "N-BOX", variants: ["G", "L", "EX", "Custom L", "Custom EX"] },
-    { id: "freed", name: "フリード", variants: ["G", "CROSSTAR", "Modulo X"] },
-    { id: "vezel", name: "ヴェゼル", variants: ["G", "e:HEV X", "e:HEV Z", "e:HEV PLaY"] },
-    { id: "stepwgn", name: "ステップワゴン", variants: ["AIR", "SPADA", "SPADA Premium Line"] },
+    { id: "nbox", name: "N-BOX", models: [
+      { id: "nbox-3", name: "3代目 (2023-)", grades: ["G", "L", "EX", "Custom L", "Custom EX"] },
+      { id: "nbox-2", name: "2代目 (2017-2023)", grades: ["G", "L", "EX", "Custom G", "Custom L"] },
+    ]},
+    { id: "freed", name: "フリード", models: [
+      { id: "freed-3", name: "3代目 (2024-)", grades: ["G", "CROSSTAR", "Modulo X"] },
+    ]},
+    { id: "vezel", name: "ヴェゼル", models: [
+      { id: "vezel-2", name: "2代目 (2021-)", grades: ["G", "e:HEV X", "e:HEV Z", "e:HEV PLaY"] },
+    ]},
+    { id: "stepwgn", name: "ステップワゴン", models: [
+      { id: "stepwgn-6", name: "6代目 (2022-)", grades: ["AIR", "SPADA", "SPADA Premium Line"] },
+    ]},
   ],
   bmw: [
-    { id: "3series", name: "3シリーズ", variants: ["318i", "320i", "330i", "M340i", "320d"] },
-    { id: "5series", name: "5シリーズ", variants: ["520i", "530i", "540i", "M550i"] },
-    { id: "x3", name: "X3", variants: ["xDrive20i", "xDrive30i", "M40i"] },
-    { id: "x5", name: "X5", variants: ["xDrive35d", "xDrive45e", "M50i"] },
+    { id: "3series", name: "3シリーズ", models: [
+      { id: "3series-g20", name: "G20/G21 (2019-)", grades: ["318i", "320i", "330i", "M340i", "320d"] },
+    ]},
+    { id: "5series", name: "5シリーズ", models: [
+      { id: "5series-g60", name: "G60 (2023-)", grades: ["520i", "530i", "540i", "M550i"] },
+    ]},
+    { id: "x3", name: "X3", models: [
+      { id: "x3-g45", name: "G45 (2024-)", grades: ["xDrive20i", "xDrive30i", "M40i"] },
+    ]},
+    { id: "x5", name: "X5", models: [
+      { id: "x5-g05", name: "G05 (2019-)", grades: ["xDrive35d", "xDrive45e", "M50i"] },
+    ]},
   ],
   mercedes: [
-    { id: "cclass", name: "Cクラス", variants: ["C180", "C200", "C220d", "C300", "AMG C43"] },
-    { id: "eclass", name: "Eクラス", variants: ["E200", "E300", "E350", "AMG E53"] },
-    { id: "glc", name: "GLC", variants: ["GLC200", "GLC220d", "GLC300", "AMG GLC43"] },
+    { id: "cclass", name: "Cクラス", models: [
+      { id: "cclass-w206", name: "W206 (2021-)", grades: ["C180", "C200", "C220d", "C300", "AMG C43"] },
+    ]},
+    { id: "eclass", name: "Eクラス", models: [
+      { id: "eclass-w214", name: "W214 (2023-)", grades: ["E200", "E300", "E350", "AMG E53"] },
+    ]},
+    { id: "glc", name: "GLC", models: [
+      { id: "glc-x254", name: "X254 (2022-)", grades: ["GLC200", "GLC220d", "GLC300", "AMG GLC43"] },
+    ]},
   ],
 }
 
@@ -72,32 +109,176 @@ const mileageOptions = [
   { id: "over100k", label: "10万km以上", value: "over100k" },
 ]
 
-// 過去24ヶ月の相場データを生成
-const generatePriceHistory = (basePrice: number, volatility: number = 0.05) => {
-  const months = []
+// 過去24ヶ月の週次相場データを生成
+const generateWeeklyPriceHistory = (basePrice: number, volatility: number = 0.02) => {
+  const weeks = []
   const now = new Date()
   let avgPrice = basePrice
-  let highPrice = basePrice * 1.15
-  let lowPrice = basePrice * 0.85
+  const totalWeeks = 104 // 約24ヶ月分
 
-  for (let i = 23; i >= 0; i--) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const monthStr = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, "0")}`
+  for (let i = totalWeeks - 1; i >= 0; i--) {
+    const date = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000)
+    const weekStr = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`
     
-    // 価格変動をシミュレート
+    // 週次の価格変動をシミュレート
     const change = (Math.random() - 0.5) * volatility
     avgPrice = avgPrice * (1 + change)
-    highPrice = avgPrice * (1.1 + Math.random() * 0.1)
-    lowPrice = avgPrice * (0.8 + Math.random() * 0.1)
+    const highPrice = avgPrice * (1.1 + Math.random() * 0.1)
+    const lowPrice = avgPrice * (0.8 + Math.random() * 0.1)
 
-    months.push({
-      month: monthStr,
+    weeks.push({
+      week: weekStr,
       average: Math.round(avgPrice),
       top20: Math.round(highPrice),
       bottom20: Math.round(lowPrice),
     })
   }
-  return months
+  return weeks
+}
+
+const weeklyPriceHistoryData = generateWeeklyPriceHistory(3500000)
+
+// 相場サマリー統計データ（実データから算出）
+const newCarPrice = 5200000
+const currentAvg = weeklyPriceHistoryData[weeklyPriceHistoryData.length - 1].average
+const avg2yAgo = weeklyPriceHistoryData[0].average // 104週前 = 約2年前
+const avg1yAgo = weeklyPriceHistoryData[52].average // 52週前 = 約1年前
+const avg6mAgo = weeklyPriceHistoryData[78].average // 78週前 = 約半年前
+
+const marketSummaryStats = {
+  avgInventoryDays: 42, // 平均在庫期間（日）
+  newCarPrice,
+  currentAvgPrice: currentAvg,
+  depreciationFromNew: Math.round(((currentAvg - newCarPrice) / newCarPrice) * 1000) / 10,
+  depreciation2y: Math.round(((currentAvg - avg2yAgo) / avg2yAgo) * 1000) / 10,
+  depreciation1y: Math.round(((currentAvg - avg1yAgo) / avg1yAgo) * 1000) / 10,
+  depreciation6m: Math.round(((currentAvg - avg6mAgo) / avg6mAgo) * 1000) / 10,
+}
+
+// グレード別の下落率データを生成（weeklyPriceHistoryDataの全体トレ��ドをベースに、グレード間で差異をつける）
+const gradeColors = ["#3b82f6", "#ef4444", "#22c55e", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316"]
+const generateGradeDepreciationData = (grades: string[], baseData: typeof weeklyPriceHistoryData) => {
+  const baseStartPrice = baseData[0].average
+  const data = baseData.map((weekData, i) => {
+    const point: Record<string, string | number> = { week: weekData.week }
+    // 全体平均の変動率を算出
+    const baseRate = ((weekData.average - baseStartPrice) / baseStartPrice) * 100
+
+    grades.forEach((grade, idx) => {
+      // グレードごとにベースの変動率にオフセットを加える
+      // 上位グレードほどリセール率が良い（下落が緩い）、下位グレードほど下落が大きい傾向
+      const gradeOffset = (idx - grades.length / 2) * 0.02 * (i / baseData.length)
+      const noise = (Math.random() - 0.3) * 0.3
+      point[grade] = Math.round((baseRate + gradeOffset * 100 + noise) * 10) / 10
+    })
+    return point
+  })
+  return data
+}
+
+// デフォルトのグレード別データ（アルファード30系のグレードをデフォルト表示用）
+const defaultGrades = ["S", "SC", "Executive Lounge", "S Cパッケージ"]
+const defaultGradeDepreciationData = generateGradeDepreciationData(defaultGrades, weeklyPriceHistoryData)
+
+// 輸入車の国別マッピング
+const importedCountryMap: Record<string, string> = {
+  bmw: "ドイツ", mercedes: "ドイツ", audi: "ドイツ", volkswagen: "ドイツ", porsche: "ドイツ",
+  volvo: "スウェーデン", mini: "イギリス", jeep: "アメリカ",
+}
+
+// メーカー別の比較データ生成（日本車: メーカー名別、輸入車: 国別）
+const generateMakerComparisonData = (
+  selectedMakerId: string,
+  baseData: typeof weeklyPriceHistoryData
+) => {
+  const isDomestic = manufacturers.domestic.some(m => m.id === selectedMakerId)
+
+  let comparisonLabels: string[]
+  if (isDomestic) {
+    // 国産車：日本メーカー同士の比較
+    comparisonLabels = manufacturers.domestic.map(m => m.name)
+  } else {
+    // 輸入車：国別の比較（重複除去）
+    comparisonLabels = [...new Set(Object.values(importedCountryMap))]
+  }
+
+  const baseStartPrice = baseData[0].average
+  const data = baseData.map((weekData, i) => {
+    const point: Record<string, string | number> = { week: weekData.week }
+    const baseRate = ((weekData.average - baseStartPrice) / baseStartPrice) * 100
+
+    comparisonLabels.forEach((label, idx) => {
+      const gradeOffset = (idx - comparisonLabels.length / 2) * 0.015 * (i / baseData.length)
+      const noise = (Math.random() - 0.3) * 0.4
+      point[label] = Math.round((baseRate + gradeOffset * 100 + noise) * 10) / 10
+    })
+    return point
+  })
+  return { data, labels: comparisonLabels }
+}
+
+// ボディタイプ定義（建設機械除く）
+const bodyTypes = [
+  { id: "hybrid", name: "ハイブリッド" },
+  { id: "kei", name: "軽自動車" },
+  { id: "keivan", name: "軽バン/軽ワゴン" },
+  { id: "keirv", name: "軽RV" },
+  { id: "compact", name: "コンパクト/ハッチバック" },
+  { id: "minivan", name: "ミニバン/ワンボックス" },
+  { id: "wagon", name: "ステーションワゴン" },
+  { id: "suv", name: "SUV/クロカン" },
+  { id: "sedan", name: "セダン" },
+  { id: "coupe", name: "クーペ" },
+  { id: "open", name: "オープン" },
+  { id: "van", name: "バン/商用車" },
+  { id: "pickup", name: "ピックアップトラック" },
+  { id: "truck", name: "トラック" },
+  { id: "camper", name: "キャンピングカー" },
+  { id: "welfare", name: "福祉車両" },
+]
+
+// ボディタイプ別指数データ生成（基準時点を100とした騰落率）
+const generateBodyTypeIndexData = (selectedTypes: string[]) => {
+  const totalWeeks = 104
+  const data: Record<string, string | number>[] = []
+
+  // ボディタイプごとのトレンド特性
+  const typeTraits: Record<string, { trend: number; volatility: number }> = {
+    "ハイブリッド": { trend: 0.0005, volatility: 0.008 },
+    "軽自動車": { trend: -0.0002, volatility: 0.005 },
+    "軽バン/軽ワゴン": { trend: -0.0003, volatility: 0.005 },
+    "軽RV": { trend: 0.0001, volatility: 0.006 },
+    "コンパクト/ハッチバック": { trend: -0.0003, volatility: 0.006 },
+    "ミニバン/ワンボックス": { trend: 0.0003, volatility: 0.007 },
+    "ステーションワゴン": { trend: -0.0005, volatility: 0.007 },
+    "SUV/クロカン": { trend: 0.0004, volatility: 0.008 },
+    "セダン": { trend: -0.0006, volatility: 0.006 },
+    "クーペ": { trend: 0.0002, volatility: 0.009 },
+    "オープン": { trend: 0.0001, volatility: 0.010 },
+    "バン/商用車": { trend: -0.0001, volatility: 0.005 },
+    "ピックアップトラック": { trend: 0.0006, volatility: 0.009 },
+    "トラック": { trend: -0.0002, volatility: 0.005 },
+    "キャンピングカー": { trend: 0.0003, volatility: 0.008 },
+    "福祉車両": { trend: -0.0001, volatility: 0.004 },
+  }
+
+  const indices: Record<string, number> = {}
+  selectedTypes.forEach(t => { indices[t] = 100 })
+
+  for (let i = 0; i < totalWeeks; i++) {
+    const date = new Date(Date.now() - (totalWeeks - 1 - i) * 7 * 24 * 60 * 60 * 1000)
+    const weekStr = `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`
+    const point: Record<string, string | number> = { week: weekStr }
+
+    selectedTypes.forEach(t => {
+      const traits = typeTraits[t] || { trend: 0, volatility: 0.006 }
+      const noise = (Math.random() - 0.5) * traits.volatility * 100
+      indices[t] = indices[t] + traits.trend * 100 + noise
+      point[t] = Math.round(indices[t] * 10) / 10
+    })
+    data.push(point)
+  }
+  return data
 }
 
 // 変動率に連動した価格履歴を生成（開始価格から終了価格への推移）
@@ -226,7 +407,7 @@ const generateRankingData = () => {
     { maker: "ホンダ", carName: "シビック タイプR", model: "FL5型", category: "domestic", type: "スポーツ" },
     { maker: "日産", carName: "フェアレディZ", model: "RZ34型", category: "domestic", type: "スポーツ" },
     { maker: "スズキ", carName: "アルト", model: "HA37S型", category: "kei", type: "軽自動車" },
-    { maker: "ダイハツ", carName: "ミライース", model: "LA350S型", category: "kei", type: "軽自動車" },
+    { maker: "ダイハ���", carName: "ミライース", model: "LA350S型", category: "kei", type: "軽自動車" },
     { maker: "ホンダ", carName: "N-WGN", model: "JH3/4型", category: "kei", type: "軽自動車" },
     { maker: "日産", carName: "デイズ", model: "B40W型", category: "kei", type: "軽自動車" },
     { maker: "三菱", carName: "eKクロス", model: "B30W型", category: "kei", type: "軽自動車" },
@@ -247,7 +428,7 @@ const generateRankingData = () => {
     { maker: "日産", carName: "サクラ", model: "B6AW型", category: "kei", type: "軽自動車" },
     { maker: "三菱", carName: "eKクロスEV", model: "B5AW型", category: "kei", type: "軽自動車" },
     { maker: "ホンダ", carName: "ZR-V", model: "RZ系", category: "domestic", type: "SUV" },
-    { maker: "マツダ", carName: "MX-30", model: "DR系", category: "domestic", type: "SUV" },
+    { maker: "マツダ", carName: "MX-30", model: "DR��", category: "domestic", type: "SUV" },
     { maker: "レクサス", carName: "RZ", model: "450e", category: "domestic", type: "SUV" },
     { maker: "レクサス", carName: "UX", model: "300e", category: "domestic", type: "SUV" },
   ]
@@ -313,16 +494,25 @@ const generateRankingData = () => {
   }))
 }
 
-const priceHistoryData = generatePriceHistory(3500000)
 const rankingData = generateRankingData()
 
 export function MarketTrends() {
-  const [activeTab, setActiveTab] = useState<"trends" | "ranking">("trends")
+  const [activeTab, setActiveTab] = useState<"trends" | "ranking" | "individual" | "bodytype">("trends")
+  const [selectedBodyTypes, setSelectedBodyTypes] = useState<string[]>(["SUV/クロカン", "ミニバン/ワンボックス", "セダン", "軽自動車", "コンパクト/ハッチバック"])
+  const [hiddenBodyTypes, setHiddenBodyTypes] = useState<Set<string>>(new Set())
+  const [vehicleUrl, setVehicleUrl] = useState("")
+  const [iframeUrl, setIframeUrl] = useState("")
+  const [individualPriceData, setIndividualPriceData] = useState<{week: string; price: number}[]>([])
+  const [individualLoading, setIndividualLoading] = useState(false)
+  const [vehicleTitle, setVehicleTitle] = useState("")
   const [selectedMaker, setSelectedMaker] = useState<string>("")
   const [selectedModel, setSelectedModel] = useState<string>("")
+  const [selectedModelType, setSelectedModelType] = useState<string>("")
   const [selectedVariant, setSelectedVariant] = useState<string>("")
   const [selectedMileages, setSelectedMileages] = useState<string[]>(mileageOptions.map(o => o.value))
   const [allMileagesSelected, setAllMileagesSelected] = useState(true)
+  const [showChart, setShowChart] = useState(false)
+  const [hiddenComparisonLabels, setHiddenComparisonLabels] = useState<Set<string>>(new Set())
 
   // ランキングフィルター
   const [rankingCategory, setRankingCategory] = useState<string>("all")
@@ -336,14 +526,109 @@ export function MarketTrends() {
   const allMakers = [...manufacturers.domestic, ...manufacturers.imported]
 
   // 選択されたメーカーの車種リスト
-  const availableModels = selectedMaker ? vehicleModels[selectedMaker] || [] : []
+  const availableVehicles = selectedMaker ? vehicleModels[selectedMaker] || [] : []
 
-  // 選択された車種のグレードリスト
-  const availableVariants = selectedModel
-    ? availableModels.find(m => m.id === selectedModel)?.variants || []
+  // 選択された車種のモデルリスト
+  const availableModelTypes = selectedModel
+    ? availableVehicles.find(m => m.id === selectedModel)?.models || []
     : []
 
+  // 選択されたモデルのグレードリ���ト
+  const availableGrades = selectedModelType
+    ? availableModelTypes.find(m => m.id === selectedModelType)?.grades || []
+    : []
+
+  // 選択状態に応じた比較チャートの切り替え
+  // モデルまで選択 → グレード別比較
+  // メーカーのみ → メーカー別(国産)または国別(輸入)比較
+  const comparisonChartMode = useMemo(() => {
+    if (selectedModelType && selectedModelType !== "all" && availableGrades.length > 0) {
+      return "grade" as const
+    }
+    if (selectedMaker && selectedMaker !== "all") {
+      return "maker" as const
+    }
+    return "default" as const
+  }, [selectedMaker, selectedModelType, availableGrades.length])
+
+  // モード変更時に非表示ラベルをリセット
+  useEffect(() => {
+    setHiddenComparisonLabels(new Set())
+  }, [comparisonChartMode, selectedMaker, selectedModelType])
+
+  const { comparisonData, comparisonLabels, comparisonTitle, comparisonDesc } = useMemo(() => {
+    if (comparisonChartMode === "grade") {
+      return {
+        comparisonData: generateGradeDepreciationData(availableGrades, weeklyPriceHistoryData),
+        comparisonLabels: availableGrades,
+        comparisonTitle: "グレード別 下落率推移（過去2年）",
+        comparisonDesc: "2年前を起点(0%)としたグレードごとの平均価格下落率",
+      }
+    }
+    if (comparisonChartMode === "maker") {
+      const isDomestic = manufacturers.domestic.some(m => m.id === selectedMaker)
+      const result = generateMakerComparisonData(selectedMaker, weeklyPriceHistoryData)
+      return {
+        comparisonData: result.data,
+        comparisonLabels: result.labels,
+        comparisonTitle: isDomestic
+          ? "国産メーカー別 下落率推移（過去2年）"
+          : "輸入車 国別 下落率推移（過去2年）",
+        comparisonDesc: isDomestic
+          ? "2年前を起点(0%)とした国産メーカーごとの平均価格下落率"
+          : "2年前を起点(0%)とした輸入車の国別平均価格下落率",
+      }
+    }
+    return {
+      comparisonData: defaultGradeDepreciationData,
+      comparisonLabels: defaultGrades,
+      comparisonTitle: "グレード別 下落率推移（過去2年）",
+      comparisonDesc: "2年前を起点(0%)としたグレードごとの平均価格下落率",
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [comparisonChartMode, selectedMaker, selectedModelType])
+
   // 走行距離フィルターの処理
+  // 個別車両URL処理
+  const isValidVehicleUrl = (url: string) => {
+    return url.includes("carsensor.net") || url.includes("kurumaerabi.com")
+  }
+
+  const handleVehicleUrlSubmit = () => {
+    if (!vehicleUrl || !isValidVehicleUrl(vehicleUrl)) return
+
+    setIndividualLoading(true)
+    setIframeUrl(vehicleUrl)
+
+    // URLからサイト名を判定してタイトル生成
+    const siteName = vehicleUrl.includes("carsensor.net") ? "カーセンサー" : "車選びドットコム"
+    setVehicleTitle(`${siteName}掲載車両`)
+
+    // 個別車両の価格推移データ生成（シミュレーション）
+    const basePrice = 2000000 + Math.random() * 5000000
+    const weeks = 52 // 1年分
+    const priceData: {week: string; price: number}[] = []
+    let currentPrice = basePrice
+
+    for (let i = weeks - 1; i >= 0; i--) {
+      const date = new Date(Date.now() - i * 7 * 24 * 60 * 60 * 1000)
+      const weekStr = `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`
+
+      // 段階的に価格が下がるステップパターン（カーセンサーのような値下げ表現）
+      if (Math.random() < 0.08) {
+        // 約8%の確率で値下げ（週次）
+        currentPrice = currentPrice * (0.95 + Math.random() * 0.03)
+      }
+      priceData.push({
+        week: weekStr,
+        price: Math.round(currentPrice),
+      })
+    }
+
+    setIndividualPriceData(priceData)
+    setTimeout(() => setIndividualLoading(false), 1000)
+  }
+
   const handleAllMileagesChange = (checked: boolean) => {
     setAllMileagesSelected(checked)
     if (checked) {
@@ -376,6 +661,23 @@ export function MarketTrends() {
     })
   }, [rankingCategory, rankingMaker])
 
+  // ボディタイプ別指数データ
+  const bodyTypeIndexData = useMemo(() => {
+    return generateBodyTypeIndexData(selectedBodyTypes)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedBodyTypes.join(",")])
+
+  const handleBodyTypeToggle = useCallback((typeName: string) => {
+    setSelectedBodyTypes(prev => {
+      if (prev.includes(typeName)) {
+        if (prev.length <= 1) return prev // 最低1つは選択
+        return prev.filter(t => t !== typeName)
+      }
+      return [...prev, typeName]
+    })
+    setHiddenBodyTypes(new Set())
+  }, [])
+
   // ユニークなメーカーリスト
   const uniqueMakers = useMemo(() => {
     const makers = new Set(rankingData.map(item => item.maker))
@@ -386,13 +688,13 @@ export function MarketTrends() {
     <div className="space-y-6">
       {/* ヘッダー */}
       <div className="border-b border-border pb-6">
-        <h1 className="text-2xl font-bold tracking-tight">車種別相場推移</h1>
+        <h1 className="text-2xl font-bold tracking-tight">メーカー・車種別相場推移</h1>
         <p className="text-muted-foreground mt-0.5 text-sm">過去2年間の相場推移とリセールバリューランキング</p>
       </div>
 
       {/* タブ */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "trends" | "ranking")}>
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "trends" | "ranking" | "individual" | "bodytype")}>
+        <TabsList className="grid w-full max-w-3xl grid-cols-4">
           <TabsTrigger value="trends" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             相場推移
@@ -400,6 +702,14 @@ export function MarketTrends() {
           <TabsTrigger value="ranking" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             リセールランキング
+          </TabsTrigger>
+          <TabsTrigger value="individual" className="flex items-center gap-2">
+            <Car className="h-4 w-4" />
+            個別車両価格推移
+          </TabsTrigger>
+          <TabsTrigger value="bodytype" className="flex items-center gap-2">
+            <Gauge className="h-4 w-4" />
+            ボディタイプ別
           </TabsTrigger>
         </TabsList>
 
@@ -414,13 +724,14 @@ export function MarketTrends() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {/* メーカー選択 */}
                 <div className="space-y-2">
                   <Label>メーカー</Label>
                   <Select value={selectedMaker} onValueChange={(v) => {
                     setSelectedMaker(v)
                     setSelectedModel("")
+                    setSelectedModelType("")
                     setSelectedVariant("")
                   }}>
                     <SelectTrigger>
@@ -447,6 +758,7 @@ export function MarketTrends() {
                     value={selectedModel} 
                     onValueChange={(v) => {
                       setSelectedModel(v)
+                      setSelectedModelType("")
                       setSelectedVariant("")
                     }}
                     disabled={!selectedMaker || selectedMaker === "all"}
@@ -456,7 +768,30 @@ export function MarketTrends() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">すべて</SelectItem>
-                      {availableModels.map(m => (
+                      {availableVehicles.map(m => (
+                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* モデル選択 */}
+                <div className="space-y-2">
+                  <Label>モデル</Label>
+                  <Select 
+                    value={selectedModelType} 
+                    onValueChange={(v) => {
+                      setSelectedModelType(v)
+                      setSelectedVariant("")
+                    }}
+                    disabled={!selectedModel || selectedModel === "all"}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="モデルを選択" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">すべて</SelectItem>
+                      {availableModelTypes.map(m => (
                         <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -469,14 +804,14 @@ export function MarketTrends() {
                   <Select 
                     value={selectedVariant} 
                     onValueChange={setSelectedVariant}
-                    disabled={!selectedModel || selectedModel === "all"}
+                    disabled={!selectedModelType || selectedModelType === "all"}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="グレードを選択" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">すべて</SelectItem>
-                      {availableVariants.map(v => (
+                      {availableGrades.map(v => (
                         <SelectItem key={v} value={v}>{v}</SelectItem>
                       ))}
                     </SelectContent>
@@ -514,26 +849,40 @@ export function MarketTrends() {
                 </div>
               </div>
             </CardContent>
+            <div className="flex justify-center border-t border-border px-6 py-4">
+              <Button 
+                size="lg"
+                onClick={() => setShowChart(true)}
+                className="gap-2 px-8"
+              >
+                <BarChart3 className="h-4 w-4" />
+                相場情報を見る
+              </Button>
+            </div>
           </Card>
 
-          {/* 相場グラフ */}
+          {/* 相場グラフ（ボタン押下後に表示） */}
+          {showChart && (<>
           <Card>
             <CardHeader>
-              <CardTitle>過去24ヶ月の相場推移</CardTitle>
+              <CardTitle>過去24ヶ月の相場推移（週次平均）</CardTitle>
               <CardDescription>
-                外れ値を除いた平均値、上位20%平均、下位20%平均を表示
+                週次の平均値、上位20%平均、下位20%平均を表示
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={priceHistoryData}>
+                  <LineChart data={weeklyPriceHistoryData}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                     <XAxis 
-                      dataKey="month" 
-                      tick={{ fontSize: 12 }}
-                      tickFormatter={(value) => value.split("/")[1] + "月"}
-                      interval={2}
+                      dataKey="week" 
+                      tick={{ fontSize: 11 }}
+                      tickFormatter={(value) => {
+                        const parts = value.split("/")
+                        return `${parts[0].slice(2)}/${parts[1]}`
+                      }}
+                      interval={7}
                     />
                     <YAxis 
                       tick={{ fontSize: 12 }}
@@ -542,31 +891,31 @@ export function MarketTrends() {
                     />
                     <Tooltip 
                       formatter={(value: number) => [`${(value / 10000).toFixed(1)}万円`, ""]}
-                      labelFormatter={(label) => `${label}`}
+                      labelFormatter={(label) => `週: ${label}`}
                     />
                     <Legend />
                     <Line 
-                      type="monotone" 
+                      type="stepAfter" 
                       dataKey="top20" 
                       name="上位20%平均" 
                       stroke="#22c55e" 
-                      strokeWidth={2}
+                      strokeWidth={1.5}
                       dot={false}
                     />
                     <Line 
-                      type="monotone" 
+                      type="stepAfter" 
                       dataKey="average" 
                       name="全体平均" 
                       stroke="#3b82f6" 
-                      strokeWidth={3}
+                      strokeWidth={2.5}
                       dot={false}
                     />
                     <Line 
-                      type="monotone" 
+                      type="stepAfter" 
                       dataKey="bottom20" 
                       name="下位20%平均" 
                       stroke="#f97316" 
-                      strokeWidth={2}
+                      strokeWidth={1.5}
                       dot={false}
                     />
                   </LineChart>
@@ -578,24 +927,147 @@ export function MarketTrends() {
                 <div className="rounded-lg bg-green-500/10 p-4 text-center">
                   <p className="text-sm text-muted-foreground">上位20%平均</p>
                   <p className="text-2xl font-bold text-green-600">
-                    {(priceHistoryData[priceHistoryData.length - 1].top20 / 10000).toFixed(0)}万円
+                    {(weeklyPriceHistoryData[weeklyPriceHistoryData.length - 1].top20 / 10000).toFixed(0)}万円
                   </p>
                 </div>
                 <div className="rounded-lg bg-blue-500/10 p-4 text-center">
                   <p className="text-sm text-muted-foreground">全体平均</p>
                   <p className="text-2xl font-bold text-blue-600">
-                    {(priceHistoryData[priceHistoryData.length - 1].average / 10000).toFixed(0)}万円
+                    {(weeklyPriceHistoryData[weeklyPriceHistoryData.length - 1].average / 10000).toFixed(0)}万円
                   </p>
                 </div>
                 <div className="rounded-lg bg-orange-500/10 p-4 text-center">
                   <p className="text-sm text-muted-foreground">下位20%平均</p>
                   <p className="text-2xl font-bold text-orange-600">
-                    {(priceHistoryData[priceHistoryData.length - 1].bottom20 / 10000).toFixed(0)}万円
+                    {(weeklyPriceHistoryData[weeklyPriceHistoryData.length - 1].bottom20 / 10000).toFixed(0)}万円
                   </p>
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* 相場推移データ */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                相場推移データ
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+                <div className="rounded-lg border border-border p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <p className="text-xs">平均在庫期間</p>
+                  </div>
+                  <p className="mt-2 text-2xl font-bold">{marketSummaryStats.avgInventoryDays}<span className="text-sm font-normal text-muted-foreground ml-0.5">日</span></p>
+                </div>
+                <div className="rounded-lg border border-border p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <ArrowDownRight className="h-4 w-4" />
+                    <p className="text-xs">新車からの下落率</p>
+                  </div>
+                  <p className="mt-2 text-2xl font-bold text-red-600">{marketSummaryStats.depreciationFromNew}%</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">新車価格 {(marketSummaryStats.newCarPrice / 10000).toFixed(0)}万円</p>
+                </div>
+                <div className="rounded-lg border border-border p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <TrendingDown className="h-4 w-4" />
+                    <p className="text-xs">過去2年の下落率</p>
+                  </div>
+                  <p className="mt-2 text-2xl font-bold text-red-600">{marketSummaryStats.depreciation2y}%</p>
+                </div>
+                <div className="rounded-lg border border-border p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <TrendingDown className="h-4 w-4" />
+                    <p className="text-xs">過去1年の下落率</p>
+                  </div>
+                  <p className="mt-2 text-2xl font-bold text-red-600">{marketSummaryStats.depreciation1y}%</p>
+                </div>
+                <div className="rounded-lg border border-border p-4">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <TrendingDown className="h-4 w-4" />
+                    <p className="text-xs">過去��年の下落率</p>
+                  </div>
+                  <p className="mt-2 text-2xl font-bold text-red-600">{marketSummaryStats.depreciation6m}%</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 比較チャート（メーカー別 or グレード別） */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{comparisonTitle}</CardTitle>
+              <CardDescription>
+                {comparisonDesc}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[400px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={comparisonData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="week" 
+                      tick={{ fontSize: 11 }}
+                      tickFormatter={(value) => {
+                        const parts = value.split("/")
+                        return `${parts[0].slice(2)}/${parts[1]}`
+                      }}
+                      interval={7}
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => `${value}%`}
+                      domain={["dataMin - 2", "dataMax + 2"]}
+                    />
+                    <Tooltip 
+                      formatter={(value: number, name: string) => [`${value.toFixed(1)}%`, name]}
+                      labelFormatter={(label) => `週: ${label}`}
+                    />
+                    <Legend 
+                      onClick={(e) => {
+                        const label = e.dataKey as string
+                        setHiddenComparisonLabels(prev => {
+                          const next = new Set(prev)
+                          if (next.has(label)) {
+                            next.delete(label)
+                          } else {
+                            next.add(label)
+                          }
+                          return next
+                        })
+                      }}
+                      formatter={(value) => (
+                        <span style={{ 
+                          color: hiddenComparisonLabels.has(value) ? "#ccc" : undefined,
+                          textDecoration: hiddenComparisonLabels.has(value) ? "line-through" : undefined,
+                          cursor: "pointer",
+                        }}>
+                          {value}
+                        </span>
+                      )}
+                    />
+                    {comparisonLabels.map((label, idx) => (
+                      <Line 
+                        key={label}
+                        type="stepAfter" 
+                        dataKey={label} 
+                        name={label} 
+                        stroke={gradeColors[idx % gradeColors.length]} 
+                        strokeWidth={2}
+                        dot={false}
+                        hide={hiddenComparisonLabels.has(label)}
+                      />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+          </>)}
         </TabsContent>
 
         {/* リセールランキングタブ */}
@@ -650,7 +1122,7 @@ export function MarketTrends() {
             <CardHeader>
               <CardTitle>リセールバリューランキング TOP100</CardTitle>
               <CardDescription>
-                {filteredRanking.length}件の車種を表示中 - 車種をクリックすると詳細が表示されます
+                {filteredRanking.length}件の車種を表示中 - 車種をクリックすると詳細���表示されます
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -809,7 +1281,7 @@ export function MarketTrends() {
                                 domain={["dataMin - 200000", "dataMax + 200000"]}
                               />
                               <Tooltip 
-                                formatter={(value: number) => [`${(value / 10000).toFixed(1)}万円`, ""]}
+                                formatter={(value: number) => [`${(value / 10000).toFixed(1)}��円`, ""]}
                                 labelFormatter={(label) => `${label}`}
                               />
                               <Legend />
@@ -919,6 +1391,364 @@ export function MarketTrends() {
               )}
             </DialogContent>
           </Dialog>
+        </TabsContent>
+
+        {/* 個別車両価格推移タブ */}
+        <TabsContent value="individual" className="space-y-6">
+          {/* URL入力 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Search className="h-5 w-5" />
+                車両情報を取得
+              </CardTitle>
+              <CardDescription>
+                カーセンサーまたは車選びドットコムの車両ページURLを入力してください
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-3">
+                <div className="relative flex-1">
+                  <Input
+                    type="url"
+                    placeholder="https://www.carsensor.net/... または https://www.kurumaerabi.com/..."
+                    value={vehicleUrl}
+                    onChange={(e) => setVehicleUrl(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleVehicleUrlSubmit()
+                    }}
+                    className="pr-10"
+                  />
+                  {vehicleUrl && !isValidVehicleUrl(vehicleUrl) && (
+                    <p className="mt-1.5 text-xs text-destructive">
+                      カーセンサー(carsensor.net)または車選びドットコム(kurumaerabi.com)のURLを入力してください
+                    </p>
+                  )}
+                </div>
+                <Button 
+                  onClick={handleVehicleUrlSubmit}
+                  disabled={!vehicleUrl || !isValidVehicleUrl(vehicleUrl) || individualLoading}
+                  className="gap-2 shrink-0"
+                >
+                  {individualLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <ExternalLink className="h-4 w-4" />
+                  )}
+                  表示
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 価格推移グラフ＋iframe表示 */}
+          {iframeUrl && (
+            <>
+              {/* 価格推移チャート */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5" />
+                        {vehicleTitle} - 価格推移
+                      </CardTitle>
+                      <CardDescription className="mt-1">
+                        過去1年間の当該車両の掲載価格推移（週次）
+                      </CardDescription>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold">
+                        {(individualPriceData[individualPriceData.length - 1]?.price / 10000).toFixed(1)}万円
+                      </p>
+                      <p className="text-xs text-muted-foreground">現在の掲載価格</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[250px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={individualPriceData}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis 
+                          dataKey="week" 
+                          tick={{ fontSize: 11 }}
+                          interval={3}
+                        />
+                        <YAxis 
+                          tick={{ fontSize: 12 }}
+                          tickFormatter={(value) => `${(value / 10000).toFixed(0)}万`}
+                          domain={["dataMin - 100000", "dataMax + 100000"]}
+                        />
+                        <Tooltip 
+                          formatter={(value: number) => [`${(value / 10000).toFixed(1)}万円`, "掲載価格"]}
+                          labelFormatter={(label) => `${label}`}
+                        />
+                        <Line 
+                          type="stepAfter" 
+                          dataKey="price" 
+                          name="掲載価格" 
+                          stroke="#3b82f6" 
+                          strokeWidth={2.5}
+                          dot={false}
+                          fill="#3b82f6"
+                          fillOpacity={0.05}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  {/* 価格サマリー */}
+                  <div className="mt-4 grid grid-cols-5 gap-3">
+                    <div className="rounded-lg border border-border p-3 text-center">
+                      <p className="text-xs text-muted-foreground">掲載期間</p>
+                      <p className="text-lg font-bold">
+                        {individualPriceData.length}<span className="text-sm font-normal text-muted-foreground ml-0.5">週</span>
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        ({individualPriceData.length > 0 ? `${individualPriceData[0]?.week} ~` : ""})
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border p-3 text-center">
+                      <p className="text-xs text-muted-foreground">初回掲載価格</p>
+                      <p className="text-lg font-bold">
+                        {(individualPriceData[0]?.price / 10000).toFixed(1)}万円
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border p-3 text-center">
+                      <p className="text-xs text-muted-foreground">現在価格</p>
+                      <p className="text-lg font-bold text-blue-600">
+                        {(individualPriceData[individualPriceData.length - 1]?.price / 10000).toFixed(1)}万円
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border p-3 text-center">
+                      <p className="text-xs text-muted-foreground">値下げ幅</p>
+                      <p className="text-lg font-bold text-red-600">
+                        -{((individualPriceData[0]?.price - individualPriceData[individualPriceData.length - 1]?.price) / 10000).toFixed(1)}万円
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border p-3 text-center">
+                      <p className="text-xs text-muted-foreground">下落率</p>
+                      <p className="text-lg font-bold text-red-600">
+                        {(((individualPriceData[individualPriceData.length - 1]?.price - individualPriceData[0]?.price) / individualPriceData[0]?.price) * 100).toFixed(1)}%
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 外部サイト表示（iframe） */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <ExternalLink className="h-4 w-4" />
+                      {vehicleTitle}
+                    </CardTitle>
+                    <a 
+                      href={iframeUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+                    >
+                      新しいタブで開く
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="relative w-full border-t border-border" style={{ height: "70vh" }}>
+                    {individualLoading && (
+                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80">
+                        <div className="flex flex-col items-center gap-3">
+                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                          <p className="text-sm text-muted-foreground">車両情報を読み込んでいます...</p>
+                        </div>
+                      </div>
+                    )}
+                    <iframe
+                      src={iframeUrl}
+                      className="h-full w-full"
+                      title={vehicleTitle}
+                      sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          )}
+
+          {/* 未入力時のガイド */}
+          {!iframeUrl && (
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-16">
+                <Car className="h-12 w-12 text-muted-foreground/40" />
+                <h3 className="mt-4 text-lg font-semibold text-muted-foreground">車両URLを入力してください</h3>
+                <p className="mt-2 max-w-sm text-center text-sm text-muted-foreground/70">
+                  カーセンサーまたは車選びドットコムの車両詳細ページURLを入力すると、
+                  価格推移グラフと車両情報を表示します。
+                </p>
+                <div className="mt-6 flex flex-wrap gap-2 justify-center">
+                  <Badge variant="outline" className="gap-1">
+                    <span className="text-green-600">carsensor.net</span>
+                    対応
+                  </Badge>
+                  <Badge variant="outline" className="gap-1">
+                    <span className="text-blue-600">kurumaerabi.com</span>
+                    対応
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+        {/* ボディタイプ別相場推移タブ */}
+        <TabsContent value="bodytype" className="space-y-6">
+          {/* ボディタイプ選択 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Filter className="h-5 w-5" />
+                ボディタイプを選択
+              </CardTitle>
+              <CardDescription>
+                比較したいボディタイプを選択してください（複数選択可）
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-8">
+                {bodyTypes.map((bt) => {
+                  const isSelected = selectedBodyTypes.includes(bt.name)
+                  return (
+                    <button
+                      key={bt.id}
+                      type="button"
+                      onClick={() => handleBodyTypeToggle(bt.name)}
+                      className={`flex flex-col items-center gap-1.5 rounded-lg border p-3 text-center transition-all hover:border-primary/50 ${
+                        isSelected
+                          ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                          : "border-border"
+                      }`}
+                    >
+                      <Car className={`h-5 w-5 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                      <span className={`text-[11px] leading-tight ${isSelected ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
+                        {bt.name}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                {selectedBodyTypes.length}件選択中 -- 凡例クリックで個別に表示/非表示を切り替えできます
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* 騰落率グラフ */}
+          <Card>
+            <CardHeader>
+              <CardTitle>ボディタイプ別 騰落率推移（過去2年）</CardTitle>
+              <CardDescription>
+                2年前を基準値(100)とした各ボディタイプの相場指数推移
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[450px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={bodyTypeIndexData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis
+                      dataKey="week"
+                      tick={{ fontSize: 11 }}
+                      tickFormatter={(value) => {
+                        const parts = value.split("/")
+                        return `${parts[0].slice(2)}/${parts[1]}`
+                      }}
+                      interval={7}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => `${value}`}
+                      domain={["dataMin - 3", "dataMax + 3"]}
+                    />
+                    <Tooltip
+                      formatter={(value: number, name: string) => [`${value.toFixed(1)}`, name]}
+                      labelFormatter={(label) => `週: ${label}`}
+                    />
+                    <Legend
+                      onClick={(e) => {
+                        const label = e.dataKey as string
+                        setHiddenBodyTypes(prev => {
+                          const next = new Set(prev)
+                          if (next.has(label)) {
+                            next.delete(label)
+                          } else {
+                            next.add(label)
+                          }
+                          return next
+                        })
+                      }}
+                      formatter={(value) => (
+                        <span style={{
+                          color: hiddenBodyTypes.has(value) ? "#ccc" : undefined,
+                          textDecoration: hiddenBodyTypes.has(value) ? "line-through" : undefined,
+                          cursor: "pointer",
+                        }}>
+                          {value}
+                        </span>
+                      )}
+                    />
+                    {/* 基準線 100 */}
+                    <Line
+                      type="stepAfter"
+                      dataKey={() => 100}
+                      name="基準値(100)"
+                      stroke="#9ca3af"
+                      strokeWidth={1}
+                      strokeDasharray="5 5"
+                      dot={false}
+                      legendType="none"
+                    />
+                    {selectedBodyTypes.map((typeName, idx) => (
+                      <Line
+                        key={typeName}
+                        type="stepAfter"
+                        dataKey={typeName}
+                        name={typeName}
+                        stroke={gradeColors[idx % gradeColors.length]}
+                        strokeWidth={2}
+                        dot={false}
+                        hide={hiddenBodyTypes.has(typeName)}
+                      />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* 現在値サマリー */}
+              <div className="mt-6">
+                <h4 className="mb-3 text-sm font-semibold">現在の指数（2年前 = 100）</h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedBodyTypes.map((typeName, idx) => {
+                    const lastVal = bodyTypeIndexData[bodyTypeIndexData.length - 1]?.[typeName] as number
+                    const diff = lastVal - 100
+                    return (
+                      <div key={typeName} className="flex items-center gap-2 rounded-lg border border-border px-3 py-2">
+                        <div className="h-3 w-3 rounded-full" style={{ backgroundColor: gradeColors[idx % gradeColors.length] }} />
+                        <span className="text-xs font-medium">{typeName}</span>
+                        <span className={`text-sm font-bold ${diff >= 0 ? "text-green-600" : "text-red-600"}`}>
+                          {lastVal?.toFixed(1)}
+                        </span>
+                        <span className={`text-[10px] ${diff >= 0 ? "text-green-600" : "text-red-600"}`}>
+                          ({diff >= 0 ? "+" : ""}{diff?.toFixed(1)})
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

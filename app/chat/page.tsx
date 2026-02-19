@@ -6,32 +6,34 @@ import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardSidebar } from "@/components/dashboard-sidebar"
 import { AIAnalysisChat } from "@/components/ai-analysis-chat"
 import { ConsultantChat } from "@/components/consultant-chat"
+import { CustomChat } from "@/components/custom-chat"
 import { Card, CardContent } from "@/components/ui/card"
-import { BarChart3, Flame, ArrowLeft } from "lucide-react"
+import { BarChart3, Flame, Sparkles, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-type ChatMode = "data-analysis" | "consultant" | null
+type ChatMode = "data-analysis" | "consultant" | "custom" | null
 
 function ChatPageContent() {
   const searchParams = useSearchParams()
   const mode = searchParams.get("mode") as ChatMode
+  const customChatId = searchParams.get("id")
 
   // 選択画面
-  if (!mode || (mode !== "data-analysis" && mode !== "consultant")) {
+  if (!mode || !["data-analysis", "consultant", "custom"].includes(mode)) {
     return (
       <div className="flex h-screen overflow-hidden bg-background">
         <DashboardSidebar />
         <div className="flex flex-1 flex-col overflow-hidden">
           <DashboardHeader />
           <main className="flex-1 overflow-y-auto p-6">
-            <div className="mx-auto max-w-[800px] space-y-6">
+            <div className="mx-auto w-full max-w-4xl space-y-6">
               <div className="border-b border-border pb-6">
-                <h1 className="text-2xl font-bold tracking-tight">AIチャット</h1>
-                <p className="text-muted-foreground mt-0.5 text-sm">データ分析または経営コンサルタントを選択してください</p>
+                <h1 className="text-2xl font-bold tracking-tight">AI分析・コンサルティング</h1>
+                <p className="text-muted-foreground mt-0.5 text-sm">利用するAIチャットを選択してください</p>
               </div>
 
-              <div className="grid gap-6 sm:grid-cols-2">
+              <div className="grid gap-6 sm:grid-cols-3">
                 <Link href="/chat?mode=data-analysis">
                   <Card className="h-full cursor-pointer transition-colors hover:border-primary/50 hover:bg-muted/30">
                     <CardContent className="flex flex-col items-center p-8 text-center">
@@ -59,6 +61,20 @@ function ChatPageContent() {
                     </CardContent>
                   </Card>
                 </Link>
+
+                <Link href="/chat?mode=custom">
+                  <Card className="h-full cursor-pointer transition-colors hover:border-violet-500/50 hover:bg-violet-500/5">
+                    <CardContent className="flex flex-col items-center p-8 text-center">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-violet-500/10 text-violet-600 mb-4">
+                        <Sparkles className="h-7 w-7" />
+                      </div>
+                      <h2 className="text-lg font-semibold">カスタムAIチャット</h2>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        独自のプロンプトでAIチャットを作成・利用
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
               </div>
             </div>
           </main>
@@ -67,7 +83,37 @@ function ChatPageContent() {
     )
   }
 
-  // チャット画面
+  // カスタムチャット画面
+  if (mode === "custom") {
+    return (
+      <div className="flex h-screen overflow-hidden bg-background">
+        <DashboardSidebar />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <DashboardHeader />
+          <main className="flex-1 flex flex-col overflow-hidden p-3 md:p-4 lg:p-6">
+            <div className="flex min-h-0 w-full flex-1 flex-col gap-3 md:gap-4 lg:gap-6">
+              <div className="flex shrink-0 items-center gap-3 md:gap-4 border-b border-border pb-3 md:pb-4 lg:pb-6">
+                <Link href="/chat">
+                  <Button variant="ghost" size="icon" className="h-9 w-9">
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight">カスタムAIチャット</h1>
+                  <p className="text-muted-foreground mt-0.5 text-sm">独自のプロンプトでAIチャットを作成・利用</p>
+                </div>
+              </div>
+              <div className="min-h-0 flex-1 overflow-auto">
+                <CustomChat initialChatId={customChatId} />
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    )
+  }
+
+  // データ分析 / コンサルタント チャット画面
   const title = mode === "data-analysis" ? "データ分析" : "経営コンサルタント"
   const subtitle =
     mode === "data-analysis"
@@ -79,9 +125,9 @@ function ChatPageContent() {
       <DashboardSidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <DashboardHeader />
-        <main className="flex-1 flex flex-col overflow-hidden p-6">
-          <div className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 flex-col gap-6">
-            <div className="flex shrink-0 items-center gap-4 border-b border-border pb-6">
+        <main className="flex-1 flex flex-col overflow-hidden p-3 md:p-4 lg:p-6">
+          <div className="flex min-h-0 w-full flex-1 flex-col gap-3 md:gap-4 lg:gap-6">
+            <div className="flex shrink-0 items-center gap-3 md:gap-4 border-b border-border pb-3 md:pb-4 lg:pb-6">
               <Link href="/chat">
                 <Button variant="ghost" size="icon" className="h-9 w-9">
                   <ArrowLeft className="h-4 w-4" />

@@ -13,6 +13,7 @@ import {
   Trash2,
   MessageSquare,
   ArrowRight,
+  ArrowLeft,
   Bot,
   Flame,
   type LucideIcon,
@@ -228,9 +229,23 @@ export function SharedChatLayout({
   const AvatarIcon = isConsultant ? Flame : Bot
 
   return (
-    <div className="flex h-full min-h-0 gap-4">
+    <div className="flex h-full min-h-0 gap-3">
+      {!showHistory && (
+        <div className="flex shrink-0 items-start pt-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowHistory(true)}
+            className="gap-1.5 h-8 text-xs"
+          >
+            <History className="h-3.5 w-3.5" />
+            履歴を表示
+          </Button>
+        </div>
+      )}
+
       <div
-        className={cn("flex min-h-0 flex-col gap-3 transition-all duration-300", showHistory ? "w-72" : "w-0 overflow-hidden")}
+        className={cn("flex min-h-0 flex-col transition-all duration-300", showHistory ? "hidden md:flex w-64 lg:w-72" : "w-0 overflow-hidden")}
       >
         {showHistory && (
           <Card className="flex h-full min-h-0 flex-col border-border/50">
@@ -239,10 +254,21 @@ export function SharedChatLayout({
                 <History className="h-4 w-4 text-muted-foreground" />
                 {historyLabel}
               </h2>
-              <Button variant="ghost" size="sm" onClick={handleNewChat} className="h-7 gap-1.5 text-xs">
-                <Plus className="h-3.5 w-3.5" />
-                新規
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="sm" onClick={handleNewChat} className="h-7 gap-1.5 text-xs">
+                  <Plus className="h-3.5 w-3.5" />
+                  新規
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowHistory(false)}
+                  className="h-7 text-xs text-muted-foreground"
+                  title="履歴を非表示"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto p-2 space-y-1">
               {chatHistories.length === 0 ? (
@@ -287,19 +313,7 @@ export function SharedChatLayout({
         )}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3">
-        <div className="flex shrink-0 items-center justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowHistory(!showHistory)}
-            className="gap-1.5 h-8 text-xs"
-          >
-            <History className="h-3.5 w-3.5" />
-            {showHistory ? "履歴を非表示" : "履歴を表示"}
-          </Button>
-        </div>
-
+      <div className="flex min-h-0 flex-1 flex-col">
         <Card
           className={cn(
             "flex min-h-0 flex-1 flex-col overflow-hidden",
@@ -326,7 +340,7 @@ export function SharedChatLayout({
                 )}
                 <div
                   className={cn(
-                    "max-w-[80%] rounded-xl px-4 py-3 whitespace-pre-wrap text-sm leading-relaxed",
+                    "max-w-[600px] rounded-xl px-4 py-3 whitespace-pre-wrap text-sm leading-relaxed",
                     message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted/70",
                   )}
                 >
@@ -382,7 +396,7 @@ export function SharedChatLayout({
           {messages.length === 1 && (
             <div className="shrink-0 border-t border-border/50 bg-muted/30 p-4">
               <p className="text-xs font-medium mb-3 text-muted-foreground">{suggestedLabel}</p>
-              <div className="grid gap-2 sm:grid-cols-3">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {suggestedItems.map((item, index) => (
                   <button
                     key={index}
