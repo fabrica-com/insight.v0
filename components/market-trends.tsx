@@ -37,6 +37,56 @@ const manufacturers = {
   ],
 }
 
+// 年式データ（モデルID別）
+const modelYears: Record<string, string[]> = {
+  "prius-60": ["2024年", "2023年"],
+  "prius-50": ["2023年", "2022年", "2021年", "2020年", "2019年", "2018年", "2017年", "2016年", "2015年"],
+  "alphard-40": ["2024年", "2023年"],
+  "alphard-30": ["2023年", "2022年", "2021年", "2020年", "2019年", "2018年", "2017年", "2016年", "2015年"],
+  "harrier-80": ["2024年", "2023年", "2022年", "2021年", "2020年"],
+  "lc-300": ["2024年", "2023年", "2022年", "2021年"],
+  "lc-250": ["2024年"],
+  "crown-16": ["2024年", "2023年", "2022年"],
+  "nbox-3": ["2024年", "2023年"],
+  "nbox-2": ["2023年", "2022年", "2021年", "2020年", "2019年", "2018年", "2017年"],
+  "freed-3": ["2024年"],
+  "vezel-2": ["2024年", "2023年", "2022年", "2021年"],
+  "stepwgn-6": ["2024年", "2023年", "2022年"],
+  "3series-g20": ["2024年", "2023年", "2022年", "2021年", "2020年", "2019年"],
+  "5series-g60": ["2024年", "2023年"],
+  "x3-g45": ["2024年"],
+  "x5-g05": ["2024年", "2023年", "2022年", "2021年", "2020年", "2019年"],
+  "cclass-w206": ["2024年", "2023年", "2022年", "2021年"],
+  "eclass-w214": ["2024年", "2023年"],
+  "glc-x254": ["2024年", "2023年", "2022年"],
+}
+
+// 色系統データ
+const colorOptions = [
+  { id: "all", name: "すべて" },
+  { id: "white", name: "ホワイト" },
+  { id: "black", name: "ブラック" },
+  { id: "silver", name: "シルバー" },
+  { id: "gray", name: "グレー" },
+  { id: "red", name: "レッド" },
+  { id: "blue", name: "ブルー" },
+  { id: "brown", name: "ブラウン" },
+  { id: "beige", name: "ベージュ" },
+]
+
+// 地域データ
+const regionOptions = [
+  { id: "all", name: "すべて" },
+  { id: "hokkaido", name: "北海道" },
+  { id: "tohoku", name: "東北" },
+  { id: "kanto", name: "関東" },
+  { id: "chubu", name: "中部" },
+  { id: "kansai", name: "関西" },
+  { id: "chugoku", name: "中国" },
+  { id: "shikoku", name: "四国" },
+  { id: "kyushu", name: "九州" },
+]
+
 const vehicleModels: Record<string, { id: string; name: string; models: { id: string; name: string; grades: string[] }[] }[]> = {
   toyota: [
     { id: "prius", name: "プリウス", models: [
@@ -401,7 +451,7 @@ const generateRankingData = () => {
     { maker: "レクサス", carName: "RX", model: "450h+", category: "domestic", type: "SUV" },
     { maker: "レクサス", carName: "NX", model: "350h", category: "domestic", type: "SUV" },
     { maker: "レクサス", carName: "IS", model: "300h", category: "domestic", type: "セダン" },
-    { maker: "トヨタ", carName: "GRヤリス", model: "GXPA16型", category: "domestic", type: "スポーツ" },
+    { maker: "ト���タ", carName: "GRヤリス", model: "GXPA16型", category: "domestic", type: "スポーツ" },
     { maker: "トヨタ", carName: "GR86", model: "ZN8型", category: "domestic", type: "スポーツ" },
     { maker: "スバル", carName: "BRZ", model: "ZD8型", category: "domestic", type: "スポーツ" },
     { maker: "ホンダ", carName: "シビック タイプR", model: "FL5型", category: "domestic", type: "スポーツ" },
@@ -509,6 +559,9 @@ export function MarketTrends() {
   const [selectedModel, setSelectedModel] = useState<string>("")
   const [selectedModelType, setSelectedModelType] = useState<string>("")
   const [selectedVariant, setSelectedVariant] = useState<string>("")
+  const [selectedYear, setSelectedYear] = useState<string>("all")
+  const [selectedColor, setSelectedColor] = useState<string>("all")
+  const [selectedRegion, setSelectedRegion] = useState<string>("all")
   const [selectedMileages, setSelectedMileages] = useState<string[]>(mileageOptions.map(o => o.value))
   const [allMileagesSelected, setAllMileagesSelected] = useState(true)
   const [showChart, setShowChart] = useState(false)
@@ -533,10 +586,18 @@ export function MarketTrends() {
     ? availableVehicles.find(m => m.id === selectedModel)?.models || []
     : []
 
-  // 選択されたモデルのグレードリ���ト
+  // 選択されたモデルのグレードリスト
   const availableGrades = selectedModelType
     ? availableModelTypes.find(m => m.id === selectedModelType)?.grades || []
     : []
+
+  // 選択されたモデルの年式リスト
+  const availableYears = useMemo(() => {
+    if (selectedModelType && selectedModelType !== "all") {
+      return modelYears[selectedModelType] || []
+    }
+    return []
+  }, [selectedModelType])
 
   // 選択状態に応じた比較チャートの切り替え
   // モデルまで選択 → グレード別比較
@@ -760,6 +821,9 @@ export function MarketTrends() {
                       setSelectedModel(v)
                       setSelectedModelType("")
                       setSelectedVariant("")
+                      setSelectedYear("all")
+                      setSelectedColor("all")
+                      setSelectedRegion("all")
                     }}
                     disabled={!selectedMaker || selectedMaker === "all"}
                   >
@@ -783,6 +847,9 @@ export function MarketTrends() {
                     onValueChange={(v) => {
                       setSelectedModelType(v)
                       setSelectedVariant("")
+                      setSelectedYear("all")
+                      setSelectedColor("all")
+                      setSelectedRegion("all")
                     }}
                     disabled={!selectedModel || selectedModel === "all"}
                   >
@@ -813,6 +880,64 @@ export function MarketTrends() {
                       <SelectItem value="all">すべて</SelectItem>
                       {availableGrades.map(v => (
                         <SelectItem key={v} value={v}>{v}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* 年式選択 */}
+                <div className="space-y-2">
+                  <Label>年式</Label>
+                  <Select 
+                    value={selectedYear} 
+                    onValueChange={setSelectedYear}
+                    disabled={!selectedModelType || selectedModelType === "all"}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="年式を選択" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">すべて</SelectItem>
+                      {availableYears.map(year => (
+                        <SelectItem key={year} value={year}>{year}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* 色系統選択 */}
+                <div className="space-y-2">
+                  <Label>色系統</Label>
+                  <Select 
+                    value={selectedColor} 
+                    onValueChange={setSelectedColor}
+                    disabled={!selectedModelType || selectedModelType === "all"}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="色系統を選択" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {colorOptions.map(color => (
+                        <SelectItem key={color.id} value={color.id}>{color.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* 地域選択 */}
+                <div className="space-y-2">
+                  <Label>地域</Label>
+                  <Select 
+                    value={selectedRegion} 
+                    onValueChange={setSelectedRegion}
+                    disabled={!selectedModelType || selectedModelType === "all"}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="地域を選択" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {regionOptions.map(region => (
+                        <SelectItem key={region.id} value={region.id}>{region.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
