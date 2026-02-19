@@ -147,6 +147,270 @@ const models: Record<string, { id: string; name: string; years: string }[]> = {
   ],
 }
 
+// 年式データ（モデル別）
+const modelYears: Record<string, { id: string; year: string }[]> = {
+  "60series": [
+    { id: "2024", year: "2024年" },
+    { id: "2023", year: "2023年" },
+  ],
+  "50series": [
+    { id: "2023", year: "2023年" },
+    { id: "2022", year: "2022年" },
+    { id: "2021", year: "2021年" },
+    { id: "2020", year: "2020年" },
+    { id: "2019", year: "2019年" },
+    { id: "2018", year: "2018年" },
+    { id: "2017", year: "2017年" },
+    { id: "2016", year: "2016年" },
+    { id: "2015", year: "2015年" },
+  ],
+  "30series": [
+    { id: "2015", year: "2015年" },
+    { id: "2014", year: "2014年" },
+    { id: "2013", year: "2013年" },
+    { id: "2012", year: "2012年" },
+    { id: "2011", year: "2011年" },
+    { id: "2010", year: "2010年" },
+    { id: "2009", year: "2009年" },
+  ],
+  "40series": [
+    { id: "2024", year: "2024年" },
+    { id: "2023", year: "2023年" },
+  ],
+  "20series": [
+    { id: "2015", year: "2015年" },
+    { id: "2014", year: "2014年" },
+    { id: "2013", year: "2013年" },
+    { id: "2012", year: "2012年" },
+    { id: "2011", year: "2011年" },
+    { id: "2010", year: "2010年" },
+    { id: "2009", year: "2009年" },
+    { id: "2008", year: "2008年" },
+  ],
+  "80series": [
+    { id: "2024", year: "2024年" },
+    { id: "2023", year: "2023年" },
+    { id: "2022", year: "2022年" },
+    { id: "2021", year: "2021年" },
+    { id: "2020", year: "2020年" },
+  ],
+  "60series": [
+    { id: "2020", year: "2020年" },
+    { id: "2019", year: "2019年" },
+    { id: "2018", year: "2018年" },
+    { id: "2017", year: "2017年" },
+    { id: "2016", year: "2016年" },
+    { id: "2015", year: "2015年" },
+    { id: "2014", year: "2014年" },
+    { id: "2013", year: "2013年" },
+  ],
+  "300series": [
+    { id: "2024", year: "2024年" },
+    { id: "2023", year: "2023年" },
+    { id: "2022", year: "2022年" },
+    { id: "2021", year: "2021年" },
+  ],
+  "200series": [
+    { id: "2021", year: "2021年" },
+    { id: "2020", year: "2020年" },
+    { id: "2019", year: "2019年" },
+    { id: "2018", year: "2018年" },
+    { id: "2017", year: "2017年" },
+    { id: "2016", year: "2016年" },
+    { id: "2015", year: "2015年" },
+    { id: "2014", year: "2014年" },
+    { id: "2013", year: "2013年" },
+    { id: "2012", year: "2012年" },
+    { id: "2011", year: "2011年" },
+    { id: "2010", year: "2010年" },
+    { id: "2009", year: "2009年" },
+    { id: "2008", year: "2008年" },
+    { id: "2007", year: "2007年" },
+  ],
+  "jf5": [
+    { id: "2024", year: "2024年" },
+    { id: "2023", year: "2023年" },
+  ],
+  "jf3": [
+    { id: "2023", year: "2023年" },
+    { id: "2022", year: "2022年" },
+    { id: "2021", year: "2021年" },
+    { id: "2020", year: "2020年" },
+    { id: "2019", year: "2019年" },
+    { id: "2018", year: "2018年" },
+    { id: "2017", year: "2017年" },
+  ],
+  "c28": [
+    { id: "2024", year: "2024年" },
+    { id: "2023", year: "2023年" },
+    { id: "2022", year: "2022年" },
+  ],
+  "c27": [
+    { id: "2022", year: "2022年" },
+    { id: "2021", year: "2021年" },
+    { id: "2020", year: "2020年" },
+    { id: "2019", year: "2019年" },
+    { id: "2018", year: "2018年" },
+    { id: "2017", year: "2017年" },
+    { id: "2016", year: "2016年" },
+  ],
+  "al25": [
+    { id: "2024", year: "2024年" },
+    { id: "2023", year: "2023年" },
+    { id: "2022", year: "2022年" },
+  ],
+  "al20": [
+    { id: "2022", year: "2022年" },
+    { id: "2021", year: "2021年" },
+    { id: "2020", year: "2020年" },
+    { id: "2019", year: "2019年" },
+    { id: "2018", year: "2018年" },
+    { id: "2017", year: "2017年" },
+    { id: "2016", year: "2016年" },
+    { id: "2015", year: "2015年" },
+  ],
+  "crossover": [
+    { id: "2024", year: "2024年" },
+    { id: "2023", year: "2023年" },
+    { id: "2022", year: "2022年" },
+  ],
+  "220series": [
+    { id: "2022", year: "2022年" },
+    { id: "2021", year: "2021年" },
+    { id: "2020", year: "2020年" },
+    { id: "2019", year: "2019年" },
+    { id: "2018", year: "2018年" },
+  ],
+  "210series": [
+    { id: "2018", year: "2018年" },
+    { id: "2017", year: "2017年" },
+    { id: "2016", year: "2016年" },
+    { id: "2015", year: "2015年" },
+    { id: "2014", year: "2014年" },
+    { id: "2013", year: "2013年" },
+    { id: "2012", year: "2012年" },
+  ],
+}
+
+// 色系統データ
+const colors = [
+  { id: "all", name: "すべて" },
+  { id: "white", name: "ホワイト" },
+  { id: "black", name: "ブラック" },
+  { id: "silver", name: "シルバー" },
+  { id: "gray", name: "グレー" },
+  { id: "red", name: "レッド" },
+  { id: "blue", name: "ブルー" },
+  { id: "brown", name: "ブラウン" },
+  { id: "beige", name: "ベージュ" },
+]
+
+// 地域データ
+const regions = [
+  { id: "all", name: "すべて" },
+  { id: "hokkaido", name: "北海道" },
+  { id: "tohoku", name: "東北" },
+  { id: "kanto", name: "関東" },
+  { id: "chubu", name: "中部" },
+  { id: "kansai", name: "関西" },
+  { id: "chugoku", name: "中国" },
+  { id: "shikoku", name: "四国" },
+  { id: "kyushu", name: "九州" },
+]
+
+// グレードデータ（モデル別）
+const grades: Record<string, { id: string; name: string }[]> = {
+  "60series": [
+    { id: "s", name: "S" },
+    { id: "a", name: "A" },
+    { id: "a-premium", name: "A Premium" },
+  ],
+  "50series": [
+    { id: "l", name: "L" },
+    { id: "s", name: "S" },
+    { id: "a", name: "A" },
+    { id: "a-premium", name: "A Premium" },
+  ],
+  "30series": [
+    { id: "l", name: "L" },
+    { id: "s", name: "S" },
+    { id: "g", name: "G" },
+  ],
+  "40series": [
+    { id: "x", name: "X" },
+    { id: "g-f-package", name: "G F Package" },
+    { id: "executive-lounge", name: "Executive Lounge" },
+  ],
+  "20series": [
+    { id: "x", name: "X" },
+    { id: "g", name: "G" },
+    { id: "g-f-package", name: "G F Package" },
+  ],
+  "80series": [
+    { id: "s", name: "S" },
+    { id: "g", name: "G" },
+    { id: "z", name: "Z" },
+  ],
+  "60series": [
+    { id: "s", name: "S" },
+    { id: "g", name: "G" },
+    { id: "premium", name: "Premium" },
+  ],
+  "300series": [
+    { id: "gx", name: "GX" },
+    { id: "zx", name: "ZX" },
+  ],
+  "200series": [
+    { id: "vx", name: "VX" },
+    { id: "tx", name: "TX" },
+    { id: "zx", name: "ZX" },
+  ],
+  "jf5": [
+    { id: "g", name: "G" },
+    { id: "g-ex", name: "G EX" },
+    { id: "l", name: "L" },
+  ],
+  "jf3": [
+    { id: "g", name: "G" },
+    { id: "g-ex", name: "G EX" },
+    { id: "g-ex-hev", name: "G EX HEV" },
+  ],
+  "c28": [
+    { id: "x", name: "X" },
+    { id: "hv-x", name: "HV X" },
+    { id: "luxury", name: "Luxury" },
+  ],
+  "c27": [
+    { id: "x", name: "X" },
+    { id: "g", name: "G" },
+    { id: "highway-star", name: "Highway Star" },
+  ],
+  "al25": [
+    { id: "version-l", name: "Version L" },
+    { id: "version-f", name: "Version F" },
+    { id: "luxury", name: "Luxury" },
+  ],
+  "al20": [
+    { id: "version-l", name: "Version L" },
+    { id: "version-f", name: "Version F" },
+  ],
+  "crossover": [
+    { id: "g", name: "G" },
+    { id: "z", name: "Z" },
+    { id: "z-premium", name: "Z Premium" },
+  ],
+  "220series": [
+    { id: "s", name: "S" },
+    { id: "s-prize", name: "S Prize" },
+    { id: "g", name: "G" },
+  ],
+  "210series": [
+    { id: "s", name: "S" },
+    { id: "rs", name: "RS" },
+    { id: "g", name: "G" },
+  ],
+}
+
 // 相場データ
 const marketPriceData = [
   {
@@ -355,6 +619,10 @@ export function MarketTrendsAnalysis() {
   const [selectedMaker, setSelectedMaker] = useState("all")
   const [selectedVehicleType, setSelectedVehicleType] = useState("all")
   const [selectedModel, setSelectedModel] = useState("all")
+  const [selectedYear, setSelectedYear] = useState("all")
+  const [selectedColor, setSelectedColor] = useState("all")
+  const [selectedRegion, setSelectedRegion] = useState("all")
+  const [selectedGrade, setSelectedGrade] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [sortBy, setSortBy] = useState<"price" | "resale" | "volume" | "change">("resale")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
@@ -372,6 +640,18 @@ export function MarketTrendsAnalysis() {
     if (selectedVehicleType === "all") return []
     return models[selectedVehicleType] || []
   }, [selectedVehicleType])
+
+  // フィルタリングされた年式リスト
+  const availableYears = useMemo(() => {
+    if (selectedModel === "all") return []
+    return modelYears[selectedModel] || []
+  }, [selectedModel])
+
+  // フィルタリングされたグレードリスト
+  const availableGrades = useMemo(() => {
+    if (selectedModel === "all") return []
+    return grades[selectedModel] || []
+  }, [selectedModel])
 
   // フィルタリングとソート
   const filteredData = useMemo(() => {
@@ -427,7 +707,20 @@ export function MarketTrendsAnalysis() {
     })
 
     return data
-  }, [selectedMaker, selectedVehicleType, selectedModel, searchQuery, sortBy, sortOrder, availableVehicleTypes, availableModels])
+  }, [
+    selectedMaker,
+    selectedVehicleType,
+    selectedModel,
+    selectedYear,
+    selectedColor,
+    selectedRegion,
+    selectedGrade,
+    searchQuery,
+    sortBy,
+    sortOrder,
+    availableVehicleTypes,
+    availableModels,
+  ])
 
   const handleVehicleClick = (vehicle: (typeof marketPriceData)[0]) => {
     setSelectedVehicle(vehicle)
@@ -521,7 +814,17 @@ export function MarketTrendsAnalysis() {
             </Select>
 
             {/* モデル */}
-            <Select value={selectedModel} onValueChange={setSelectedModel} disabled={selectedVehicleType === "all"}>
+            <Select
+              value={selectedModel}
+              onValueChange={(value) => {
+                setSelectedModel(value)
+                setSelectedYear("all")
+                setSelectedColor("all")
+                setSelectedRegion("all")
+                setSelectedGrade("all")
+              }}
+              disabled={selectedVehicleType === "all"}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="モデル" />
               </SelectTrigger>
@@ -530,6 +833,67 @@ export function MarketTrendsAnalysis() {
                 {availableModels.map((model) => (
                   <SelectItem key={model.id} value={model.id}>
                     {model.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* 2行目: 年式、色系統、地域、グレード */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* 年式 */}
+            <Select value={selectedYear} onValueChange={setSelectedYear} disabled={selectedModel === "all"}>
+              <SelectTrigger>
+                <SelectValue placeholder="年式" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">すべて</SelectItem>
+                {availableYears.map((year) => (
+                  <SelectItem key={year.id} value={year.id}>
+                    {year.year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* 色系統 */}
+            <Select value={selectedColor} onValueChange={setSelectedColor} disabled={selectedModel === "all"}>
+              <SelectTrigger>
+                <SelectValue placeholder="色系統" />
+              </SelectTrigger>
+              <SelectContent>
+                {colors.map((color) => (
+                  <SelectItem key={color.id} value={color.id}>
+                    {color.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* 地域 */}
+            <Select value={selectedRegion} onValueChange={setSelectedRegion} disabled={selectedModel === "all"}>
+              <SelectTrigger>
+                <SelectValue placeholder="地域" />
+              </SelectTrigger>
+              <SelectContent>
+                {regions.map((region) => (
+                  <SelectItem key={region.id} value={region.id}>
+                    {region.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* グレード */}
+            <Select value={selectedGrade} onValueChange={setSelectedGrade} disabled={selectedModel === "all"}>
+              <SelectTrigger>
+                <SelectValue placeholder="グレード" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">すべて</SelectItem>
+                {availableGrades.map((grade) => (
+                  <SelectItem key={grade.id} value={grade.id}>
+                    {grade.name}
                   </SelectItem>
                 ))}
               </SelectContent>
