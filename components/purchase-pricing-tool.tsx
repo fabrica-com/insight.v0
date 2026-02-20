@@ -40,6 +40,8 @@ import {
   CheckCircle2,
   User,
   ClipboardCheck,
+  ImagePlus,
+  Loader2,
 } from "lucide-react"
 
 const manufacturers = ["トヨタ", "ホンダ", "日産", "マツダ", "スバル", "三菱", "スズキ", "ダイハツ"]
@@ -180,6 +182,9 @@ export function PurchasePricingTool() {
 
   const [chassisNumber, setChassisNumber] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const auctionImageRef = useRef<HTMLInputElement>(null)
+  const [auctionImageName, setAuctionImageName] = useState<string>("")
+  const [isProcessingAuctionImage, setIsProcessingAuctionImage] = useState(false)
 
   const [showSubmitDialog, setShowSubmitDialog] = useState(false)
   const [showConfirmDialog, setShowConfirmDialog] = useState(false)
@@ -462,8 +467,26 @@ export function PurchasePricingTool() {
       // デモ用: QRコードから車体番号を読み取ったと仮定
       setTimeout(() => {
         setChassisNumber("AGH30-0123456")
-        // setShowQRScanner(false) // Assuming this was intended to hide a scanner UI
       }, 500)
+    }
+  }
+
+  const handleAuctionImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setAuctionImageName(file.name)
+      setIsProcessingAuctionImage(true)
+      // デモ用: 出品票画像からOCRで車両情報を読み取ったと仮定
+      setTimeout(() => {
+        setChassisNumber("AGH30-0123456")
+        setManufacturer("トヨタ")
+        setModel("アルファード")
+        setSelectedGeneration("gen2")
+        setMileage("3万～4万km")
+        setColor("ブラック")
+        setGrade("S Cパッケージ")
+        setIsProcessingAuctionImage(false)
+      }, 1500)
     }
   }
 
@@ -524,9 +547,10 @@ export function PurchasePricingTool() {
           <div className="border rounded-lg p-4 bg-muted/10">
             <Label className="text-base font-semibold flex items-center gap-2 mb-4">
               <FileText className="h-4 w-4" />
-              車体番号入力
+              車両情報の入力方法
             </Label>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-3">
+              {/* 車体番号入力 */}
               <div className="space-y-2">
                 <Label htmlFor="chassisNumber">車体番号（車台番号）</Label>
                 <Input
@@ -536,6 +560,8 @@ export function PurchasePricingTool() {
                   onChange={(e) => setChassisNumber(e.target.value)}
                 />
               </div>
+
+              {/* QRコード読み取り */}
               <div className="space-y-2">
                 <Label>QRコード読み取り</Label>
                 <div className="flex gap-2">
@@ -550,14 +576,55 @@ export function PurchasePricingTool() {
                   </Button>
                   <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleQRUpload} />
                 </div>
-                {chassisNumber && (
-                  <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 dark:bg-green-950/30 p-2 rounded">
-                    <CheckCircle2 className="h-4 w-4" />
-                    車体番号を取得しました: {chassisNumber}
-                  </div>
+              </div>
+
+              {/* オークション出品票画像 */}
+              <div className="space-y-2">
+                <Label>オークション出品票</Label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 bg-transparent"
+                    onClick={() => auctionImageRef.current?.click()}
+                    disabled={isProcessingAuctionImage}
+                  >
+                    {isProcessingAuctionImage ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        読み取り中...
+                      </>
+                    ) : (
+                      <>
+                        <ImagePlus className="mr-2 h-4 w-4" />
+                        出品票画像をアップロード
+                      </>
+                    )}
+                  </Button>
+                  <input
+                    ref={auctionImageRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAuctionImageUpload}
+                  />
+                </div>
+                {auctionImageName && !isProcessingAuctionImage && (
+                  <p className="text-xs text-muted-foreground truncate">{auctionImageName}</p>
                 )}
               </div>
             </div>
+
+            {/* 読み取り結果メッセージ */}
+            {chassisNumber && (
+              <div className="mt-3 flex items-center gap-2 text-sm text-green-600 bg-green-50 dark:bg-green-950/30 p-2 rounded">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                {auctionImageName
+                  ? <>出品票から車両情報を取得しました（車体番号: {chassisNumber}）</>
+                  : <>車体番号を取得しました: {chassisNumber}</>
+                }
+              </div>
+            )}
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -1324,7 +1391,7 @@ export function PurchasePricingTool() {
               </Label>
               <Textarea
                 id="comments"
-                placeholder="車両の状態、気になる点、交渉ポイントなどを入力してください"
+                placeholder="車両の状態、気に��る点、交渉ポイントなどを入力してください"
                 value={comments}
                 onChange={(e) => setComments(e.target.value)}
                 rows={4}

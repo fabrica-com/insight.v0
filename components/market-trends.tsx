@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from "recharts"
-import { TrendingUp, TrendingDown, Minus, Filter, BarChart3, X, ChevronRight, Calendar, Car, Gauge, Clock, ArrowDownRight, ExternalLink, Search, Loader2 } from "lucide-react"
+import { TrendingUp, TrendingDown, Minus, Filter, BarChart3, X, ChevronRight, Calendar, Car, Gauge, Clock, ArrowDownRight, ExternalLink, Search, Loader2, MapPin, Palette } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 
@@ -37,76 +37,119 @@ const manufacturers = {
   ],
 }
 
-const vehicleModels: Record<string, { id: string; name: string; models: { id: string; name: string; grades: string[] }[] }[]> = {
+type ModelType = { id: string; name: string; grades: string[]; yearRange: { from: number; to: number } }
+type VehicleModel = { id: string; name: string; models: ModelType[] }
+
+const vehicleModels: Record<string, VehicleModel[]> = {
   toyota: [
     { id: "prius", name: "プリウス", models: [
-      { id: "prius-60", name: "60系 (2023-)", grades: ["S", "A", "Aプレミアム", "G", "Z"] },
-      { id: "prius-50", name: "50系 (2015-2023)", grades: ["S", "A", "Aプレミアム", "E"] },
+      { id: "prius-60", name: "60系 (2023-)", grades: ["S", "A", "Aプレミアム", "G", "Z"], yearRange: { from: 2023, to: 2026 } },
+      { id: "prius-50", name: "50系 (2015-2023)", grades: ["S", "A", "Aプレミアム", "E"], yearRange: { from: 2015, to: 2023 } },
     ]},
     { id: "alphard", name: "アルファード", models: [
-      { id: "alphard-40", name: "40系 (2023-)", grades: ["Z", "Z Premium", "Executive Lounge"] },
-      { id: "alphard-30", name: "30系 (2015-2023)", grades: ["S", "SC", "Executive Lounge", "S Cパッケージ"] },
+      { id: "alphard-40", name: "40系 (2023-)", grades: ["Z", "Z Premium", "Executive Lounge"], yearRange: { from: 2023, to: 2026 } },
+      { id: "alphard-30", name: "30系 (2015-2023)", grades: ["S", "SC", "Executive Lounge", "S Cパッケージ"], yearRange: { from: 2015, to: 2023 } },
     ]},
     { id: "harrier", name: "ハリアー", models: [
-      { id: "harrier-80", name: "80系 (2020-)", grades: ["S", "G", "Z", "Z Leather Package"] },
+      { id: "harrier-80", name: "80系 (2020-)", grades: ["S", "G", "Z", "Z Leather Package"], yearRange: { from: 2020, to: 2026 } },
     ]},
     { id: "landcruiser", name: "ランドクルーザー", models: [
-      { id: "lc-300", name: "300系 (2021-)", grades: ["GX", "AX", "VX", "ZX", "GR SPORT"] },
-      { id: "lc-250", name: "250系 (2024-)", grades: ["GX", "VX", "ZX"] },
+      { id: "lc-300", name: "300系 (2021-)", grades: ["GX", "AX", "VX", "ZX", "GR SPORT"], yearRange: { from: 2021, to: 2026 } },
+      { id: "lc-250", name: "250系 (2024-)", grades: ["GX", "VX", "ZX"], yearRange: { from: 2024, to: 2026 } },
     ]},
     { id: "crown", name: "クラウン", models: [
-      { id: "crown-16", name: "16代目 (2022-)", grades: ["Crossover RS", "Crossover G", "Sport RS", "Sedan"] },
+      { id: "crown-16", name: "16代目 (2022-)", grades: ["Crossover RS", "Crossover G", "Sport RS", "Sedan"], yearRange: { from: 2022, to: 2026 } },
     ]},
   ],
   honda: [
     { id: "nbox", name: "N-BOX", models: [
-      { id: "nbox-3", name: "3代目 (2023-)", grades: ["G", "L", "EX", "Custom L", "Custom EX"] },
-      { id: "nbox-2", name: "2代目 (2017-2023)", grades: ["G", "L", "EX", "Custom G", "Custom L"] },
+      { id: "nbox-3", name: "3代目 (2023-)", grades: ["G", "L", "EX", "Custom L", "Custom EX"], yearRange: { from: 2023, to: 2026 } },
+      { id: "nbox-2", name: "2代目 (2017-2023)", grades: ["G", "L", "EX", "Custom G", "Custom L"], yearRange: { from: 2017, to: 2023 } },
     ]},
     { id: "freed", name: "フリード", models: [
-      { id: "freed-3", name: "3代目 (2024-)", grades: ["G", "CROSSTAR", "Modulo X"] },
+      { id: "freed-3", name: "3代目 (2024-)", grades: ["G", "CROSSTAR", "Modulo X"], yearRange: { from: 2024, to: 2026 } },
     ]},
     { id: "vezel", name: "ヴェゼル", models: [
-      { id: "vezel-2", name: "2代目 (2021-)", grades: ["G", "e:HEV X", "e:HEV Z", "e:HEV PLaY"] },
+      { id: "vezel-2", name: "2代目 (2021-)", grades: ["G", "e:HEV X", "e:HEV Z", "e:HEV PLaY"], yearRange: { from: 2021, to: 2026 } },
     ]},
     { id: "stepwgn", name: "ステップワゴン", models: [
-      { id: "stepwgn-6", name: "6代目 (2022-)", grades: ["AIR", "SPADA", "SPADA Premium Line"] },
+      { id: "stepwgn-6", name: "6代目 (2022-)", grades: ["AIR", "SPADA", "SPADA Premium Line"], yearRange: { from: 2022, to: 2026 } },
     ]},
   ],
   bmw: [
     { id: "3series", name: "3シリーズ", models: [
-      { id: "3series-g20", name: "G20/G21 (2019-)", grades: ["318i", "320i", "330i", "M340i", "320d"] },
+      { id: "3series-g20", name: "G20/G21 (2019-)", grades: ["318i", "320i", "330i", "M340i", "320d"], yearRange: { from: 2019, to: 2026 } },
     ]},
     { id: "5series", name: "5シリーズ", models: [
-      { id: "5series-g60", name: "G60 (2023-)", grades: ["520i", "530i", "540i", "M550i"] },
+      { id: "5series-g60", name: "G60 (2023-)", grades: ["520i", "530i", "540i", "M550i"], yearRange: { from: 2023, to: 2026 } },
     ]},
     { id: "x3", name: "X3", models: [
-      { id: "x3-g45", name: "G45 (2024-)", grades: ["xDrive20i", "xDrive30i", "M40i"] },
+      { id: "x3-g45", name: "G45 (2024-)", grades: ["xDrive20i", "xDrive30i", "M40i"], yearRange: { from: 2024, to: 2026 } },
     ]},
     { id: "x5", name: "X5", models: [
-      { id: "x5-g05", name: "G05 (2019-)", grades: ["xDrive35d", "xDrive45e", "M50i"] },
+      { id: "x5-g05", name: "G05 (2019-)", grades: ["xDrive35d", "xDrive45e", "M50i"], yearRange: { from: 2019, to: 2026 } },
     ]},
   ],
   mercedes: [
     { id: "cclass", name: "Cクラス", models: [
-      { id: "cclass-w206", name: "W206 (2021-)", grades: ["C180", "C200", "C220d", "C300", "AMG C43"] },
+      { id: "cclass-w206", name: "W206 (2021-)", grades: ["C180", "C200", "C220d", "C300", "AMG C43"], yearRange: { from: 2021, to: 2026 } },
     ]},
     { id: "eclass", name: "Eクラス", models: [
-      { id: "eclass-w214", name: "W214 (2023-)", grades: ["E200", "E300", "E350", "AMG E53"] },
+      { id: "eclass-w214", name: "W214 (2023-)", grades: ["E200", "E300", "E350", "AMG E53"], yearRange: { from: 2023, to: 2026 } },
     ]},
     { id: "glc", name: "GLC", models: [
-      { id: "glc-x254", name: "X254 (2022-)", grades: ["GLC200", "GLC220d", "GLC300", "AMG GLC43"] },
+      { id: "glc-x254", name: "X254 (2022-)", grades: ["GLC200", "GLC220d", "GLC300", "AMG GLC43"], yearRange: { from: 2022, to: 2026 } },
     ]},
   ],
 }
 
-// 走行距離フィルターオプション
-const mileageOptions = [
-  { id: "under5k", label: "0.5万km未満/年", value: "under5k" },
-  { id: "5k-10k", label: "0.5〜1万km/年", value: "5k-10k" },
-  { id: "10k-15k", label: "1〜1.5万km/年", value: "10k-15k" },
-  { id: "15k-20k", label: "1.5〜2万km/年", value: "15k-20k" },
-  { id: "over100k", label: "10万km以上", value: "over100k" },
+// 走行距離選択肢（万km単位）
+const mileageValues = [
+  { value: "", label: "-" },
+  { value: "0.5", label: "0.5万km" },
+  { value: "1", label: "1万km" },
+  { value: "2", label: "2万km" },
+  { value: "3", label: "3万km" },
+  { value: "5", label: "5万km" },
+  { value: "7", label: "7万km" },
+  { value: "10", label: "10万km" },
+  { value: "15", label: "15万km" },
+  { value: "20", label: "20万km" },
+]
+
+// 月の選択肢
+const monthOptions = Array.from({ length: 12 }, (_, i) => ({
+  value: String(i + 1),
+  label: `${i + 1}月`,
+}))
+
+// 色オプション
+const colorOptions = [
+  { id: "white", name: "ホワイト", hex: "#FFFFFF" },
+  { id: "black", name: "ブラック", hex: "#1a1a1a" },
+  { id: "silver", name: "シルバー", hex: "#C0C0C0" },
+  { id: "gray", name: "グレー", hex: "#808080" },
+  { id: "red", name: "レッド", hex: "#DC2626" },
+  { id: "blue", name: "ブルー", hex: "#2563EB" },
+  { id: "brown", name: "ブラウン", hex: "#92400E" },
+  { id: "green", name: "グリーン", hex: "#16A34A" },
+  { id: "yellow", name: "イエロー", hex: "#EAB308" },
+  { id: "orange", name: "オレンジ", hex: "#EA580C" },
+  { id: "pearl", name: "パール", hex: "#F5F5DC" },
+  { id: "other", name: "その他", hex: "#94A3B8" },
+]
+
+// 地域データ（全国 > エリア > 都道府県）
+const regionData = [
+  { id: "hokkaido", name: "北海道", prefectures: ["北海道"] },
+  { id: "tohoku", name: "東北", prefectures: ["青森��", "岩手県", "宮城県", "秋田県", "山形県", "福島県"] },
+  { id: "kanto", name: "関東", prefectures: ["茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県"] },
+  { id: "shutoken", name: "首都圏", prefectures: ["埼玉県", "千葉県", "東京都", "神奈川県"] },
+  { id: "chubu", name: "中部", prefectures: ["新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県"] },
+  { id: "kinki", name: "近畿", prefectures: ["三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県"] },
+  { id: "chugoku", name: "中国", prefectures: ["鳥取県", "島根県", "岡山県", "広島県", "山口県"] },
+  { id: "shikoku", name: "四国", prefectures: ["徳島県", "香川県", "愛媛県", "高知県"] },
+  { id: "kyushu", name: "九州・沖縄", prefectures: ["福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"] },
 ]
 
 // 過去24ヶ月の週次相場データを生成
@@ -498,7 +541,7 @@ const rankingData = generateRankingData()
 
 export function MarketTrends() {
   const [activeTab, setActiveTab] = useState<"trends" | "ranking" | "individual" | "bodytype">("trends")
-  const [selectedBodyTypes, setSelectedBodyTypes] = useState<string[]>(["SUV/クロカン", "ミニバン/ワンボックス", "セダン", "軽自動車", "コンパクト/ハッチバック"])
+  const [selectedBodyTypes, setSelectedBodyTypes] = useState<string[]>(["SUV/クロカン", "ミニバン/ワンボックス", "セダン", "軽自動車", "コンパ���ト/ハッチバック"])
   const [hiddenBodyTypes, setHiddenBodyTypes] = useState<Set<string>>(new Set())
   const [vehicleUrl, setVehicleUrl] = useState("")
   const [iframeUrl, setIframeUrl] = useState("")
@@ -509,10 +552,27 @@ export function MarketTrends() {
   const [selectedModel, setSelectedModel] = useState<string>("")
   const [selectedModelType, setSelectedModelType] = useState<string>("")
   const [selectedVariant, setSelectedVariant] = useState<string>("")
-  const [selectedMileages, setSelectedMileages] = useState<string[]>(mileageOptions.map(o => o.value))
-  const [allMileagesSelected, setAllMileagesSelected] = useState(true)
   const [showChart, setShowChart] = useState(false)
   const [hiddenComparisonLabels, setHiddenComparisonLabels] = useState<Set<string>>(new Set())
+
+  // 年式範囲（年・月セレクト）
+  const [yearFrom, setYearFrom] = useState<string>("")
+  const [monthFrom, setMonthFrom] = useState<string>("")
+  const [yearTo, setYearTo] = useState<string>("")
+  const [monthTo, setMonthTo] = useState<string>("")
+
+  // 走行距離範囲
+  const [mileageFrom, setMileageFrom] = useState<string>("")
+  const [mileageTo, setMileageTo] = useState<string>("")
+
+  // 色（複数選択）
+  const [selectedColors, setSelectedColors] = useState<string[]>([])
+  const [allColorsSelected, setAllColorsSelected] = useState(true)
+
+  // 地域
+  const [regionLevel, setRegionLevel] = useState<"all" | "area" | "prefecture">("all")
+  const [selectedArea, setSelectedArea] = useState<string>("")
+  const [selectedPrefecture, setSelectedPrefecture] = useState<string>("")
 
   // ランキングフィルター
   const [rankingCategory, setRankingCategory] = useState<string>("all")
@@ -533,10 +593,42 @@ export function MarketTrends() {
     ? availableVehicles.find(m => m.id === selectedModel)?.models || []
     : []
 
-  // 選択されたモデルのグレードリ���ト
+  // 選択されたモデルのグレードリスト
   const availableGrades = selectedModelType
     ? availableModelTypes.find(m => m.id === selectedModelType)?.grades || []
     : []
+
+  // 選択されたモデルの年式範囲
+  const selectedModelYearRange = useMemo(() => {
+    if (!selectedModelType || selectedModelType === "all") return null
+    const model = availableModelTypes.find(m => m.id === selectedModelType)
+    return model?.yearRange || null
+  }, [selectedModelType, availableModelTypes])
+
+  // 年式の選択肢リスト（モデルに応じて動的に変化）
+  const yearOptions = useMemo(() => {
+    if (!selectedModelYearRange) return []
+    const options: { value: string; label: string }[] = [{ value: "", label: "-" }]
+    for (let y = selectedModelYearRange.from; y <= selectedModelYearRange.to; y++) {
+      options.push({ value: String(y), label: `${y}年` })
+    }
+    return options
+  }, [selectedModelYearRange])
+
+  // モデル変更時に年式をリセット
+  useEffect(() => {
+    if (selectedModelYearRange) {
+      setYearFrom(String(selectedModelYearRange.from))
+      setMonthFrom("")
+      setYearTo(String(selectedModelYearRange.to))
+      setMonthTo("")
+    } else {
+      setYearFrom("")
+      setMonthFrom("")
+      setYearTo("")
+      setMonthTo("")
+    }
+  }, [selectedModelYearRange])
 
   // 選択状態に応じた比較チャートの切り替え
   // モデルまで選択 → グレード別比較
@@ -629,28 +721,37 @@ export function MarketTrends() {
     setTimeout(() => setIndividualLoading(false), 1000)
   }
 
-  const handleAllMileagesChange = (checked: boolean) => {
-    setAllMileagesSelected(checked)
+  // 色フィルターの処理
+  const handleAllColorsChange = (checked: boolean) => {
+    setAllColorsSelected(checked)
     if (checked) {
-      setSelectedMileages(mileageOptions.map(o => o.value))
-    } else {
-      setSelectedMileages([])
+      setSelectedColors([])
     }
   }
 
-  const handleMileageChange = (value: string, checked: boolean) => {
+  const handleColorChange = (colorId: string, checked: boolean) => {
     if (checked) {
-      const newSelected = [...selectedMileages, value]
-      setSelectedMileages(newSelected)
-      if (newSelected.length === mileageOptions.length) {
-        setAllMileagesSelected(true)
+      const newSelected = [...selectedColors, colorId]
+      setSelectedColors(newSelected)
+      if (newSelected.length === colorOptions.length) {
+        setAllColorsSelected(true)
+        setSelectedColors([])
+      } else {
+        setAllColorsSelected(false)
       }
     } else {
-      const newSelected = selectedMileages.filter(v => v !== value)
-      setSelectedMileages(newSelected)
-      setAllMileagesSelected(false)
+      const newSelected = selectedColors.filter(c => c !== colorId)
+      setSelectedColors(newSelected)
+      setAllColorsSelected(false)
     }
   }
+
+  // 地域レベルに応じた都道府県リスト
+  const availablePrefectures = useMemo(() => {
+    if (!selectedArea) return []
+    const area = regionData.find(r => r.id === selectedArea)
+    return area?.prefectures || []
+  }, [selectedArea])
 
   // ランキングのフィルタリング
   const filteredRanking = useMemo(() => {
@@ -819,45 +920,237 @@ export function MarketTrends() {
                 </div>
               </div>
 
-              {/* 走行距離フィルター */}
+              {/* 年式・走行距離 */}
+              <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+                {/* 年式範囲 */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">年式</Label>
+                  <div className="flex items-center gap-1.5">
+                    <Select value={yearFrom} onValueChange={setYearFrom} disabled={!selectedModelYearRange}>
+                      <SelectTrigger className="h-9 w-[80px]"><SelectValue placeholder="-" /></SelectTrigger>
+                      <SelectContent>
+                        {yearOptions.map(o => <SelectItem key={`yf-${o.value}`} value={o.value || "empty"}>{o.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Select value={monthFrom} onValueChange={setMonthFrom} disabled={!selectedModelYearRange}>
+                      <SelectTrigger className="h-9 w-[72px]"><SelectValue placeholder="-" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="empty">-</SelectItem>
+                        {monthOptions.map(o => <SelectItem key={`mf-${o.value}`} value={o.value}>{o.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <span className="text-sm text-muted-foreground">~</span>
+                    <Select value={yearTo} onValueChange={setYearTo} disabled={!selectedModelYearRange}>
+                      <SelectTrigger className="h-9 w-[80px]"><SelectValue placeholder="-" /></SelectTrigger>
+                      <SelectContent>
+                        {yearOptions.map(o => <SelectItem key={`yt-${o.value}`} value={o.value || "empty"}>{o.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Select value={monthTo} onValueChange={setMonthTo} disabled={!selectedModelYearRange}>
+                      <SelectTrigger className="h-9 w-[72px]"><SelectValue placeholder="-" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="empty">-</SelectItem>
+                        {monthOptions.map(o => <SelectItem key={`mt-${o.value}`} value={o.value}>{o.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {!selectedModelYearRange && (
+                    <p className="text-xs text-muted-foreground">モデルを選択すると年式を指定できます</p>
+                  )}
+                </div>
+
+                {/* 走行距離範囲 */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">走行距離</Label>
+                  <div className="flex items-center gap-1.5">
+                    <Select value={mileageFrom} onValueChange={setMileageFrom}>
+                      <SelectTrigger className="h-9 w-[100px]"><SelectValue placeholder="-" /></SelectTrigger>
+                      <SelectContent>
+                        {mileageValues.map(o => <SelectItem key={`mlf-${o.value}`} value={o.value || "empty"}>{o.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <span className="text-sm text-muted-foreground">~</span>
+                    <Select value={mileageTo} onValueChange={setMileageTo}>
+                      <SelectTrigger className="h-9 w-[100px]"><SelectValue placeholder="-" /></SelectTrigger>
+                      <SelectContent>
+                        {mileageValues.map(o => <SelectItem key={`mlt-${o.value}`} value={o.value || "empty"}>{o.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* 色フィルター */}
               <div className="mt-6 space-y-3">
-                <Label>走行距離フィルター</Label>
-                <div className="flex flex-wrap gap-4">
+                <Label className="flex items-center gap-2">
+                  <Palette className="h-4 w-4 text-muted-foreground" />
+                  ボディカラー
+                </Label>
+                <div className="flex flex-wrap gap-3">
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="all-mileage" 
-                      checked={allMileagesSelected}
-                      onCheckedChange={handleAllMileagesChange}
+                    <Checkbox
+                      id="all-colors"
+                      checked={allColorsSelected}
+                      onCheckedChange={handleAllColorsChange}
                     />
-                    <label htmlFor="all-mileage" className="text-sm font-medium">
+                    <label htmlFor="all-colors" className="text-sm font-medium">
                       すべて
                     </label>
                   </div>
                   <div className="h-6 w-px bg-border" />
-                  {mileageOptions.map(option => (
-                    <div key={option.id} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={option.id}
-                        checked={selectedMileages.includes(option.value)}
-                        onCheckedChange={(checked) => handleMileageChange(option.value, checked as boolean)}
+                  {colorOptions.map(color => (
+                    <div key={color.id} className="flex items-center space-x-1.5">
+                      <Checkbox
+                        id={`color-${color.id}`}
+                        checked={allColorsSelected || selectedColors.includes(color.id)}
+                        onCheckedChange={(checked) => handleColorChange(color.id, checked as boolean)}
+                        disabled={allColorsSelected}
                       />
-                      <label htmlFor={option.id} className="text-sm">
-                        {option.label}
+                      <div
+                        className="h-3.5 w-3.5 rounded-full border border-border shrink-0"
+                        style={{ backgroundColor: color.hex }}
+                      />
+                      <label htmlFor={`color-${color.id}`} className="text-sm">
+                        {color.name}
                       </label>
                     </div>
                   ))}
                 </div>
               </div>
+
+              {/* 地域フィルター */}
+              <div className="mt-6 space-y-3">
+                <Label className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  地域
+                </Label>
+                <div className="grid gap-3 md:grid-cols-3">
+                  {/* 地域粒度セレクト */}
+                  <div className="space-y-1.5">
+                    <span className="text-xs text-muted-foreground">地域粒度</span>
+                    <Select
+                      value={regionLevel}
+                      onValueChange={(v) => {
+                        setRegionLevel(v as "all" | "area" | "prefecture")
+                        setSelectedArea("")
+                        setSelectedPrefecture("")
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">全国</SelectItem>
+                        <SelectItem value="area">エリア指定</SelectItem>
+                        <SelectItem value="prefecture">都道府県指定</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* エリアセレクト */}
+                  <div className="space-y-1.5">
+                    <span className="text-xs text-muted-foreground">エリア</span>
+                    <Select
+                      value={selectedArea}
+                      onValueChange={(v) => {
+                        setSelectedArea(v)
+                        setSelectedPrefecture("")
+                      }}
+                      disabled={regionLevel === "all"}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="エリアを選択" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {regionData.map(r => (
+                          <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* 都道府県セレクト */}
+                  <div className="space-y-1.5">
+                    <span className="text-xs text-muted-foreground">都道府県</span>
+                    <Select
+                      value={selectedPrefecture}
+                      onValueChange={setSelectedPrefecture}
+                      disabled={regionLevel !== "prefecture" || !selectedArea}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="都道府県を選択" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">すべて</SelectItem>
+                        {availablePrefectures.map(pref => (
+                          <SelectItem key={pref} value={pref}>{pref}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                {regionLevel !== "all" && (
+                  <p className="text-xs text-muted-foreground">
+                    {regionLevel === "area" && selectedArea
+                      ? `${regionData.find(r => r.id === selectedArea)?.name || ""}エリアで絞り込み`
+                      : regionLevel === "prefecture" && selectedPrefecture && selectedPrefecture !== "all"
+                        ? `${selectedPrefecture}で絞り込み`
+                        : regionLevel === "prefecture" && selectedArea
+                          ? `${regionData.find(r => r.id === selectedArea)?.name || ""}エリア内の全都道府県`
+                          : "エリアを選択してください"
+                    }
+                  </p>
+                )}
+              </div>
+
+
             </CardContent>
-            <div className="flex justify-center border-t border-border px-6 py-4">
-              <Button 
-                size="lg"
-                onClick={() => setShowChart(true)}
-                className="gap-2 px-8"
-              >
-                <BarChart3 className="h-4 w-4" />
-                相場情報を見る
-              </Button>
+            <div className="border-t border-border px-6 py-4">
+              {/* 適用中のフィルターサマリー */}
+              <div className="mb-3 flex flex-wrap items-center gap-2 justify-center">
+                {selectedMaker && selectedMaker !== "all" && (
+                  <Badge variant="secondary" className="gap-1 text-xs">
+                    {allMakers.find(m => m.id === selectedMaker)?.name}
+                    {selectedModel && selectedModel !== "all" && ` / ${availableVehicles.find(m => m.id === selectedModel)?.name}`}
+                    {selectedModelType && selectedModelType !== "all" && ` / ${availableModelTypes.find(m => m.id === selectedModelType)?.name}`}
+                  </Badge>
+                )}
+                {selectedModelYearRange && yearFrom && (
+                  <Badge variant="secondary" className="gap-1 text-xs">
+                    {yearFrom}年{monthFrom && monthFrom !== "empty" ? `${monthFrom}月` : ""} ~ {yearTo}年{monthTo && monthTo !== "empty" ? `${monthTo}月` : ""}
+                  </Badge>
+                )}
+                {(mileageFrom && mileageFrom !== "empty") || (mileageTo && mileageTo !== "empty") ? (
+                  <Badge variant="secondary" className="gap-1 text-xs">
+                    {mileageFrom && mileageFrom !== "empty" ? `${mileageFrom}万km` : ""} ~ {mileageTo && mileageTo !== "empty" ? `${mileageTo}万km` : ""}
+                  </Badge>
+                ) : null}
+                {!allColorsSelected && selectedColors.length > 0 && (
+                  <Badge variant="secondary" className="gap-1 text-xs">
+                    {selectedColors.length}色選択中
+                  </Badge>
+                )}
+                {regionLevel !== "all" && (
+                  <Badge variant="secondary" className="gap-1 text-xs">
+                    {regionLevel === "area" && selectedArea
+                      ? regionData.find(r => r.id === selectedArea)?.name
+                      : regionLevel === "prefecture" && selectedPrefecture && selectedPrefecture !== "all"
+                        ? selectedPrefecture
+                        : regionLevel === "area" ? "エリア指定" : "都道府県指定"
+                    }
+                  </Badge>
+                )}
+              </div>
+              <div className="flex justify-center">
+                <Button 
+                  size="lg"
+                  onClick={() => setShowChart(true)}
+                  className="gap-2 px-8"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  相場情報を見る
+                </Button>
+              </div>
             </div>
           </Card>
 
@@ -996,7 +1289,7 @@ export function MarketTrends() {
             </CardContent>
           </Card>
 
-          {/* 比較チャート（メーカー別 or グレード別） */}
+          {/* 比較��ャート（メーカー別 or グレード別） */}
           <Card>
             <CardHeader>
               <CardTitle>{comparisonTitle}</CardTitle>
@@ -1080,7 +1373,7 @@ export function MarketTrends() {
                 ランキング絞り込み
               </CardTitle>
               <CardDescription>
-                過去12ヶ月での価格下落率が低い（または上昇した）車種ランキング
+                過去12ヶ月での価格下落率が低い（または上昇した���車種ランキング
               </CardDescription>
             </CardHeader>
             <CardContent>
