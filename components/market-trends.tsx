@@ -9,9 +9,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from "recharts"
-import { TrendingUp, TrendingDown, Minus, Filter, BarChart3, X, ChevronRight, Calendar, Car, Gauge, Clock, ArrowDownRight, ExternalLink, Search, Loader2 } from "lucide-react"
+import { TrendingUp, TrendingDown, Minus, Filter, BarChart3, X, ChevronRight, Calendar, Car, Gauge, Clock, ArrowDownRight, ExternalLink, Search, Loader2, MapPin, Palette } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { Slider } from "@/components/ui/slider"
 
 // メーカーと車種のデータ
 const manufacturers = {
@@ -108,6 +109,38 @@ const mileageOptions = [
   { id: "15k-20k", label: "1.5〜2万km/年", value: "15k-20k" },
   { id: "over100k", label: "10万km以上", value: "over100k" },
 ]
+
+// 色オプション
+const colorOptions = [
+  { id: "white", name: "ホワイト", hex: "#FFFFFF" },
+  { id: "black", name: "ブラック", hex: "#1a1a1a" },
+  { id: "silver", name: "シルバー", hex: "#C0C0C0" },
+  { id: "gray", name: "グレー", hex: "#808080" },
+  { id: "red", name: "レッド", hex: "#DC2626" },
+  { id: "blue", name: "ブルー", hex: "#2563EB" },
+  { id: "brown", name: "ブラウン", hex: "#92400E" },
+  { id: "green", name: "グリーン", hex: "#16A34A" },
+  { id: "yellow", name: "イエロー", hex: "#EAB308" },
+  { id: "orange", name: "オレンジ", hex: "#EA580C" },
+  { id: "pearl", name: "パール", hex: "#F5F5DC" },
+  { id: "other", name: "その他", hex: "#94A3B8" },
+]
+
+// 地域データ（全国 > エリア > 都道府県）
+const regionData = [
+  { id: "hokkaido", name: "北海道", prefectures: ["北海道"] },
+  { id: "tohoku", name: "東北", prefectures: ["青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県"] },
+  { id: "kanto", name: "関東", prefectures: ["茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県"] },
+  { id: "shutoken", name: "首都圏", prefectures: ["埼玉県", "千葉県", "東京都", "神奈川県"] },
+  { id: "chubu", name: "中部", prefectures: ["新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県"] },
+  { id: "kinki", name: "近畿", prefectures: ["三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県"] },
+  { id: "chugoku", name: "中国", prefectures: ["鳥取県", "島根県", "岡山県", "広島県", "山口県"] },
+  { id: "shikoku", name: "四国", prefectures: ["徳島県", "香川県", "愛媛県", "高知県"] },
+  { id: "kyushu", name: "九州・沖縄", prefectures: ["福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"] },
+]
+
+// 年式の範囲
+const yearRangeConfig = { min: 2015, max: 2026 }
 
 // 過去24ヶ月の週次相場データを生成
 const generateWeeklyPriceHistory = (basePrice: number, volatility: number = 0.02) => {
@@ -514,6 +547,18 @@ export function MarketTrends() {
   const [showChart, setShowChart] = useState(false)
   const [hiddenComparisonLabels, setHiddenComparisonLabels] = useState<Set<string>>(new Set())
 
+  // 年式範囲
+  const [yearRangeValue, setYearRangeValue] = useState<number[]>([yearRangeConfig.min, yearRangeConfig.max])
+
+  // 色（複数選択）
+  const [selectedColors, setSelectedColors] = useState<string[]>([])
+  const [allColorsSelected, setAllColorsSelected] = useState(true)
+
+  // 地域
+  const [regionLevel, setRegionLevel] = useState<"all" | "area" | "prefecture">("all")
+  const [selectedArea, setSelectedArea] = useState<string>("")
+  const [selectedPrefecture, setSelectedPrefecture] = useState<string>("")
+
   // ランキングフィルター
   const [rankingCategory, setRankingCategory] = useState<string>("all")
   const [rankingMaker, setRankingMaker] = useState<string>("all")
@@ -533,7 +578,7 @@ export function MarketTrends() {
     ? availableVehicles.find(m => m.id === selectedModel)?.models || []
     : []
 
-  // 選択されたモデルのグレードリ���ト
+  // 選択されたモデルのグレードリ�����ト
   const availableGrades = selectedModelType
     ? availableModelTypes.find(m => m.id === selectedModelType)?.grades || []
     : []
@@ -651,6 +696,38 @@ export function MarketTrends() {
       setAllMileagesSelected(false)
     }
   }
+
+  // 色フィルターの処理
+  const handleAllColorsChange = (checked: boolean) => {
+    setAllColorsSelected(checked)
+    if (checked) {
+      setSelectedColors([])
+    }
+  }
+
+  const handleColorChange = (colorId: string, checked: boolean) => {
+    if (checked) {
+      const newSelected = [...selectedColors, colorId]
+      setSelectedColors(newSelected)
+      if (newSelected.length === colorOptions.length) {
+        setAllColorsSelected(true)
+        setSelectedColors([])
+      } else {
+        setAllColorsSelected(false)
+      }
+    } else {
+      const newSelected = selectedColors.filter(c => c !== colorId)
+      setSelectedColors(newSelected)
+      setAllColorsSelected(false)
+    }
+  }
+
+  // 地域レベルに応じた都道府県リスト
+  const availablePrefectures = useMemo(() => {
+    if (!selectedArea) return []
+    const area = regionData.find(r => r.id === selectedArea)
+    return area?.prefectures || []
+  }, [selectedArea])
 
   // ランキングのフィルタリング
   const filteredRanking = useMemo(() => {
@@ -819,6 +896,159 @@ export function MarketTrends() {
                 </div>
               </div>
 
+              {/* 年式範囲スライダー */}
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    年式
+                  </Label>
+                  <span className="text-sm font-medium text-primary">
+                    {yearRangeValue[0]}年 〜 {yearRangeValue[1]}年
+                  </span>
+                </div>
+                <div className="px-1">
+                  <Slider
+                    min={yearRangeConfig.min}
+                    max={yearRangeConfig.max}
+                    step={1}
+                    value={yearRangeValue}
+                    onValueChange={setYearRangeValue}
+                    disabled={!selectedModelType || selectedModelType === "all"}
+                  />
+                </div>
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>{yearRangeConfig.min}年</span>
+                  <span>{yearRangeConfig.max}年</span>
+                </div>
+                {(!selectedModelType || selectedModelType === "all") && (
+                  <p className="text-xs text-muted-foreground">モデルを選択すると年式の範囲指定が可能になります</p>
+                )}
+              </div>
+
+              {/* 色フィルター */}
+              <div className="mt-6 space-y-3">
+                <Label className="flex items-center gap-2">
+                  <Palette className="h-4 w-4 text-muted-foreground" />
+                  ボディカラー
+                </Label>
+                <div className="flex flex-wrap gap-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="all-colors"
+                      checked={allColorsSelected}
+                      onCheckedChange={handleAllColorsChange}
+                    />
+                    <label htmlFor="all-colors" className="text-sm font-medium">
+                      すべて
+                    </label>
+                  </div>
+                  <div className="h-6 w-px bg-border" />
+                  {colorOptions.map(color => (
+                    <div key={color.id} className="flex items-center space-x-1.5">
+                      <Checkbox
+                        id={`color-${color.id}`}
+                        checked={allColorsSelected || selectedColors.includes(color.id)}
+                        onCheckedChange={(checked) => handleColorChange(color.id, checked as boolean)}
+                        disabled={allColorsSelected}
+                      />
+                      <div
+                        className="h-3.5 w-3.5 rounded-full border border-border shrink-0"
+                        style={{ backgroundColor: color.hex }}
+                      />
+                      <label htmlFor={`color-${color.id}`} className="text-sm">
+                        {color.name}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 地域フィルター */}
+              <div className="mt-6 space-y-3">
+                <Label className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  地域
+                </Label>
+                <div className="grid gap-3 md:grid-cols-3">
+                  {/* 地域粒度セレクト */}
+                  <div className="space-y-1.5">
+                    <span className="text-xs text-muted-foreground">地域粒度</span>
+                    <Select
+                      value={regionLevel}
+                      onValueChange={(v) => {
+                        setRegionLevel(v as "all" | "area" | "prefecture")
+                        setSelectedArea("")
+                        setSelectedPrefecture("")
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">全国</SelectItem>
+                        <SelectItem value="area">エリア指定</SelectItem>
+                        <SelectItem value="prefecture">都道府県指定</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* エリアセレクト */}
+                  <div className="space-y-1.5">
+                    <span className="text-xs text-muted-foreground">エリア</span>
+                    <Select
+                      value={selectedArea}
+                      onValueChange={(v) => {
+                        setSelectedArea(v)
+                        setSelectedPrefecture("")
+                      }}
+                      disabled={regionLevel === "all"}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="エリアを選択" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {regionData.map(r => (
+                          <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* 都道府県セレクト */}
+                  <div className="space-y-1.5">
+                    <span className="text-xs text-muted-foreground">都道府県</span>
+                    <Select
+                      value={selectedPrefecture}
+                      onValueChange={setSelectedPrefecture}
+                      disabled={regionLevel !== "prefecture" || !selectedArea}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="都道府県を選択" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">すべて</SelectItem>
+                        {availablePrefectures.map(pref => (
+                          <SelectItem key={pref} value={pref}>{pref}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                {regionLevel !== "all" && (
+                  <p className="text-xs text-muted-foreground">
+                    {regionLevel === "area" && selectedArea
+                      ? `${regionData.find(r => r.id === selectedArea)?.name || ""}エリアで絞り込み`
+                      : regionLevel === "prefecture" && selectedPrefecture && selectedPrefecture !== "all"
+                        ? `${selectedPrefecture}で絞り込み`
+                        : regionLevel === "prefecture" && selectedArea
+                          ? `${regionData.find(r => r.id === selectedArea)?.name || ""}エリア内の全都道府県`
+                          : "エリアを選択してください"
+                    }
+                  </p>
+                )}
+              </div>
+
               {/* 走行距離フィルター */}
               <div className="mt-6 space-y-3">
                 <Label>走行距離フィルター</Label>
@@ -849,15 +1079,47 @@ export function MarketTrends() {
                 </div>
               </div>
             </CardContent>
-            <div className="flex justify-center border-t border-border px-6 py-4">
-              <Button 
-                size="lg"
-                onClick={() => setShowChart(true)}
-                className="gap-2 px-8"
-              >
-                <BarChart3 className="h-4 w-4" />
-                相場情報を見る
-              </Button>
+            <div className="border-t border-border px-6 py-4">
+              {/* 適用中のフィルターサマリー */}
+              <div className="mb-3 flex flex-wrap items-center gap-2 justify-center">
+                {selectedMaker && selectedMaker !== "all" && (
+                  <Badge variant="secondary" className="gap-1 text-xs">
+                    {allMakers.find(m => m.id === selectedMaker)?.name}
+                    {selectedModel && selectedModel !== "all" && ` / ${availableVehicles.find(m => m.id === selectedModel)?.name}`}
+                    {selectedModelType && selectedModelType !== "all" && ` / ${availableModelTypes.find(m => m.id === selectedModelType)?.name}`}
+                  </Badge>
+                )}
+                {selectedModelType && selectedModelType !== "all" && (
+                  <Badge variant="secondary" className="gap-1 text-xs">
+                    {yearRangeValue[0]}年〜{yearRangeValue[1]}年
+                  </Badge>
+                )}
+                {!allColorsSelected && selectedColors.length > 0 && (
+                  <Badge variant="secondary" className="gap-1 text-xs">
+                    {selectedColors.length}色選択中
+                  </Badge>
+                )}
+                {regionLevel !== "all" && (
+                  <Badge variant="secondary" className="gap-1 text-xs">
+                    {regionLevel === "area" && selectedArea
+                      ? regionData.find(r => r.id === selectedArea)?.name
+                      : regionLevel === "prefecture" && selectedPrefecture && selectedPrefecture !== "all"
+                        ? selectedPrefecture
+                        : regionLevel === "area" ? "エリア指定" : "都道府県指定"
+                    }
+                  </Badge>
+                )}
+              </div>
+              <div className="flex justify-center">
+                <Button 
+                  size="lg"
+                  onClick={() => setShowChart(true)}
+                  className="gap-2 px-8"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  相場情報を見る
+                </Button>
+              </div>
             </div>
           </Card>
 
@@ -996,7 +1258,7 @@ export function MarketTrends() {
             </CardContent>
           </Card>
 
-          {/* 比較チャート（メーカー別 or グレード別） */}
+          {/* 比較��ャート（メーカー別 or グレード別） */}
           <Card>
             <CardHeader>
               <CardTitle>{comparisonTitle}</CardTitle>
@@ -1080,7 +1342,7 @@ export function MarketTrends() {
                 ランキング絞り込み
               </CardTitle>
               <CardDescription>
-                過去12ヶ月での価格下落率が低い（または上昇した）車種ランキング
+                過去12ヶ月での価格下落率が低い（または上昇した���車種ランキング
               </CardDescription>
             </CardHeader>
             <CardContent>
