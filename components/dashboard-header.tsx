@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ThemeSwitcher } from "@/components/theme-switcher"
+import Link from "next/link"
 
 export function DashboardHeader() {
   return (
@@ -66,8 +67,12 @@ export function DashboardHeader() {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>アカウント</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>プロフィール</DropdownMenuItem>
-            <DropdownMenuItem>設定</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/settings">プロフィール</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/settings">設定</Link>
+            </DropdownMenuItem>
             <DropdownMenuItem>サポート</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>ログアウト</DropdownMenuItem>
