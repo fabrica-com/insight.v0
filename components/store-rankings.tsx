@@ -156,8 +156,6 @@ export function StoreRankings() {
           <strong className="text-red-600 dark:text-red-400">注記：</strong>
           表示される分析データは、お客様のブラウザ機能を利用して、お客様の指定したエリア・条件の公開情報を収集・解析したものです。
           <br />
-          ※情報の取得は、参照先サイトへの負荷を考慮し、通常閲覧の範囲内（低頻度）で行われます。
-          <br />
           ※取得したデータは貴社内での検討資料としてのみご利用ください。
           <span className="ml-2 text-red-600 dark:text-red-400 underline cursor-pointer hover:text-red-700">
             [詳しい利用条件はこちら &gt;]

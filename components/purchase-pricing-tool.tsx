@@ -882,7 +882,6 @@ export function PurchasePricingTool() {
             <AlertDescription className="text-xs text-red-700 dark:text-red-300">
               <span className="font-semibold text-red-600 dark:text-red-400">注記：</span>
               表示される分析データは、お客様のブラウザ機能を利用して、お客様の指定したエリア・条件の公開情報を収集・解析したものです。
-              ※情報の取得は、参照先サイトへの負荷を考慮し、通常閲覧の範囲内（低頻度）で行われます。
               ※取得したデータは貴社内での検討資料としてのみご利用ください。
               <span className="ml-2 cursor-pointer text-red-600 underline hover:text-red-800 dark:text-red-400 dark:hover:text-red-200">
                 [詳しい利用条件はこちら &gt;]
