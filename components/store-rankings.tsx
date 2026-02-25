@@ -9,8 +9,18 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { StoreDetailDialog } from "./store-detail-dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
+// Deterministic seeded random to avoid SSR/client hydration mismatch
+function seededRandom(seed: number) {
+  let s = seed
+  return () => {
+    s = (s * 16807 + 0) % 2147483647
+    return (s - 1) / 2147483646
+  }
+}
+
 // Sample data for store rankings
 const generateStoreData = () => {
+  const rand = seededRandom(42)
   const prefectures = ["東京都", "神奈川県", "大阪府", "愛知県", "福岡県", "北海道", "千葉県", "埼玉県"]
   const storeNames = [
     "カーセレクト東京",
@@ -39,12 +49,12 @@ const generateStoreData = () => {
     id: idx + 1,
     name,
     prefecture: prefectures[idx % prefectures.length],
-    revenue: Math.floor(Math.random() * 500000000) + 50000000,
-    salesVolume: Math.floor(Math.random() * 300) + 20,
-    avgInventory: Math.floor(Math.random() * 150) + 10,
-    turnoverRate: (Math.random() * 10 + 2).toFixed(1),
-    inventoryDays: Math.floor(Math.random() * 60) + 15,
-    change: Math.floor(Math.random() * 20) - 10,
+    revenue: Math.floor(rand() * 500000000) + 50000000,
+    salesVolume: Math.floor(rand() * 300) + 20,
+    avgInventory: Math.floor(rand() * 150) + 10,
+    turnoverRate: (rand() * 10 + 2).toFixed(1),
+    inventoryDays: Math.floor(rand() * 60) + 15,
+    change: Math.floor(rand() * 20) - 10,
   }))
 }
 
