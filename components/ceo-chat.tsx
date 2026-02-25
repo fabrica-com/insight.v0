@@ -1,7 +1,7 @@
 "use client"
 
 import { SharedChatLayout } from "@/components/shared-chat-layout"
-import { Target, TrendingUp, DollarSign, BarChart3, Lightbulb, Users } from "lucide-react"
+import { Target, TrendingUp, DollarSign, BarChart3, Lightbulb, Users, Calculator } from "lucide-react"
 
 const suggestedTopics = [
   { icon: Lightbulb, text: "何から始めればいいかわからない" },
@@ -9,7 +9,7 @@ const suggestedTopics = [
   { icon: DollarSign, text: "ホームページを作り直したい" },
   { icon: Target, text: "SNSを始めたい" },
   { icon: Users, text: "人を雇いたい・人が辞める" },
-  { icon: BarChart3, text: "広告費を増やすべき？" },
+  { icon: Calculator, text: "予算や数字の管理をしたい" },
 ]
 
 const STORAGE_KEY = "symphony-ceo-chat-history"
@@ -17,11 +17,11 @@ const STORAGE_KEY = "symphony-ceo-chat-history"
 const INITIAL_MESSAGE = `こんにちは、「AI副社長」です。
 中古車販売店の経営をまるごとサポートするAI参謀です。
 
-私の中には4人の専門家がいます。
-金庫番（財務）、集客参謀（マーケ）、補助金コンシェルジュ、AI CHRO（人事）——
-この4人の知見を統合して「今やるべきこと」を1つの結論にまとめます。
+私の中には5人の専門家がいます。
+金庫番（財務）、集客参謀（マーケ）、補助金コンシェルジュ、AI CHRO（人事）、AI経営企画室（予算・数字）——
+この5人の知見を統合して「今やるべきこと」を1つの結論にまとめます。
 
-お金、集客、補助金、人の問題——何でも相談してください。
+お金、集客、補助金、人、数字の問題——何でも相談してください。
 「こうしましょう」とはっきりお答えします。
 
 まず、お店のことを少し教えてください。
@@ -177,7 +177,7 @@ Indeedの使い方から、社員紹介の仕組みづくり、外国人採用�
 
 1. 在庫は何台くらいですか？
 2. 月に何台くらい売れていますか？
-3. 毎月の固定費（家賃・人件費・リース・広告費の合計）はざっくりいくらですか？
+3. 毎月の固定費（家賃・人件費・リース・広告費の合計）はざっくり��くらですか？
 
 この3つがわかれば、お店の「今の健康状態」を判定して、最優先でやるべきこと1つを具体的にお伝えします。
 
@@ -235,6 +235,35 @@ Indeedの使い方から、社員紹介の仕組みづくり、外国人採用�
 投資内容と所在地を伝えれば、最適な補助金を見つけてくれます。
 
 何に投資したいですか？ 判断を先に固めましょう。`
+  }
+
+  if (q.includes("予算") || q.includes("予実") || q.includes("数字") || q.includes("決算") || q.includes("分析") || q.includes("トントン") || q.includes("損益分岐")) {
+    return `数字の管理と分析ですね。大事なことです。
+
+結論を先に言います。
+
+経営を数字で管理するために、まず知るべきは「トントンのライン」です。
+
+月の固定費 ÷ 1台あたりの総合粗利 ＝ 最低必要販売台数
+
+この数字がわかるだけで、「今月あと何台売ればいいか」が毎日見えるようになります。
+
+その上で——
+予算づくり、月次の振り返り、車種別の収益分析、決算書の読み方——
+こうした「数字で考える経営」は AI経営企画室が専門です。
+
+AI経営企画室でできること：
+- 年間予算・月次予算の作成
+- 毎月の予算と実績の比較（なぜズレたか、次に何をするか）
+- 車種別・媒体別の収益分析
+- 決算書や試算表を「社長語」に翻訳
+- 3年計画の策定
+
+私が「やるかやらないか」の経営判断を下し、
+AI経営企画室が「数字の裏付け」を作る——この役割分担で進めましょう。
+
+まず何から始めたいですか？
+予算を作りたいなら、AI経営企画室で相談してみてください。`
   }
 
   if (q.includes("システム") || q.includes("symphony") || q.includes("導入")) {
