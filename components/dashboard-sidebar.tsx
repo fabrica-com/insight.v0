@@ -15,6 +15,7 @@ import {
   Trophy,
   BarChart3,
   MessageSquare,
+  QrCode,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -31,6 +32,7 @@ const navigation = [
   { name: "買取・仕入推奨価格", icon: ShoppingCart, href: "/purchase-pricing" },
   { name: "レポート", icon: FileText, href: "/reports" },
   { name: "ランキング", icon: Trophy, href: "/rankings" },
+  { name: "QRコード生成", icon: QrCode, href: "/qr-generator" },
 ]
 
 export function DashboardSidebar({ defaultCollapsed = false }: { defaultCollapsed?: boolean }) {
