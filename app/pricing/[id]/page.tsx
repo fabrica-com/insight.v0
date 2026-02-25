@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useState, useMemo } from "react"
+import { useState, useMemo, use } from "react"
 import React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -552,7 +552,7 @@ const mockInventory: InventoryItem[] = [
     grade: "ハイブリッド G",
     year: 2021,
     mileage: 18000,
-    color: "ブラック",
+    color: "ブラッ��",
     currentPrice: 3980000,
     purchasePrice: 3500000,
     marketPrice: 4050000,
@@ -625,9 +625,9 @@ const calculatePaymentTotal = (vehiclePrice: number | string) => {
   return priceNum + fees
 }
 
-export default function PricingDetailPage({ params }: { params: { id: string } }) {
+export default function PricingDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: vehicleId } = use(params)
   const router = useRouter()
-  const vehicleId = params.id
 
   const selectedItem = mockInventory.find((item) => item.id === vehicleId)
   const [adjustedPrice, setAdjustedPrice] = useState<string>(selectedItem?.currentPrice.toString() || "")
@@ -654,8 +654,7 @@ export default function PricingDetailPage({ params }: { params: { id: string } }
   })
   const [filterExpanded, setFilterExpanded] = useState(false) // Replaced filterPopoverOpen
 
-  console.log("[v0] similarFilters state:", similarFilters)
-  console.log("[v0] filterExpanded:", filterExpanded) // Updated log
+
 
   useMemo(() => {
     if (selectedItem && expenses === 0) {
@@ -957,7 +956,7 @@ export default function PricingDetailPage({ params }: { params: { id: string } }
                         : ""
                   }
                 >
-                  在庫{selectedItem.daysOnMarket}日
+                  在���{selectedItem.daysOnMarket}日
                 </Badge>
               </div>
             </div>
