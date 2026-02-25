@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -35,6 +36,8 @@ import {
   ExternalLink,
   Target,
   Clock,
+  Sparkles,
+  RefreshCw,
 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
@@ -59,9 +62,208 @@ interface StoreData {
   change: number
 }
 
+// AI経営コンサルタント総評生成（CEO AI「AI社長の右腕」ロジック）
+function generateCeoCommentary(store: StoreData): string {
+  const monthlyRevenue = store.revenue / 12
+  const monthlyRevenueMillion = monthlyRevenue / 10000
+  const monthlySales = Math.floor(store.salesVolume / 12)
+  const turnover = parseFloat(store.turnoverRate)
+  const days = store.inventoryDays
+  const change = store.change
+  const inv = store.avgInventory
+
+  // 規模判定
+  const scaleLabel = inv < 30 ? "小規模店" : inv < 80 ? "中規模店" : "大規模店"
+  const perCarRevenue = Math.round(monthlyRevenueMillion / Math.max(monthlySales, 1))
+
+  const sections: string[] = []
+
+  // 1. 総合評価ヘッダー
+  const overallScore = turnover >= 8 && days <= 30 && change > 0 ? "優良" :
+    turnover >= 5 && days <= 45 ? "良好" :
+    turnover >= 3 ? "改善余地あり" : "要注意"
+
+  sections.push(`【総合評価：${overallScore}】`)
+  sections.push(`${store.prefecture}エリアの${scaleLabel}（在庫${inv}台規模）として分析します。`)
+  sections.push("")
+
+  // 2. 売上・販売力の診断
+  sections.push("■ 売上・販売力の診断")
+  if (monthlySales >= 20) {
+    sections.push(`月販${monthlySales}台は${scaleLabel}としてはかなり好調です。1台あたり平均${perCarRevenue.toLocaleString()}万円の売上構成は、${perCarRevenue > 200 ? "高単価帯の品揃えが効いています" : "手頃な価格帯を中心に回転重視の戦略が見えます"}。`)
+  } else if (monthlySales >= 10) {
+    sections.push(`月販${monthlySales}台は標準的な水準です。1台あたり${perCarRevenue.toLocaleString()}万円の単価を維持しつつ、問い合わせ数を増やすことで月販15〜20台を狙える位置にあります。`)
+  } else {
+    sections.push(`月販${monthlySales}台は伸び代があります。まずカーセンサー等の掲載写真を全車20枚以上にする、コメント欄を充実させるなど、0円でできる改善から着手してください。`)
+  }
+
+  // 変動
+  if (change > 5) {
+    sections.push(`前年比+${change}%と好調な成長トレンドにあります。この勢いを活かし、在庫の質（回転の速い車種への集中）を高める時期です。`)
+  } else if (change > 0) {
+    sections.push(`前年比+${change}%と微増傾向です。安定していますが、次の成長ドライバーを見つける段階に入っています。`)
+  } else if (change > -5) {
+    sections.push(`前年比${change}%とやや減速しています。市場全体の動向を踏まえつつ、掲載内容の品質改善が即効性のある施策です。`)
+  } else {
+    sections.push(`前年比${change}%は注意が必要です。売上低下の原因を「問い合わせ数の減少」か「成約率の低下」かで切り分け、対策を絞ってください。`)
+  }
+  sections.push("")
+
+  // 3. 在庫効率の診断
+  sections.push("■ 在庫効率の診断")
+  if (days <= 30) {
+    sections.push(`平均在庫日数${days}日は非常に優秀です。回転率${store.turnoverRate}回/年と合わせて、キャッシュフローが健全に回っていることがわかります。`)
+  } else if (days <= 45) {
+    sections.push(`平均在庫日数${days}日は標準的な水準です。回転率${store.turnoverRate}回/年を維持しつつ、60日超の長期在庫をゼロにすることを目標にしてください。`)
+  } else {
+    sections.push(`平均在庫日数${days}日はやや長めです。60日を超えている車両は利益を圧縮するため、リストアップして値下げまたは業販による現金化を検討してください。在庫に寝ているお金が資金繰りを圧迫している可能性があります。`)
+  }
+
+  if (turnover >= 8) {
+    sections.push(`回転率${store.turnoverRate}回/年はトップクラスの水準です。「売れる車を仕入れて、素早く売る」というサイクルが確立されています。`)
+  } else if (turnover >= 5) {
+    sections.push(`回転率${store.turnoverRate}回/年は良好です。さらに仕入れ精度を上げる（売れ筋データに基づいた仕入れ）ことで、7〜8回/年を目指せます。`)
+  } else {
+    sections.push(`回転率${store.turnoverRate}回/年は改善の余地があります。仕入れ基準の見直し（地域の売れ筋に合わせた車種選定）と、長期在庫の早期処分を同時に進めてください。`)
+  }
+  sections.push("")
+
+  // 4. 他店が参考にすべきポイント
+  sections.push("■ 他の販売店が参考にすべきポイント")
+  const strengths: string[] = []
+  const improvements: string[] = []
+
+  if (turnover >= 6) strengths.push("高い在庫回転率を実現する仕入れ力")
+  if (days <= 35) strengths.push("短い在庫滞留期間（仕入れ精度の高さ）")
+  if (change > 3) strengths.push("安定した売上成長トレンド")
+  if (monthlySales >= 15) strengths.push("月販15台以上の安定した販売力")
+  if (perCarRevenue > 200) strengths.push("高単価帯を維持する商品力")
+
+  if (days > 45) improvements.push("在庫日数の短縮（60日ルールの徹底）")
+  if (turnover < 5) improvements.push("仕入れ精度の向上（売れ筋データの活用）")
+  if (change < 0) improvements.push("売上回復に向けた掲載品質の見直し")
+  if (monthlySales < 10) improvements.push("問い合わせ数の増加施策（写真・コメント改善）")
+
+  if (strengths.length > 0) {
+    sections.push(`【強み】`)
+    strengths.forEach(s => sections.push(`  - ${s}`))
+  }
+  if (improvements.length > 0) {
+    sections.push(`【改善すべき点】`)
+    improvements.forEach(s => sections.push(`  - ${s}`))
+  }
+  sections.push("")
+
+  // 5. 具体的アクション提案
+  sections.push("■ 今すぐ取るべきアクション（優先度順）")
+
+  const actions: string[] = []
+  if (days > 45) {
+    actions.push("1. 60日超の在庫を全台リストアップし、値下げまたは業販で1ヶ月以内に処分")
+  }
+  if (change < 0) {
+    actions.push(`${actions.length + 1}. カーセンサー掲載の全車両の写真を20枚以上に増やし、コメント欄を充実させる（0円で即実行可能）`)
+  }
+  if (turnover < 6) {
+    actions.push(`${actions.length + 1}. 売れ筋分析データを活用し、地域で回転の速い車種に仕入れを集中させる`)
+  }
+  if (inv > 50 && monthlySales < inv / 4) {
+    actions.push(`${actions.length + 1}. 在庫台数に対して月販が少ないため、仕入れペースを落として在庫圧縮を検討`)
+  }
+  actions.push(`${actions.length + 1}. Googleビジネスプロフィール（MEO）を最新状態に更新し、口コミ獲得施策を開始`)
+
+  if (actions.length === 1) {
+    actions.unshift("1. 現状の好調を維持しつつ、売れ筋に集中した仕入れで在庫効率をさらに高める")
+  }
+
+  actions.forEach(a => sections.push(a))
+  sections.push("")
+
+  // 6. まとめ
+  sections.push("─────────")
+  if (overallScore === "優良" || overallScore === "良好") {
+    sections.push(`この店舗のオペレーションは${scaleLabel}として${overallScore}な水準にあります。特に${strengths[0] || "経営の安定性"}は、同規模の販売店が学ぶべきポイントです。さらなる成長には、仕入れの精度向上と集客チャネルの多角化が鍵になるでしょう。`)
+  } else {
+    sections.push(`この店舗は${improvements[0] || "経営改善"}に取り組むことで、大きく改善する余地があります。まず上記のアクション1番を今週中に実行してください。「考えた」で終わらせず「やった」に変えることが、数字を動かす唯一の方法です。`)
+  }
+
+  return sections.join("\n")
+}
+
 export function StoreDetailPageContent({ store }: { store: StoreData }) {
   const router = useRouter()
   const rand = seededRandom(store.id * 7)
+
+  // AI commentary state
+  const [commentary, setCommentary] = useState("")
+  const [displayedCommentary, setDisplayedCommentary] = useState("")
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [isRevealing, setIsRevealing] = useState(false)
+  const [thinkingPhase, setThinkingPhase] = useState(0)
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const thinkingMessages = [
+    "店舗データを分析中...",
+    "売上トレンドを評価中...",
+    "在庫効率を診断中...",
+    "競合比較を実施中...",
+    "改善提案を策定中...",
+    "総評レポートを作成中...",
+  ]
+
+  // Rotate thinking messages
+  useEffect(() => {
+    if (!isGenerating) {
+      setThinkingPhase(0)
+      return
+    }
+    const interval = setInterval(() => {
+      setThinkingPhase((prev) => (prev + 1) % thinkingMessages.length)
+    }, 1200)
+    return () => clearInterval(interval)
+  }, [isGenerating, thinkingMessages.length])
+
+  // Character-by-character reveal
+  useEffect(() => {
+    if (!isRevealing || !commentary) return
+    let currentIndex = 0
+    const content = commentary
+
+    const reveal = () => {
+      currentIndex += 1
+      if (currentIndex >= content.length) {
+        setDisplayedCommentary(content)
+        setIsRevealing(false)
+        return
+      }
+      setDisplayedCommentary(content.slice(0, currentIndex))
+      revealTimerRef.current = setTimeout(reveal, 20)
+    }
+    revealTimerRef.current = setTimeout(reveal, 20)
+    return () => {
+      if (revealTimerRef.current) clearTimeout(revealTimerRef.current)
+    }
+  }, [isRevealing, commentary])
+
+  const generateCommentary = useCallback(() => {
+    setIsGenerating(true)
+    setDisplayedCommentary("")
+    setCommentary("")
+
+    // Simulate AI processing time
+    setTimeout(() => {
+      const result = generateCeoCommentary(store)
+      setCommentary(result)
+      setIsGenerating(false)
+      setIsRevealing(true)
+    }, 3500)
+  }, [store])
+
+  // Auto-generate on mount
+  useEffect(() => {
+    generateCommentary()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Monthly sales data
   const monthlySales = [
@@ -171,7 +373,7 @@ export function StoreDetailPageContent({ store }: { store: StoreData }) {
       bgColor: "bg-rose-500/10",
     },
     {
-      label: "平均滞留期間",
+      label: "平���滞留期間",
       value: `${store.inventoryDays}日`,
       icon: Clock,
       change: -store.change + 2,
@@ -518,6 +720,95 @@ export function StoreDetailPageContent({ store }: { store: StoreData }) {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* AI経営コンサルタント総評 */}
+      <Card className="border-2 border-amber-500/30 overflow-hidden">
+        <div className="bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-transparent p-6 pb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-md">
+                <Sparkles className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold tracking-tight">AI経営コンサルタント総評</h3>
+                <p className="text-xs text-muted-foreground">AI社長の右腕 による店舗分析レポート</p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={generateCommentary}
+              disabled={isGenerating || isRevealing}
+              className="gap-1.5 text-xs border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-700"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isGenerating ? "animate-spin" : ""}`} />
+              再分析
+            </Button>
+          </div>
+        </div>
+
+        <div className="p-6 pt-2">
+          {isGenerating && (
+            <div className="flex items-center gap-3 py-8 justify-center">
+              <div className="flex gap-1.5">
+                <div className="h-2 w-2 rounded-full bg-amber-500/60 animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="h-2 w-2 rounded-full bg-amber-500/60 animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="h-2 w-2 rounded-full bg-amber-500/60 animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
+              <span className="text-sm text-muted-foreground animate-pulse">
+                {thinkingMessages[thinkingPhase]}
+              </span>
+            </div>
+          )}
+
+          {!isGenerating && (displayedCommentary || commentary) && (
+            <div className="relative">
+              <div className="whitespace-pre-wrap text-sm leading-7 text-foreground/90">
+                {(isRevealing ? displayedCommentary : commentary).split("\n").map((line, i) => {
+                  if (line.startsWith("【総合評価")) {
+                    const isGood = line.includes("優良") || line.includes("良好")
+                    return (
+                      <div key={i} className="mb-2">
+                        <Badge className={isGood
+                          ? "bg-emerald-500/15 text-emerald-700 border-emerald-500/30 text-base px-3 py-1"
+                          : line.includes("要注意")
+                            ? "bg-red-500/15 text-red-700 border-red-500/30 text-base px-3 py-1"
+                            : "bg-amber-500/15 text-amber-700 border-amber-500/30 text-base px-3 py-1"
+                        }>
+                          {line}
+                        </Badge>
+                      </div>
+                    )
+                  }
+                  if (line.startsWith("■")) {
+                    return <p key={i} className="font-bold text-base mt-5 mb-2 text-foreground border-l-4 border-amber-500 pl-3">{line.replace("■ ", "")}</p>
+                  }
+                  if (line.startsWith("【強み】")) {
+                    return <p key={i} className="font-semibold text-emerald-600 mt-3 mb-1">{line}</p>
+                  }
+                  if (line.startsWith("【改善すべき点】")) {
+                    return <p key={i} className="font-semibold text-amber-600 mt-3 mb-1">{line}</p>
+                  }
+                  if (line.startsWith("─────")) {
+                    return <hr key={i} className="my-4 border-border" />
+                  }
+                  if (line.match(/^\d+\./)) {
+                    return <p key={i} className="pl-2 py-0.5 text-sm">{line}</p>
+                  }
+                  if (line.startsWith("  - ")) {
+                    return <p key={i} className="pl-4 py-0.5 text-sm">{line}</p>
+                  }
+                  if (line === "") return <div key={i} className="h-2" />
+                  return <p key={i}>{line}</p>
+                })}
+                {isRevealing && (
+                  <span className="inline-block w-0.5 h-4 bg-amber-500 animate-pulse ml-0.5 align-text-bottom" />
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
     </div>
   )
 }
