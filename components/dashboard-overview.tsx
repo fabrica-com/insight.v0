@@ -446,7 +446,7 @@ export function DashboardOverview() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-xs text-muted-foreground leading-relaxed">
-              AI社長の右腕が、売上・在庫・競合データを総合的に分析し、今取るべきアクションを提案します。
+              AI副社長が、売上・在庫・競合データを総合的に分析し、今取るべきアクションを提案します。
             </p>
 
             <div className="space-y-2">
@@ -457,7 +457,7 @@ export function DashboardOverview() {
                       <div className="h-6 w-6 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center">
                         <Sparkles className="h-3 w-3 text-white" />
                       </div>
-                      <span className="text-sm font-medium">AI社長の右腕</span>
+                      <span className="text-sm font-medium">AI副社長</span>
                     </div>
                     <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-amber-600 transition-colors" />
                   </div>

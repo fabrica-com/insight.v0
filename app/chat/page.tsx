@@ -27,7 +27,7 @@ const chatOptions = [
     icon: Crown,
     iconBg: "bg-amber-500/10 text-amber-600",
     borderHover: "hover:border-amber-500/50 hover:bg-amber-500/5",
-    title: "AI社長の右腕",
+    title: "AI副社長",
     badge: "CEO",
     badgeClass: "bg-amber-100 text-amber-700 border-amber-200",
     description: "経営判断を統合的にサポート。困っていることを話すだけでOK",
@@ -114,7 +114,7 @@ const chatOptions = [
 const chatTitles: Record<string, { title: string; subtitle: string }> = {
   "data-analysis": { title: "データ分析", subtitle: "自然言語でデータ分析と市場インサイトを取得" },
   consultant: { title: "経営コンサルタント", subtitle: "経営課題の相談・壁打ちチャット" },
-  ceo: { title: "AI社長の右腕", subtitle: "経営判断を統合的にサポートするAI参謀" },
+  ceo: { title: "AI副社長", subtitle: "経営判断を統合的にサポートするAI参謀" },
   cfo: { title: "AI金庫番", subtitle: "お金まわりの一切を見守り、先回りして助言" },
   cmo: { title: "AI集客参謀", subtitle: "WEB集客を横断的に見渡し最適な施策を提案" },
   grant: { title: "補助金コンシェルジュ", subtitle: "補助金・助成金の最適マッチングと申請サポート" },
@@ -163,14 +163,14 @@ function ChatPageContent() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h2 className="text-lg font-bold">AI社長の右腕</h2>
+                          <h2 className="text-lg font-bold">AI副社長</h2>
                           <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-200 text-xs">
                             CEO
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          お金・集客・補助金・人事を統合的に判断。困っていることを話すだけで、今やるべきことを具体的にお伝えします。
-                          4人の専門AI（金庫番・集客参謀・補助金コンシェルジュ・AI CHRO）の知見を統合し、1つの結論を出す司令塔です。
+                          ��金・集客・補助金・人事を統合的に判断。困っていることを話すだけで、今やるべきことを具体的にお伝えします。
+                          4人の専門AI（金庫番・集客参謀・補助金コンシェルジュ・人事参謀）の知見を統合し、1つの結論を出す司令塔です。
                         </p>
                       </div>
                     </CardContent>
