@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -113,7 +113,57 @@ export function SharedChatLayout({
   ])
   const [input, setInput] = useState("")
   const [isTyping, setIsTyping] = useState(false)
+  const [thinkingPhase, setThinkingPhase] = useState(0)
+  const [displayedContent, setDisplayedContent] = useState("")
+  const [isRevealing, setIsRevealing] = useState(false)
+  const [fullResponseContent, setFullResponseContent] = useState("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const thinkingMessages = [
+    "質問を分析中...",
+    "情報を整理中...",
+    "回答を生成中...",
+    "最適な提案を検討中...",
+  ]
+
+  // Rotate thinking messages while waiting
+  useEffect(() => {
+    if (!isTyping) {
+      setThinkingPhase(0)
+      return
+    }
+    const interval = setInterval(() => {
+      setThinkingPhase((prev) => (prev + 1) % thinkingMessages.length)
+    }, 1200)
+    return () => clearInterval(interval)
+  }, [isTyping, thinkingMessages.length])
+
+  // Character-by-character reveal effect
+  useEffect(() => {
+    if (!isRevealing || !fullResponseContent) return
+
+    let currentIndex = 0
+    const content = fullResponseContent
+    const chunkSize = 2 // characters per tick for natural speed
+
+    const reveal = () => {
+      currentIndex += chunkSize
+      if (currentIndex >= content.length) {
+        setDisplayedContent(content)
+        setIsRevealing(false)
+        setFullResponseContent("")
+        return
+      }
+      setDisplayedContent(content.slice(0, currentIndex))
+      revealTimerRef.current = setTimeout(reveal, 18)
+    }
+
+    revealTimerRef.current = setTimeout(reveal, 18)
+    return () => {
+      if (revealTimerRef.current) clearTimeout(revealTimerRef.current)
+    }
+  }, [isRevealing, fullResponseContent])
 
   useEffect(() => {
     const histories = loadChatHistory(storageKey)
@@ -179,15 +229,20 @@ export function SharedChatLayout({
     const userMessageCount = updatedMessages.filter((m) => m.role === "user").length
 
     setTimeout(() => {
+      const responseContent = generateResponse(messageText, userMessageCount)
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: generateResponse(messageText, userMessageCount),
+        content: responseContent,
         timestamp: new Date(),
       }
       const finalMessages = [...updatedMessages, aiMessage]
       setMessages(finalMessages)
       setIsTyping(false)
+      // Start the character reveal
+      setFullResponseContent(responseContent)
+      setDisplayedContent("")
+      setIsRevealing(true)
       saveCurrentChat(finalMessages)
     }, typingDelay)
   }
@@ -389,7 +444,15 @@ export function SharedChatLayout({
                     message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted/70",
                   )}
                 >
-                  {message.content}
+                  {/* Show typing reveal for the last assistant message */}
+                  {message.role === "assistant" &&
+                   isRevealing &&
+                   message.id === messages[messages.length - 1]?.id
+                    ? <>
+                        {displayedContent}
+                        <span className="inline-block w-0.5 h-4 bg-foreground/70 animate-pulse ml-0.5 align-text-bottom" />
+                      </>
+                    : message.content}
                 </div>
                 {message.role === "user" && (
                   <div className="flex h-8 w-8 items-center justify-center flex-shrink-0 rounded-lg bg-muted">
@@ -407,22 +470,27 @@ export function SharedChatLayout({
                     tc.avatarClass,
                   )}
                 >
-                  <AvatarIcon className="h-4 w-4 text-white" />
+                  <AvatarIcon className="h-4 w-4 text-white animate-pulse" />
                 </div>
                 <div className="rounded-xl bg-muted/70 px-4 py-3">
-                  <div className="flex gap-1.5">
-                    <div
-                      className="h-2 w-2 rounded-full bg-muted-foreground/50 animate-bounce"
-                      style={{ animationDelay: "0ms" }}
-                    />
-                    <div
-                      className="h-2 w-2 rounded-full bg-muted-foreground/50 animate-bounce"
-                      style={{ animationDelay: "150ms" }}
-                    />
-                    <div
-                      className="h-2 w-2 rounded-full bg-muted-foreground/50 animate-bounce"
-                      style={{ animationDelay: "300ms" }}
-                    />
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex gap-1">
+                      <div
+                        className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce"
+                        style={{ animationDelay: "0ms" }}
+                      />
+                      <div
+                        className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce"
+                        style={{ animationDelay: "150ms" }}
+                      />
+                      <div
+                        className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce"
+                        style={{ animationDelay: "300ms" }}
+                      />
+                    </div>
+                    <span className="text-xs text-muted-foreground animate-pulse transition-all duration-300">
+                      {thinkingMessages[thinkingPhase]}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -476,7 +544,7 @@ export function SharedChatLayout({
               />
               <Button
                 onClick={() => handleSend()}
-                disabled={!input.trim() || isTyping}
+                disabled={!input.trim() || isTyping || isRevealing}
                 size="icon"
                 className={cn(
                   "h-10 w-10",
