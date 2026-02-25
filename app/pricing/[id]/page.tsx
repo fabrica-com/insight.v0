@@ -257,7 +257,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
   {
     id: "COMP003B",
     competitorName: "オートギャラリー品川",
-    competitorArea: "東京都品���区",
+    competitorArea: "東京都品�����区",
     manufacturer: "ホンダ",
     model: "ヴェゼル",
     modelCode: "RV5",
@@ -676,8 +676,14 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
   const handleVehiclePriceChange = (newVehiclePrice: string) => {
     const vehicleNum = Number(newVehiclePrice.replace(/[^0-9]/g, "")) || 0
     setAdjustedPrice(newVehiclePrice.replace(/[^0-9]/g, ""))
-    // 諸費用は固定のまま、支払総額を計算
     setAdjustedTotalPrice((vehicleNum + expenses).toString())
+  }
+
+  const handleExpensesChange = (newExpenses: string) => {
+    const expNum = Number(newExpenses.replace(/[^0-9]/g, "")) || 0
+    setExpenses(expNum)
+    const vehicleNum = Number(adjustedPrice.replace(/[^0-9]/g, "")) || 0
+    setAdjustedTotalPrice((vehicleNum + expNum).toString())
   }
 
   const setQuickTotalPrice = (totalPrice: number) => {
@@ -1663,9 +1669,17 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50 text-sm">
-                <span className="text-muted-foreground">諸費用（固定）</span>
-                <span className="font-medium">¥{expenses.toLocaleString()}</span>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">諸費用（登録費用・税金・保険等）</Label>
+                <div className="flex items-center gap-2 max-w-[260px]">
+                  <span className="text-sm text-muted-foreground flex-shrink-0">¥</span>
+                  <Input
+                    type="text"
+                    value={expenses.toLocaleString()}
+                    onChange={(e) => handleExpensesChange(e.target.value)}
+                    className="text-sm text-right h-9 text-muted-foreground"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
