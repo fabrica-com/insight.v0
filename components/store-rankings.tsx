@@ -1,73 +1,20 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Trophy, TrendingUp, TrendingDown, ArrowUpDown, Info } from "lucide-react"
+import { Trophy, TrendingUp, TrendingDown, ArrowUpDown, Info, ChevronRight } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { StoreDetailDialog } from "./store-detail-dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-
-// Deterministic seeded random to avoid SSR/client hydration mismatch
-function seededRandom(seed: number) {
-  let s = seed
-  return () => {
-    s = (s * 16807 + 0) % 2147483647
-    return (s - 1) / 2147483646
-  }
-}
-
-// Sample data for store rankings
-const generateStoreData = () => {
-  const rand = seededRandom(42)
-  const prefectures = ["東京都", "神奈川県", "大阪府", "愛知県", "福岡県", "北海道", "千葉県", "埼玉県"]
-  const storeNames = [
-    "カーセレクト東京",
-    "オートギャラリー横浜",
-    "ドリームモータース大阪",
-    "プレミアムカーズ名古屋",
-    "スピードオート福岡",
-    "北海道カーセンター",
-    "千葉モーターズ",
-    "埼玉オートプラザ",
-    "東京ベストカー",
-    "横浜カーズ",
-    "大阪プレミアム",
-    "名古屋オートマーケット",
-    "福岡カーステーション",
-    "札幌モータース",
-    "千葉カーワールド",
-    "埼玉オートギャラリー",
-    "銀座カーセレクト",
-    "みなとみらいオート",
-    "梅田カーズ",
-    "栄モータース",
-  ]
-
-  return storeNames.map((name, idx) => ({
-    id: idx + 1,
-    name,
-    prefecture: prefectures[idx % prefectures.length],
-    revenue: Math.floor(rand() * 500000000) + 50000000,
-    salesVolume: Math.floor(rand() * 300) + 20,
-    avgInventory: Math.floor(rand() * 150) + 10,
-    turnoverRate: (rand() * 10 + 2).toFixed(1),
-    inventoryDays: Math.floor(rand() * 60) + 15,
-    change: Math.floor(rand() * 20) - 10,
-  }))
-}
-
-const allStores = generateStoreData()
-
-const prefectures = ["すべて", "東京都", "神奈川県", "大阪府", "愛知県", "福岡県", "北海道", "千葉県", "埼玉県"]
+import { allStores, allPrefectures } from "@/lib/store-data"
 
 export function StoreRankings() {
   const [prefecture, setPrefecture] = useState("すべて")
   const [inventorySize, setInventorySize] = useState("すべて")
   const [rankingType, setRankingType] = useState<"revenue" | "sales" | "turnover" | "days">("revenue")
   const [period, setPeriod] = useState("1month")
-  const [selectedStore, setSelectedStore] = useState<(typeof allStores)[0] | null>(null)
 
   const filteredStores = allStores
     .filter((store) => {
@@ -198,7 +145,7 @@ export function StoreRankings() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {prefectures.map((pref) => (
+                {allPrefectures.map((pref) => (
                   <SelectItem key={pref} value={pref}>
                     {pref}
                   </SelectItem>
@@ -265,10 +212,10 @@ export function StoreRankings() {
 
           <div className="space-y-2">
             {filteredStores.map((store, idx) => (
-              <div
+              <Link
                 key={store.id}
-                onClick={() => setSelectedStore(store)}
-                className="flex items-center gap-4 p-4 rounded-xl border bg-card hover:bg-muted/50 transition-colors cursor-pointer"
+                href={`/rankings/${store.id}`}
+                className="flex items-center gap-4 p-4 rounded-xl border bg-card hover:bg-muted/50 transition-colors cursor-pointer group"
               >
                 <div className="flex-shrink-0">{getRankIcon(idx + 1)}</div>
 
@@ -306,15 +253,15 @@ export function StoreRankings() {
                       </span>
                     </div>
                   )}
+
+                  <ChevronRight className="h-5 w-5 text-muted-foreground/40 group-hover:text-foreground/60 transition-colors flex-shrink-0" />
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
       </Card>
 
-      {/* Store Detail Dialog */}
-      <StoreDetailDialog store={selectedStore} onClose={() => setSelectedStore(null)} />
     </div>
   )
 }
