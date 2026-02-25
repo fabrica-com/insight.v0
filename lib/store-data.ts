@@ -63,6 +63,28 @@ function generateStoreData(): StoreData[] {
 
 export const allStores = generateStoreData()
 
+// 現在ログイン中の自店データ（ヘッダー表示の「オートギャラリー東京」）
+export const MY_STORE_ID = 99
+
+export const myStore: StoreData = (() => {
+  const rand = seededRandom(99)
+  return {
+    id: MY_STORE_ID,
+    name: "オートギャラリー東京",
+    prefecture: "東京都",
+    revenue: Math.floor(rand() * 300000000) + 80000000,
+    salesVolume: Math.floor(rand() * 200) + 30,
+    avgInventory: Math.floor(rand() * 80) + 25,
+    turnoverRate: (rand() * 8 + 3).toFixed(1),
+    inventoryDays: Math.floor(rand() * 40) + 20,
+    change: Math.floor(rand() * 16) - 5,
+  }
+})()
+
+// 全店舗（自店含む）でランキング計算するための配列
+export const allStoresWithMine = [...allStores, myStore]
+
 export function getStoreById(id: number): StoreData | undefined {
+  if (id === MY_STORE_ID) return myStore
   return allStores.find((s) => s.id === id)
 }
