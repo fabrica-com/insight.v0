@@ -15,6 +15,7 @@ import {
   Trophy,
   BarChart3,
   MessageSquare,
+  QrCode,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -31,6 +32,7 @@ const navigation = [
   { name: "買取・仕入推奨価格", icon: ShoppingCart, href: "/purchase-pricing" },
   { name: "レポート", icon: FileText, href: "/reports" },
   { name: "ランキング", icon: Trophy, href: "/rankings" },
+  { name: "QRコード生成", icon: QrCode, href: "/qr-generator" },
 ]
 
 export function DashboardSidebar({ defaultCollapsed = false }: { defaultCollapsed?: boolean }) {
@@ -89,16 +91,19 @@ export function DashboardSidebar({ defaultCollapsed = false }: { defaultCollapse
       </nav>
 
       <div className="border-t border-border p-3">
-        <Button
-          variant="ghost"
-          className={cn(
-            "w-full justify-start gap-3 h-10 font-medium text-muted-foreground hover:text-foreground hover:bg-muted",
-            collapsed && "justify-center px-2",
-          )}
-        >
-          <Settings className="h-[18px] w-[18px] flex-shrink-0" />
-          {!collapsed && <span>設定</span>}
-        </Button>
+        <Link href="/settings">
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full justify-start gap-3 h-10 font-medium text-muted-foreground hover:text-foreground hover:bg-muted",
+              collapsed && "justify-center px-2",
+              pathname === "/settings" && "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary",
+            )}
+          >
+            <Settings className={cn("h-[18px] w-[18px] flex-shrink-0", pathname === "/settings" && "text-primary")} />
+            {!collapsed && <span>設定</span>}
+          </Button>
+        </Link>
       </div>
 
       <Button

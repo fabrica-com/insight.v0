@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -48,7 +48,7 @@ export interface SharedChatLayoutProps {
   suggestedItems: SuggestedItem[]
   suggestedLabel?: string
   generateResponse: (question: string, messageCount?: number) => string
-  theme: "data-analysis" | "consultant"
+  theme: "data-analysis" | "consultant" | "ceo" | "cfo" | "cmo" | "grant"
   inputPlaceholder?: string
   typingDelay?: number
 }
@@ -113,7 +113,57 @@ export function SharedChatLayout({
   ])
   const [input, setInput] = useState("")
   const [isTyping, setIsTyping] = useState(false)
+  const [thinkingPhase, setThinkingPhase] = useState(0)
+  const [displayedContent, setDisplayedContent] = useState("")
+  const [isRevealing, setIsRevealing] = useState(false)
+  const [fullResponseContent, setFullResponseContent] = useState("")
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const thinkingMessages = [
+    "質問を分析中...",
+    "情報を整理中...",
+    "回答を生成中...",
+    "最適な提案を検討中...",
+  ]
+
+  // Rotate thinking messages while waiting
+  useEffect(() => {
+    if (!isTyping) {
+      setThinkingPhase(0)
+      return
+    }
+    const interval = setInterval(() => {
+      setThinkingPhase((prev) => (prev + 1) % thinkingMessages.length)
+    }, 1200)
+    return () => clearInterval(interval)
+  }, [isTyping, thinkingMessages.length])
+
+  // Character-by-character reveal effect
+  useEffect(() => {
+    if (!isRevealing || !fullResponseContent) return
+
+    let currentIndex = 0
+    const content = fullResponseContent
+    const chunkSize = 1 // one character per tick for slower, readable reveal
+
+    const reveal = () => {
+      currentIndex += chunkSize
+      if (currentIndex >= content.length) {
+        setDisplayedContent(content)
+        setIsRevealing(false)
+        setFullResponseContent("")
+        return
+      }
+      setDisplayedContent(content.slice(0, currentIndex))
+      revealTimerRef.current = setTimeout(reveal, 35)
+    }
+
+    revealTimerRef.current = setTimeout(reveal, 35)
+    return () => {
+      if (revealTimerRef.current) clearTimeout(revealTimerRef.current)
+    }
+  }, [isRevealing, fullResponseContent])
 
   useEffect(() => {
     const histories = loadChatHistory(storageKey)
@@ -179,15 +229,20 @@ export function SharedChatLayout({
     const userMessageCount = updatedMessages.filter((m) => m.role === "user").length
 
     setTimeout(() => {
+      const responseContent = generateResponse(messageText, userMessageCount)
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: generateResponse(messageText, userMessageCount),
+        content: responseContent,
         timestamp: new Date(),
       }
       const finalMessages = [...updatedMessages, aiMessage]
       setMessages(finalMessages)
       setIsTyping(false)
+      // Start the character reveal
+      setFullResponseContent(responseContent)
+      setDisplayedContent("")
+      setIsRevealing(true)
       saveCurrentChat(finalMessages)
     }, typingDelay)
   }
@@ -226,7 +281,54 @@ export function SharedChatLayout({
   }
 
   const isConsultant = theme === "consultant"
-  const AvatarIcon = isConsultant ? Flame : Bot
+
+  const themeConfig: Record<string, { avatarIcon: typeof Bot; avatarClass: string; borderClass: string; buttonClass: string; suggestBorderClass: string }> = {
+    "data-analysis": {
+      avatarIcon: Bot,
+      avatarClass: "rounded-lg bg-gradient-to-br from-chart-4 to-primary text-white",
+      borderClass: "border-border/50",
+      buttonClass: "",
+      suggestBorderClass: "",
+    },
+    consultant: {
+      avatarIcon: Flame,
+      avatarClass: "rounded-full bg-gradient-to-br from-red-500 to-orange-600",
+      borderClass: "border-red-500/20",
+      buttonClass: "bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 text-white",
+      suggestBorderClass: "border-red-500/30 hover:bg-red-500/10 hover:text-red-600",
+    },
+    ceo: {
+      avatarIcon: Bot,
+      avatarClass: "rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 text-white",
+      borderClass: "border-amber-500/20",
+      buttonClass: "bg-gradient-to-r from-amber-500 to-amber-700 hover:from-amber-600 hover:to-amber-800 text-white",
+      suggestBorderClass: "border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-700",
+    },
+    cfo: {
+      avatarIcon: Bot,
+      avatarClass: "rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-700 text-white",
+      borderClass: "border-emerald-500/20",
+      buttonClass: "bg-gradient-to-r from-emerald-500 to-emerald-700 hover:from-emerald-600 hover:to-emerald-800 text-white",
+      suggestBorderClass: "border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-700",
+    },
+    cmo: {
+      avatarIcon: Bot,
+      avatarClass: "rounded-lg bg-gradient-to-br from-sky-500 to-sky-700 text-white",
+      borderClass: "border-sky-500/20",
+      buttonClass: "bg-gradient-to-r from-sky-500 to-sky-700 hover:from-sky-600 hover:to-sky-800 text-white",
+      suggestBorderClass: "border-sky-500/30 hover:bg-sky-500/10 hover:text-sky-700",
+    },
+    grant: {
+      avatarIcon: Bot,
+      avatarClass: "rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 text-white",
+      borderClass: "border-violet-500/20",
+      buttonClass: "bg-gradient-to-r from-violet-500 to-violet-700 hover:from-violet-600 hover:to-violet-800 text-white",
+      suggestBorderClass: "border-violet-500/30 hover:bg-violet-500/10 hover:text-violet-700",
+    },
+  }
+
+  const tc = themeConfig[theme] || themeConfig["data-analysis"]
+  const AvatarIcon = tc.avatarIcon
 
   return (
     <div className="flex h-full min-h-0 gap-3">
@@ -317,7 +419,7 @@ export function SharedChatLayout({
         <Card
           className={cn(
             "flex min-h-0 flex-1 flex-col overflow-hidden",
-            isConsultant ? "border-red-500/20" : "border-border/50",
+            tc.borderClass,
           )}
         >
           <div className="min-h-0 flex-1 overflow-y-auto p-4 space-y-4">
@@ -330,12 +432,10 @@ export function SharedChatLayout({
                   <div
                     className={cn(
                       "flex h-8 w-8 items-center justify-center flex-shrink-0 shadow-sm",
-                      isConsultant
-                        ? "rounded-full bg-gradient-to-br from-red-500 to-orange-600"
-                        : "rounded-lg bg-gradient-to-br from-chart-4 to-primary text-white",
+                      tc.avatarClass,
                     )}
                   >
-                    <AvatarIcon className={cn("h-4 w-4", isConsultant && "text-white")} />
+                    <AvatarIcon className="h-4 w-4 text-white" />
                   </div>
                 )}
                 <div
@@ -344,16 +444,19 @@ export function SharedChatLayout({
                     message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted/70",
                   )}
                 >
-                  {message.content}
+                  {/* Show typing reveal for the last assistant message */}
+                  {message.role === "assistant" &&
+                   isRevealing &&
+                   message.id === messages[messages.length - 1]?.id
+                    ? <>
+                        {displayedContent}
+                        <span className="inline-block w-0.5 h-4 bg-foreground/70 animate-pulse ml-0.5 align-text-bottom" />
+                      </>
+                    : message.content}
                 </div>
                 {message.role === "user" && (
-                  <div
-                    className={cn(
-                      "flex h-8 w-8 items-center justify-center flex-shrink-0",
-                      isConsultant ? "rounded-full bg-secondary" : "rounded-lg bg-muted",
-                    )}
-                  >
-                    <User className={cn("h-4 w-4", !isConsultant && "text-muted-foreground")} />
+                  <div className="flex h-8 w-8 items-center justify-center flex-shrink-0 rounded-lg bg-muted">
+                    <User className="h-4 w-4 text-muted-foreground" />
                   </div>
                 )}
               </div>
@@ -364,27 +467,30 @@ export function SharedChatLayout({
                 <div
                   className={cn(
                     "flex h-8 w-8 items-center justify-center flex-shrink-0",
-                    isConsultant
-                      ? "rounded-full bg-gradient-to-br from-red-500 to-orange-600"
-                      : "rounded-lg bg-gradient-to-br from-chart-4 to-primary text-white",
+                    tc.avatarClass,
                   )}
                 >
-                  <AvatarIcon className={cn("h-4 w-4", isConsultant && "text-white")} />
+                  <AvatarIcon className="h-4 w-4 text-white animate-pulse" />
                 </div>
                 <div className="rounded-xl bg-muted/70 px-4 py-3">
-                  <div className="flex gap-1.5">
-                    <div
-                      className="h-2 w-2 rounded-full bg-muted-foreground/50 animate-bounce"
-                      style={{ animationDelay: "0ms" }}
-                    />
-                    <div
-                      className="h-2 w-2 rounded-full bg-muted-foreground/50 animate-bounce"
-                      style={{ animationDelay: "150ms" }}
-                    />
-                    <div
-                      className="h-2 w-2 rounded-full bg-muted-foreground/50 animate-bounce"
-                      style={{ animationDelay: "300ms" }}
-                    />
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex gap-1">
+                      <div
+                        className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce"
+                        style={{ animationDelay: "0ms" }}
+                      />
+                      <div
+                        className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce"
+                        style={{ animationDelay: "150ms" }}
+                      />
+                      <div
+                        className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce"
+                        style={{ animationDelay: "300ms" }}
+                      />
+                    </div>
+                    <span className="text-xs text-muted-foreground animate-pulse transition-all duration-300">
+                      {thinkingMessages[thinkingPhase]}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -403,7 +509,7 @@ export function SharedChatLayout({
                     onClick={() => handleSend(item.text)}
                     className={cn(
                       "flex items-center gap-3 p-3 rounded-lg border border-border/50 bg-card hover:bg-muted/50 transition-colors text-left group",
-                      isConsultant && "border-red-500/30 hover:bg-red-500/10 hover:text-red-600",
+                      tc.suggestBorderClass,
                     )}
                   >
                     <div
@@ -438,11 +544,11 @@ export function SharedChatLayout({
               />
               <Button
                 onClick={() => handleSend()}
-                disabled={!input.trim() || isTyping}
+                disabled={!input.trim() || isTyping || isRevealing}
                 size="icon"
                 className={cn(
                   "h-10 w-10",
-                  isConsultant && "bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 text-white",
+                  tc.buttonClass,
                 )}
               >
                 <Send className="h-4 w-4" />

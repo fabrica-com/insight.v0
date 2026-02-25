@@ -9,8 +9,18 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { StoreDetailDialog } from "./store-detail-dialog"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
+// Deterministic seeded random to avoid SSR/client hydration mismatch
+function seededRandom(seed: number) {
+  let s = seed
+  return () => {
+    s = (s * 16807 + 0) % 2147483647
+    return (s - 1) / 2147483646
+  }
+}
+
 // Sample data for store rankings
 const generateStoreData = () => {
+  const rand = seededRandom(42)
   const prefectures = ["東京都", "神奈川県", "大阪府", "愛知県", "福岡県", "北海道", "千葉県", "埼玉県"]
   const storeNames = [
     "カーセレクト東京",
@@ -39,12 +49,12 @@ const generateStoreData = () => {
     id: idx + 1,
     name,
     prefecture: prefectures[idx % prefectures.length],
-    revenue: Math.floor(Math.random() * 500000000) + 50000000,
-    salesVolume: Math.floor(Math.random() * 300) + 20,
-    avgInventory: Math.floor(Math.random() * 150) + 10,
-    turnoverRate: (Math.random() * 10 + 2).toFixed(1),
-    inventoryDays: Math.floor(Math.random() * 60) + 15,
-    change: Math.floor(Math.random() * 20) - 10,
+    revenue: Math.floor(rand() * 500000000) + 50000000,
+    salesVolume: Math.floor(rand() * 300) + 20,
+    avgInventory: Math.floor(rand() * 150) + 10,
+    turnoverRate: (rand() * 10 + 2).toFixed(1),
+    inventoryDays: Math.floor(rand() * 60) + 15,
+    change: Math.floor(rand() * 20) - 10,
   }))
 }
 
@@ -155,8 +165,6 @@ export function StoreRankings() {
         <AlertDescription className="text-xs text-red-800 dark:text-red-300">
           <strong className="text-red-600 dark:text-red-400">注記：</strong>
           表示される分析データは、お客様のブラウザ機能を利用して、お客様の指定したエリア・条件の公開情報を収集・解析したものです。
-          <br />
-          ※情報の取得は、参照先サイトへの負荷を考慮し、通常閲覧の範囲内（低頻度）で行われます。
           <br />
           ※取得したデータは貴社内での検討資料としてのみご利用ください。
           <span className="ml-2 text-red-600 dark:text-red-400 underline cursor-pointer hover:text-red-700">
