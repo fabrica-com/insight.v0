@@ -257,7 +257,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
   {
     id: "COMP003B",
     competitorName: "オートギャラリー品川",
-    competitorArea: "東京都品川区",
+    competitorArea: "東京都品���区",
     manufacturer: "ホンダ",
     model: "ヴェゼル",
     modelCode: "RV5",
@@ -1571,7 +1571,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                                   {Math.round(priceDiff / 10000).toLocaleString()}万
                                 </span>
                               ) : (
-                                <span className="text-muted-foreground text-sm">同額</span>
+                                <span className="text-muted-foreground text-sm">同���</span>
                               )}
                             </TableCell>
                           </TableRow>
@@ -1639,26 +1639,26 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-sm font-medium">支払総額（税込）</Label>
-                <div className="flex items-center gap-2">
-                  <span className="text-xl font-bold">¥</span>
+                <div className="flex items-center gap-2 max-w-[260px]">
+                  <span className="text-xl font-bold flex-shrink-0">¥</span>
                   <Input
                     type="text"
                     value={Number(adjustedTotalPrice).toLocaleString()}
                     onChange={(e) => handleTotalPriceChange(e.target.value)}
-                    className="text-xl font-bold text-center h-12"
+                    className="text-xl font-bold text-right h-12"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label className="text-sm text-muted-foreground">車両本体価格</Label>
-                <div className="flex items-center gap-2">
-                  <span className="text-base text-muted-foreground">¥</span>
+                <div className="flex items-center gap-2 max-w-[260px]">
+                  <span className="text-base text-muted-foreground flex-shrink-0">¥</span>
                   <Input
                     type="text"
                     value={Number(adjustedPrice).toLocaleString()}
                     onChange={(e) => handleVehiclePriceChange(e.target.value)}
-                    className="text-base text-center h-10 text-muted-foreground"
+                    className="text-base text-right h-10 text-muted-foreground"
                   />
                 </div>
               </div>
