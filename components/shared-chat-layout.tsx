@@ -48,7 +48,7 @@ export interface SharedChatLayoutProps {
   suggestedItems: SuggestedItem[]
   suggestedLabel?: string
   generateResponse: (question: string, messageCount?: number) => string
-  theme: "data-analysis" | "consultant" | "ceo" | "cfo" | "cmo" | "grant"
+  theme: "data-analysis" | "consultant" | "ceo" | "cfo" | "cmo" | "grant" | "chro"
   inputPlaceholder?: string
   typingDelay?: number
 }
@@ -324,6 +324,13 @@ export function SharedChatLayout({
       borderClass: "border-violet-500/20",
       buttonClass: "bg-gradient-to-r from-violet-500 to-violet-700 hover:from-violet-600 hover:to-violet-800 text-white",
       suggestBorderClass: "border-violet-500/30 hover:bg-violet-500/10 hover:text-violet-700",
+    },
+    chro: {
+      avatarIcon: Bot,
+      avatarClass: "rounded-lg bg-gradient-to-br from-rose-500 to-rose-700 text-white",
+      borderClass: "border-rose-500/20",
+      buttonClass: "bg-gradient-to-r from-rose-500 to-rose-700 hover:from-rose-600 hover:to-rose-800 text-white",
+      suggestBorderClass: "border-rose-500/30 hover:bg-rose-500/10 hover:text-rose-700",
     },
   }
 
