@@ -1739,12 +1739,12 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
           )}
 
           {/* Action buttons */}
-          <div className="flex flex-col gap-2 pt-2">
-            <Button onClick={handleSavePrice} className="gap-2" size="lg">
+          <div className="flex items-center gap-2 pt-2 max-w-[320px]">
+            <Button onClick={handleSavePrice} className="gap-2 flex-1" size="lg">
               <Save className="h-4 w-4" />
               価格を更新
             </Button>
-            <Button variant="outline" onClick={() => router.push("/pricing")}>
+            <Button variant="outline" onClick={() => router.push("/pricing")} className="flex-shrink-0">
               キャンセル
             </Button>
           </div>
