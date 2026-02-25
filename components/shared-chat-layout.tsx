@@ -145,7 +145,7 @@ export function SharedChatLayout({
 
     let currentIndex = 0
     const content = fullResponseContent
-    const chunkSize = 2 // characters per tick for natural speed
+    const chunkSize = 1 // one character per tick for slower, readable reveal
 
     const reveal = () => {
       currentIndex += chunkSize
@@ -156,10 +156,10 @@ export function SharedChatLayout({
         return
       }
       setDisplayedContent(content.slice(0, currentIndex))
-      revealTimerRef.current = setTimeout(reveal, 18)
+      revealTimerRef.current = setTimeout(reveal, 35)
     }
 
-    revealTimerRef.current = setTimeout(reveal, 18)
+    revealTimerRef.current = setTimeout(reveal, 35)
     return () => {
       if (revealTimerRef.current) clearTimeout(revealTimerRef.current)
     }
