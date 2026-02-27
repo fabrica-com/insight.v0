@@ -549,6 +549,137 @@ export function ExportVehicleAnalysis() {
             </Card>
           </div>
 
+          {/* Vehicle Model Ranking (Expandable) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Ship className="h-5 w-5 text-chart-1" />
+                車種（型式）別 輸出台数ランキング
+              </CardTitle>
+              <CardDescription>車種をクリックすると輸出明細が表示されます</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-muted-foreground">
+                      <th className="pb-3 text-left font-medium w-12">#</th>
+                      <th className="pb-3 text-left font-medium">車種</th>
+                      <th className="pb-3 text-right font-medium">台数</th>
+                      <th className="pb-3 text-right font-medium">構成比</th>
+                      <th className="pb-3 text-right font-medium">平均仕入価格</th>
+                      <th className="pb-3 text-left font-medium">主要仕向け国</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {byModel.slice(0, 15).map((item, idx) => {
+                      const modelVehicles = filtered.filter((v) => `${v.maker} ${v.model}` === item.label)
+                      const destCounts: Record<string, number> = {}
+                      modelVehicles.forEach((v) => { destCounts[v.destination] = (destCounts[v.destination] || 0) + 1 })
+                      const topDest = Object.entries(destCounts).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k]) => k)
+                      const isExpanded = expandedModel === `summary-${item.label}`
+
+                      return (
+                        <React.Fragment key={`summary-${item.label}`}>
+                          <tr
+                            className={cn(
+                              "border-b border-border/50 hover:bg-muted/50 cursor-pointer transition-colors",
+                              isExpanded && "bg-primary/5 border-primary/20",
+                            )}
+                            onClick={() => setExpandedModel(isExpanded ? null : `summary-${item.label}`)}
+                          >
+                            <td className="py-2.5">
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "w-8 justify-center font-bold text-xs",
+                                  idx === 0 && "bg-yellow-500/10 border-yellow-500 text-yellow-600",
+                                  idx === 1 && "bg-gray-400/10 border-gray-400 text-gray-600",
+                                  idx === 2 && "bg-orange-500/10 border-orange-500 text-orange-600",
+                                )}
+                              >
+                                {idx + 1}
+                              </Badge>
+                            </td>
+                            <td className="py-2.5 font-semibold">
+                              <div className="flex items-center gap-1.5">
+                                {isExpanded ? <ChevronUp className="h-3.5 w-3.5 text-primary flex-shrink-0" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/40 flex-shrink-0" />}
+                                {item.label}
+                              </div>
+                            </td>
+                            <td className="py-2.5 text-right font-bold text-primary">{item.count}台</td>
+                            <td className="py-2.5 text-right text-muted-foreground">{item.percentage.toFixed(1)}%</td>
+                            <td className="py-2.5 text-right">{(item.avgPrice / 10000).toFixed(0)}万円</td>
+                            <td className="py-2.5">
+                              <div className="flex gap-1 flex-wrap">
+                                {topDest.map((d) => (
+                                  <Badge key={d} variant="secondary" className="text-xs">{d}</Badge>
+                                ))}
+                              </div>
+                            </td>
+                          </tr>
+                          {isExpanded && (
+                            <tr>
+                              <td colSpan={6} className="p-0">
+                                <div className="border-x-2 border-b-2 border-primary/20 bg-primary/[0.02] rounded-b-lg mx-2 mb-2">
+                                  <div className="px-4 py-3 border-b border-primary/10 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <Ship className="h-4 w-4 text-primary" />
+                                      <span className="text-sm font-semibold">{item.label} の輸出明細</span>
+                                      <Badge variant="outline" className="text-xs">{modelVehicles.length}件</Badge>
+                                    </div>
+                                  </div>
+                                  <div className="overflow-x-auto">
+                                    <table className="w-full text-xs">
+                                      <thead>
+                                        <tr className="border-b border-border/50 text-muted-foreground">
+                                          <th className="px-3 py-2 text-left font-medium">日付</th>
+                                          <th className="px-3 py-2 text-left font-medium">メーカー</th>
+                                          <th className="px-3 py-2 text-left font-medium">車名</th>
+                                          <th className="px-3 py-2 text-left font-medium">年式</th>
+                                          <th className="px-3 py-2 text-left font-medium">型式</th>
+                                          <th className="px-3 py-2 text-right font-medium">走行距離</th>
+                                          <th className="px-3 py-2 text-left font-medium">カラー</th>
+                                          <th className="px-3 py-2 text-left font-medium">シフト</th>
+                                          <th className="px-3 py-2 text-left font-medium">駆動</th>
+                                          <th className="px-3 py-2 text-left font-medium">ハンドル</th>
+                                          <th className="px-3 py-2 text-right font-medium">仕入価格</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {modelVehicles
+                                          .sort((a, b) => b.date.localeCompare(a.date))
+                                          .map((v) => (
+                                          <tr key={v.id} className="border-b border-border/30 hover:bg-muted/30">
+                                            <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{v.date}</td>
+                                            <td className="px-3 py-2">{v.maker}</td>
+                                            <td className="px-3 py-2 font-medium">{v.model}</td>
+                                            <td className="px-3 py-2">{v.year}年</td>
+                                            <td className="px-3 py-2 font-mono text-muted-foreground">{v.modelCode}</td>
+                                            <td className="px-3 py-2 text-right tabular-nums">{(v.mileage / 10000).toFixed(1)}万km</td>
+                                            <td className="px-3 py-2">{v.color}</td>
+                                            <td className="px-3 py-2"><Badge variant="outline" className="text-[10px] px-1.5 py-0">{v.shift}</Badge></td>
+                                            <td className="px-3 py-2"><Badge variant="outline" className="text-[10px] px-1.5 py-0">{v.drive}</Badge></td>
+                                            <td className="px-3 py-2">{v.steering}</td>
+                                            <td className="px-3 py-2 text-right font-semibold tabular-nums">{(v.purchasePrice / 10000).toFixed(0)}万円</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Detail Aggregation Tables */}
           <div className="grid gap-6 md:grid-cols-2">
             {/* By Maker */}
@@ -566,7 +697,7 @@ export function ExportVehicleAnalysis() {
                     </tr>
                   </thead>
                   <tbody>
-                    {byMaker.map((item, idx) => (
+                    {byMaker.map((item) => (
                       <tr key={item.label} className="border-b border-border/50">
                         <td className="py-2.5 font-medium">{item.label}</td>
                         <td className="py-2.5 text-right font-semibold">{item.count}台</td>
