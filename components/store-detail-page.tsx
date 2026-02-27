@@ -62,7 +62,7 @@ interface StoreData {
   change: number
 }
 
-// AI経営コンサルタント総評生成（CEO AI「AI副社長」ロジック）
+// AI経営コンサルタント総評生成（CEO AI「AI社長（Co-CEO）」ロジック）
 function generateCeoCommentary(store: StoreData): string {
   const monthlyRevenue = store.revenue / 12
   const monthlyRevenueMillion = monthlyRevenue / 10000
@@ -731,7 +731,7 @@ export function StoreDetailPageContent({ store }: { store: StoreData }) {
               </div>
               <div>
                 <h3 className="text-lg font-bold tracking-tight">AI経営コンサルタント総評</h3>
-                <p className="text-xs text-muted-foreground">AI副社長 による店舗分析レポート</p>
+                <p className="text-xs text-muted-foreground">AI社長（Co-CEO） による店舗分析レポート</p>
               </div>
             </div>
             <Button

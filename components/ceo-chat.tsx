@@ -14,7 +14,7 @@ const suggestedTopics = [
 
 const STORAGE_KEY = "symphony-ceo-chat-history"
 
-const INITIAL_MESSAGE = `こんにちは、「AI副社長」です。
+const INITIAL_MESSAGE = `こんにちは、「AI社長（Co-CEO）」です。
 中古車販売店の経営をまるごとサポートするAI参謀です。
 
 私の中には5人の専門家がいます。
