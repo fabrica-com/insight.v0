@@ -257,7 +257,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
   {
     id: "COMP003B",
     competitorName: "オートギャラリー品川",
-    competitorArea: "東京都品�����区",
+    competitorArea: "東京都品�������区",
     manufacturer: "ホンダ",
     model: "ヴェゼル",
     modelCode: "RV5",
@@ -748,7 +748,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
             if (color.includes("ホワイト") || color.includes("パール") || color.includes("白")) return "white"
             if (color.includes("ブラック") || color.includes("黒")) return "black"
             if (color.includes("レッド") || color.includes("赤")) return "red"
-            if (color.includes("シルバー") || color.includes("銀")) return "silver"
+            if (color.includes("シル���ー") || color.includes("銀")) return "silver"
             return color
           }
           if (normalizeColor(comp.color) !== normalizeColor(item.color)) return false
@@ -933,6 +933,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                  suppressHydrationWarning
                 >
                   <ExternalLink className="h-3 w-3" />
                   車選びドットコム
