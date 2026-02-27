@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useState, useMemo } from "react"
+import { useState, useMemo, use } from "react"
 import React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -257,7 +257,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
   {
     id: "COMP003B",
     competitorName: "オートギャラリー品川",
-    competitorArea: "東京都品川区",
+    competitorArea: "東京都品�������区",
     manufacturer: "ホンダ",
     model: "ヴェゼル",
     modelCode: "RV5",
@@ -552,7 +552,7 @@ const mockInventory: InventoryItem[] = [
     grade: "ハイブリッド G",
     year: 2021,
     mileage: 18000,
-    color: "ブラック",
+    color: "ブラッ��",
     currentPrice: 3980000,
     purchasePrice: 3500000,
     marketPrice: 4050000,
@@ -625,9 +625,9 @@ const calculatePaymentTotal = (vehiclePrice: number | string) => {
   return priceNum + fees
 }
 
-export default function PricingDetailPage({ params }: { params: { id: string } }) {
+export default function PricingDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: vehicleId } = use(params)
   const router = useRouter()
-  const vehicleId = params.id
 
   const selectedItem = mockInventory.find((item) => item.id === vehicleId)
   const [adjustedPrice, setAdjustedPrice] = useState<string>(selectedItem?.currentPrice.toString() || "")
@@ -654,8 +654,7 @@ export default function PricingDetailPage({ params }: { params: { id: string } }
   })
   const [filterExpanded, setFilterExpanded] = useState(false) // Replaced filterPopoverOpen
 
-  console.log("[v0] similarFilters state:", similarFilters)
-  console.log("[v0] filterExpanded:", filterExpanded) // Updated log
+
 
   useMemo(() => {
     if (selectedItem && expenses === 0) {
@@ -677,8 +676,14 @@ export default function PricingDetailPage({ params }: { params: { id: string } }
   const handleVehiclePriceChange = (newVehiclePrice: string) => {
     const vehicleNum = Number(newVehiclePrice.replace(/[^0-9]/g, "")) || 0
     setAdjustedPrice(newVehiclePrice.replace(/[^0-9]/g, ""))
-    // 諸費用は固定のまま、支払総額を計算
     setAdjustedTotalPrice((vehicleNum + expenses).toString())
+  }
+
+  const handleExpensesChange = (newExpenses: string) => {
+    const expNum = Number(newExpenses.replace(/[^0-9]/g, "")) || 0
+    setExpenses(expNum)
+    const vehicleNum = Number(adjustedPrice.replace(/[^0-9]/g, "")) || 0
+    setAdjustedTotalPrice((vehicleNum + expNum).toString())
   }
 
   const setQuickTotalPrice = (totalPrice: number) => {
@@ -743,7 +748,7 @@ export default function PricingDetailPage({ params }: { params: { id: string } }
             if (color.includes("ホワイト") || color.includes("パール") || color.includes("白")) return "white"
             if (color.includes("ブラック") || color.includes("黒")) return "black"
             if (color.includes("レッド") || color.includes("赤")) return "red"
-            if (color.includes("シルバー") || color.includes("銀")) return "silver"
+            if (color.includes("シル���ー") || color.includes("銀")) return "silver"
             return color
           }
           if (normalizeColor(comp.color) !== normalizeColor(item.color)) return false
@@ -928,6 +933,7 @@ export default function PricingDetailPage({ params }: { params: { id: string } }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                  suppressHydrationWarning
                 >
                   <ExternalLink className="h-3 w-3" />
                   車選びドットコム
@@ -957,7 +963,7 @@ export default function PricingDetailPage({ params }: { params: { id: string } }
                         : ""
                   }
                 >
-                  在庫{selectedItem.daysOnMarket}日
+                  在���{selectedItem.daysOnMarket}日
                 </Badge>
               </div>
             </div>
@@ -1572,7 +1578,7 @@ export default function PricingDetailPage({ params }: { params: { id: string } }
                                   {Math.round(priceDiff / 10000).toLocaleString()}万
                                 </span>
                               ) : (
-                                <span className="text-muted-foreground text-sm">同額</span>
+                                <span className="text-muted-foreground text-sm">同���</span>
                               )}
                             </TableCell>
                           </TableRow>
@@ -1640,33 +1646,41 @@ export default function PricingDetailPage({ params }: { params: { id: string } }
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-sm font-medium">支払総額（税込）</Label>
-                <div className="flex items-center gap-2">
-                  <span className="text-xl font-bold">¥</span>
+                <div className="flex items-center gap-2 max-w-[260px]">
+                  <span className="text-xl font-bold flex-shrink-0">¥</span>
                   <Input
                     type="text"
                     value={Number(adjustedTotalPrice).toLocaleString()}
                     onChange={(e) => handleTotalPriceChange(e.target.value)}
-                    className="text-xl font-bold text-center h-12"
+                    className="text-xl font-bold text-right h-12"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label className="text-sm text-muted-foreground">車両本体価格</Label>
-                <div className="flex items-center gap-2">
-                  <span className="text-base text-muted-foreground">¥</span>
+                <div className="flex items-center gap-2 max-w-[260px]">
+                  <span className="text-base text-muted-foreground flex-shrink-0">¥</span>
                   <Input
                     type="text"
                     value={Number(adjustedPrice).toLocaleString()}
                     onChange={(e) => handleVehiclePriceChange(e.target.value)}
-                    className="text-base text-center h-10 text-muted-foreground"
+                    className="text-base text-right h-10 text-muted-foreground"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50 text-sm">
-                <span className="text-muted-foreground">諸費用（固定）</span>
-                <span className="font-medium">¥{expenses.toLocaleString()}</span>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">諸費用（登録費用・税金・保険等）</Label>
+                <div className="flex items-center gap-2 max-w-[260px]">
+                  <span className="text-sm text-muted-foreground flex-shrink-0">¥</span>
+                  <Input
+                    type="text"
+                    value={expenses.toLocaleString()}
+                    onChange={(e) => handleExpensesChange(e.target.value)}
+                    className="text-sm text-right h-9 text-muted-foreground"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -1740,12 +1754,12 @@ export default function PricingDetailPage({ params }: { params: { id: string } }
           )}
 
           {/* Action buttons */}
-          <div className="flex flex-col gap-2 pt-2">
-            <Button onClick={handleSavePrice} className="gap-2" size="lg">
+          <div className="flex items-center gap-2 pt-2 max-w-[320px]">
+            <Button onClick={handleSavePrice} className="gap-2 flex-1" size="lg">
               <Save className="h-4 w-4" />
               価格を更新
             </Button>
-            <Button variant="outline" onClick={() => router.push("/pricing")}>
+            <Button variant="outline" onClick={() => router.push("/pricing")} className="flex-shrink-0">
               キャンセル
             </Button>
           </div>

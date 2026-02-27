@@ -41,6 +41,7 @@ export function DashboardSidebar({ defaultCollapsed = false }: { defaultCollapse
 
   return (
     <aside
+      suppressHydrationWarning
       className={cn(
         "relative flex flex-col border-r border-border bg-sidebar transition-all duration-300",
         collapsed ? "w-[68px]" : "w-[260px]",
@@ -83,7 +84,7 @@ export function DashboardSidebar({ defaultCollapsed = false }: { defaultCollapse
                 <item.icon
                   className={cn("h-[18px] w-[18px] flex-shrink-0 transition-colors", isActive && "text-primary")}
                 />
-                {!collapsed && <span className="truncate">{item.name}</span>}
+                {!collapsed && <span suppressHydrationWarning className="truncate text-left">{item.name}</span>}
               </Button>
             </Link>
           )

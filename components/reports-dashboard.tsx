@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -21,6 +21,8 @@ import {
   Package,
   Zap,
   Ship,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react"
 import {
   BarChart,
@@ -115,6 +117,45 @@ const modelVolumeChangeRanking = [
   { rank: 10, model: "プリウス", modelCode: "ZVW50", change: -3.2, currentVolume: 720, prevVolume: 744 },
 ]
 
+// 車種別の輸出明細データ（国別 x 車種）
+const colors = ["ホワイトパール", "ブラック", "シルバー", "グレーメタリック", "ダークブルー", "ホワイト", "パールホワイト", "ブラウン"]
+const shifts = ["AT", "CVT", "MT"]
+const drives = ["4WD", "2WD", "FF", "FR"]
+const steerings = ["右", "左"]
+
+function generateModelDetails(model: string, modelCode: string, avgPrice: number, count: number) {
+  const details = []
+  const makers: Record<string, string> = {
+    "アルファード": "トヨタ", "ハイエース": "トヨタ", "ランドクルーザー": "トヨタ", "プリウス": "トヨタ",
+    "ハリアー": "トヨタ", "RAV4": "トヨタ", "カムリ": "トヨタ", "プラド": "トヨタ",
+    "パトロール": "日産", "レクサスLX": "レクサス",
+  }
+  const maker = makers[model] || "トヨタ"
+  const baseYear = model.includes("ランドクルーザー") || model.includes("レクサス") ? 2015 : 2018
+  for (let i = 0; i < Math.min(count, 8); i++) {
+    const month = ((i * 3 + 1) % 12) + 1
+    const day = ((i * 7 + 5) % 28) + 1
+    const year = baseYear + (i % 5)
+    const mileage = 30000 + i * 12000 + (i % 3) * 8000
+    const priceVar = avgPrice * (0.85 + (i % 5) * 0.06)
+    details.push({
+      id: `${modelCode}-${i}`,
+      date: `2025/${String(month).padStart(2, "0")}/${String(day).padStart(2, "0")}`,
+      maker,
+      model,
+      year,
+      modelCode,
+      mileage,
+      color: colors[i % colors.length],
+      shift: shifts[i % shifts.length],
+      drive: drives[i % drives.length],
+      steering: steerings[i % steerings.length],
+      purchasePrice: Math.round(priceVar),
+    })
+  }
+  return details.sort((a, b) => b.date.localeCompare(a.date))
+}
+
 const exportTrendData = [
   { month: "1月", total: 1050, nz: 280, au: 230, ae: 180, ru: 160, other: 200 },
   { month: "2月", total: 980, nz: 260, au: 210, ae: 170, ru: 150, other: 190 },
@@ -195,6 +236,7 @@ export function ReportsDashboard() {
   const [activeTab, setActiveTab] = useState<"market" | "company" | "export">("market")
   const [selectedExportCountry, setSelectedExportCountry] = useState("NZ")
   const [exportRankingType, setExportRankingType] = useState<"destination" | "model" | "change">("destination")
+  const [expandedExportModel, setExpandedExportModel] = useState<string | null>(null)
 
   const handleDownload = (reportType: string) => {
     console.log("Downloading report:", reportType)
@@ -818,46 +860,114 @@ export function ReportsDashboard() {
                   </TableHeader>
                   <TableBody>
                     {(exportByModelRanking[selectedExportCountry as keyof typeof exportByModelRanking] || []).map(
-                      (item) => (
-                        <TableRow key={item.rank} className="cursor-pointer hover:bg-muted/50">
-                          <TableCell>
-                            <div
-                              className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold ${
-                                item.rank === 1
-                                  ? "bg-yellow-500 text-white"
-                                  : item.rank === 2
-                                    ? "bg-gray-400 text-white"
-                                    : item.rank === 3
-                                      ? "bg-amber-600 text-white"
-                                      : "bg-muted"
-                              }`}
+                      (item) => {
+                        const key = `${selectedExportCountry}-${item.modelCode}`
+                        const isExpanded = expandedExportModel === key
+                        const details = isExpanded ? generateModelDetails(item.model, item.modelCode, item.avgPrice, item.volume) : []
+                        return (
+                          <React.Fragment key={item.rank}>
+                            <TableRow
+                              className="cursor-pointer hover:bg-muted/50 transition-colors"
+                              onClick={() => setExpandedExportModel(isExpanded ? null : key)}
+                              data-state={isExpanded ? "expanded" : undefined}
                             >
-                              {item.rank}
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium">{item.model}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="font-mono text-xs">
-                              {item.modelCode}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right font-medium">{item.volume.toLocaleString()}台</TableCell>
-                          <TableCell className="text-right">
-                            <span
-                              className={`flex items-center justify-end gap-1 ${item.change >= 0 ? "text-green-500" : "text-red-500"}`}
-                            >
-                              {item.change >= 0 ? (
-                                <TrendingUp className="h-3 w-3" />
-                              ) : (
-                                <TrendingDown className="h-3 w-3" />
-                              )}
-                              {item.change >= 0 ? "+" : ""}
-                              {item.change}%
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right">¥{(item.avgPrice / 10000).toFixed(0)}万</TableCell>
-                        </TableRow>
-                      ),
+                              <TableCell>
+                                <div
+                                  className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold ${
+                                    item.rank === 1
+                                      ? "bg-yellow-500 text-white"
+                                      : item.rank === 2
+                                        ? "bg-gray-400 text-white"
+                                        : item.rank === 3
+                                          ? "bg-amber-600 text-white"
+                                          : "bg-muted"
+                                  }`}
+                                >
+                                  {item.rank}
+                                </div>
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                <div className="flex items-center gap-1.5">
+                                  {isExpanded
+                                    ? <ChevronUp className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                                    : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/40 flex-shrink-0" />
+                                  }
+                                  {item.model}
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant="outline" className="font-mono text-xs">
+                                  {item.modelCode}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-right font-medium">{item.volume.toLocaleString()}台</TableCell>
+                              <TableCell className="text-right">
+                                <span
+                                  className={`flex items-center justify-end gap-1 ${item.change >= 0 ? "text-green-500" : "text-red-500"}`}
+                                >
+                                  {item.change >= 0 ? (
+                                    <TrendingUp className="h-3 w-3" />
+                                  ) : (
+                                    <TrendingDown className="h-3 w-3" />
+                                  )}
+                                  {item.change >= 0 ? "+" : ""}
+                                  {item.change}%
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-right">¥{(item.avgPrice / 10000).toFixed(0)}万</TableCell>
+                            </TableRow>
+                            {isExpanded && (
+                              <TableRow>
+                                <TableCell colSpan={6} className="p-0">
+                                  <div className="border-x-2 border-b-2 border-primary/20 bg-primary/[0.02] rounded-b-lg mx-2 mb-2">
+                                    <div className="px-4 py-3 border-b border-primary/10 flex items-center gap-2">
+                                      <Ship className="h-4 w-4 text-primary" />
+                                      <span className="text-sm font-semibold">{item.model} の輸出明細</span>
+                                      <Badge variant="outline" className="text-xs">{details.length}件</Badge>
+                                    </div>
+                                    <div className="overflow-x-auto">
+                                      <table className="w-full text-xs">
+                                        <thead>
+                                          <tr className="border-b border-border/50 text-muted-foreground">
+                                            <th className="px-3 py-2 text-left font-medium">日付</th>
+                                            <th className="px-3 py-2 text-left font-medium">メーカー</th>
+                                            <th className="px-3 py-2 text-left font-medium">車名</th>
+                                            <th className="px-3 py-2 text-left font-medium">年式</th>
+                                            <th className="px-3 py-2 text-left font-medium">型式</th>
+                                            <th className="px-3 py-2 text-right font-medium">走行距離</th>
+                                            <th className="px-3 py-2 text-left font-medium">カラー</th>
+                                            <th className="px-3 py-2 text-left font-medium">シフト</th>
+                                            <th className="px-3 py-2 text-left font-medium">駆動</th>
+                                            <th className="px-3 py-2 text-left font-medium">ハンドル</th>
+                                            <th className="px-3 py-2 text-right font-medium">仕入価格</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {details.map((v) => (
+                                            <tr key={v.id} className="border-b border-border/30 hover:bg-muted/30">
+                                              <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{v.date}</td>
+                                              <td className="px-3 py-2">{v.maker}</td>
+                                              <td className="px-3 py-2 font-medium">{v.model}</td>
+                                              <td className="px-3 py-2">{v.year}年</td>
+                                              <td className="px-3 py-2 font-mono text-muted-foreground">{v.modelCode}</td>
+                                              <td className="px-3 py-2 text-right tabular-nums">{(v.mileage / 10000).toFixed(1)}万km</td>
+                                              <td className="px-3 py-2">{v.color}</td>
+                                              <td className="px-3 py-2"><Badge variant="outline" className="text-[10px] px-1.5 py-0">{v.shift}</Badge></td>
+                                              <td className="px-3 py-2"><Badge variant="outline" className="text-[10px] px-1.5 py-0">{v.drive}</Badge></td>
+                                              <td className="px-3 py-2">{v.steering}</td>
+                                              <td className="px-3 py-2 text-right font-semibold tabular-nums">¥{(v.purchasePrice / 10000).toFixed(0)}万</td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </React.Fragment>
+                        )
+                      },
                     )}
                   </TableBody>
                 </Table>

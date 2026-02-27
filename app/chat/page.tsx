@@ -10,14 +10,16 @@ import { CeoChat } from "@/components/ceo-chat"
 import { CfoChat } from "@/components/cfo-chat"
 import { CmoChat } from "@/components/cmo-chat"
 import { GrantChat } from "@/components/grant-chat"
+import { ChroChat } from "@/components/chro-chat"
+import { CpoChat } from "@/components/cpo-chat"
 import { CustomChat } from "@/components/custom-chat"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { BarChart3, Flame, Sparkles, ArrowLeft, Crown, Wallet, Megaphone, Award } from "lucide-react"
+import { BarChart3, Flame, Sparkles, ArrowLeft, Crown, Wallet, Megaphone, Award, Users, PieChart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-type ChatMode = "data-analysis" | "consultant" | "ceo" | "cfo" | "cmo" | "grant" | "custom" | null
+type ChatMode = "data-analysis" | "consultant" | "ceo" | "cfo" | "cmo" | "grant" | "chro" | "cpo" | "custom" | null
 
 const chatOptions = [
   {
@@ -26,7 +28,7 @@ const chatOptions = [
     icon: Crown,
     iconBg: "bg-amber-500/10 text-amber-600",
     borderHover: "hover:border-amber-500/50 hover:bg-amber-500/5",
-    title: "AI社長の右腕",
+    title: "AI社長（Co-CEO）",
     badge: "CEO",
     badgeClass: "bg-amber-100 text-amber-700 border-amber-200",
     description: "経営判断を統合的にサポート。困っていることを話すだけでOK",
@@ -63,6 +65,28 @@ const chatOptions = [
     badge: "助成金",
     badgeClass: "bg-violet-100 text-violet-700 border-violet-200",
     description: "補助金・助成金の最適マッチングと申請サポート",
+  },
+  {
+    mode: "chro",
+    href: "/chat?mode=chro",
+    icon: Users,
+    iconBg: "bg-rose-500/10 text-rose-600",
+    borderHover: "hover:border-rose-500/50 hover:bg-rose-500/5",
+    title: "AI人事参謀",
+    badge: "CHRO",
+    badgeClass: "bg-rose-100 text-rose-700 border-rose-200",
+    description: "採用・定着・育成・外国人材・労務の人事課題を解決",
+  },
+  {
+    mode: "cpo",
+    href: "/chat?mode=cpo",
+    icon: PieChart,
+    iconBg: "bg-teal-500/10 text-teal-600",
+    borderHover: "hover:border-teal-500/50 hover:bg-teal-500/5",
+    title: "AI経営企画室",
+    badge: "CPO",
+    badgeClass: "bg-teal-100 text-teal-700 border-teal-200",
+    description: "予算策定・予実管理・データ分析・決算書の翻訳",
   },
   {
     mode: "data-analysis",
@@ -102,10 +126,12 @@ const chatOptions = [
 const chatTitles: Record<string, { title: string; subtitle: string }> = {
   "data-analysis": { title: "データ分析", subtitle: "自然言語でデータ分析と市場インサイトを取得" },
   consultant: { title: "経営コンサルタント", subtitle: "経営課題の相談・壁打ちチャット" },
-  ceo: { title: "AI社長の右腕", subtitle: "経営判断を統合的にサポートするAI参謀" },
+  ceo: { title: "AI社長（Co-CEO）", subtitle: "経営判断を統合的にサポートするAI参謀" },
   cfo: { title: "AI金庫番", subtitle: "お金まわりの一切を見守り、先回りして助言" },
   cmo: { title: "AI集客参謀", subtitle: "WEB集客を横断的に見渡し最適な施策を提案" },
   grant: { title: "補助金コンシェルジュ", subtitle: "補助金・助成金の最適マッチングと申請サポート" },
+  chro: { title: "AI人事参謀", subtitle: "採用・定着・育成・外国人材・労務の人事課題を解決" },
+  cpo: { title: "AI経営企画室", subtitle: "予算策定・予実管理・データ分析で数字に基づく経営を支援" },
 }
 
 const chatComponents: Record<string, React.ComponentType> = {
@@ -115,6 +141,8 @@ const chatComponents: Record<string, React.ComponentType> = {
   cfo: CfoChat,
   cmo: CmoChat,
   grant: GrantChat,
+  chro: ChroChat,
+  cpo: CpoChat,
 }
 
 function ChatPageContent() {
@@ -122,7 +150,7 @@ function ChatPageContent() {
   const mode = searchParams.get("mode") as ChatMode
   const customChatId = searchParams.get("id")
 
-  const validModes = ["data-analysis", "consultant", "ceo", "cfo", "cmo", "grant", "custom"]
+  const validModes = ["data-analysis", "consultant", "ceo", "cfo", "cmo", "grant", "chro", "cpo", "custom"]
 
   // Selection screen
   if (!mode || !validModes.includes(mode)) {
@@ -149,14 +177,14 @@ function ChatPageContent() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h2 className="text-lg font-bold">AI社長の右腕</h2>
+                          <h2 className="text-lg font-bold">AI社長（Co-CEO）</h2>
                           <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-200 text-xs">
                             CEO
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          お金・集客・補助金を統合的に判断。困っていることを話すだけで、今やるべきことを具体的にお伝えします。
-                          3人の専門AI（金庫番・集客参謀・補助金コンシェルジュ）の知見を統合し、1つの結論を出す司令塔です。
+                          お金・集客・補助金・人事・数字を統合的に判断。困っていることを話すだけで、今やるべきことを具体的にお伝えします。
+                          5人の専門AI（金庫番・集客参謀・補助金コンシェルジュ・人事参謀・経営企画室）の知見を統合し、1つの結論を出す司令塔です。
                         </p>
                       </div>
                     </CardContent>
@@ -167,8 +195,8 @@ function ChatPageContent() {
               {/* Specialist AIs */}
               <div>
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">専門AI</h2>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  {chatOptions.filter(o => ["cfo", "cmo", "grant"].includes(o.mode)).map((option) => (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                  {chatOptions.filter(o => ["cfo", "cmo", "grant", "chro", "cpo"].includes(o.mode)).map((option) => (
                     <Link key={option.mode} href={option.href}>
                       <Card className={`h-full cursor-pointer transition-all ${option.borderHover} hover:shadow-sm`}>
                         <CardContent className="flex flex-col items-center p-6 text-center">
