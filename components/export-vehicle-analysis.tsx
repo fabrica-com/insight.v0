@@ -142,6 +142,7 @@ export function ExportVehicleAnalysis() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
   const [view, setView] = useState<"summary" | "list">("summary")
   const [expandedModel, setExpandedModel] = useState<string | null>(null)
+  const [rankingPeriod, setRankingPeriod] = useState<number>(6)
 
   // Unique values for filter dropdowns
   const uniqueMakers = useMemo(() => [...new Set(allExportData.map((d) => d.maker))].sort(), [])
@@ -196,6 +197,35 @@ export function ExportVehicleAnalysis() {
     if (filtered.length === 0) return 0
     return Math.round(filtered.reduce((s, v) => s + v.mileage, 0) / filtered.length)
   }, [filtered])
+
+  // Period-filtered data for the ranking table
+  const filteredByPeriod = useMemo(() => {
+    const cutoff = new Date(2025, 12 - rankingPeriod, 1) // 2025年の直近N月
+    return filtered.filter((v) => {
+      const [y, m] = v.date.split("/").map(Number)
+      return new Date(y, m - 1, 1) >= cutoff
+    })
+  }, [filtered, rankingPeriod])
+
+  const byModelPeriod = useMemo(() => {
+    const counts: Record<string, { count: number; maker: string; avgPrice: number; totalPrice: number }> = {}
+    for (const v of filteredByPeriod) {
+      const key = `${v.maker} ${v.model}`
+      if (!counts[key]) counts[key] = { count: 0, maker: v.maker, avgPrice: 0, totalPrice: 0 }
+      counts[key].count++
+      counts[key].totalPrice += v.purchasePrice
+    }
+    const total = filteredByPeriod.length
+    return Object.entries(counts)
+      .map(([label, d]) => ({
+        label,
+        count: d.count,
+        percentage: total > 0 ? (d.count / total) * 100 : 0,
+        maker: d.maker,
+        avgPrice: d.count > 0 ? d.totalPrice / d.count : 0,
+      }))
+      .sort((a, b) => b.count - a.count)
+  }, [filteredByPeriod])
 
   const topModelsChart = byModel.slice(0, 10)
 
@@ -552,11 +582,31 @@ export function ExportVehicleAnalysis() {
           {/* Vehicle Model Ranking (Expandable) */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Ship className="h-5 w-5 text-chart-1" />
-                車種（型式）別 輸出台数ランキング
-              </CardTitle>
-              <CardDescription>車種をクリックすると輸出明細が表示されます</CardDescription>
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Ship className="h-5 w-5 text-chart-1" />
+                    車種（型式）別 輸出台数ランキング
+                  </CardTitle>
+                  <CardDescription className="mt-1">車種をクリックすると輸出明細が表示されます</CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">抽出期間</span>
+                  <Select value={String(rankingPeriod)} onValueChange={(v) => { setRankingPeriod(Number(v)); setExpandedModel(null) }}>
+                    <SelectTrigger className="w-[130px] h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">直近1ヶ月</SelectItem>
+                      <SelectItem value="2">直近2ヶ月</SelectItem>
+                      <SelectItem value="3">直近3ヶ月</SelectItem>
+                      <SelectItem value="4">直近4ヶ月</SelectItem>
+                      <SelectItem value="5">直近5ヶ月</SelectItem>
+                      <SelectItem value="6">直近6ヶ月</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -572,8 +622,8 @@ export function ExportVehicleAnalysis() {
                     </tr>
                   </thead>
                   <tbody>
-                    {byModel.slice(0, 15).map((item, idx) => {
-                      const modelVehicles = filtered.filter((v) => `${v.maker} ${v.model}` === item.label)
+                    {byModelPeriod.slice(0, 15).map((item, idx) => {
+                      const modelVehicles = filteredByPeriod.filter((v) => `${v.maker} ${v.model}` === item.label)
                       const destCounts: Record<string, number> = {}
                       modelVehicles.forEach((v) => { destCounts[v.destination] = (destCounts[v.destination] || 0) + 1 })
                       const topDest = Object.entries(destCounts).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k]) => k)
