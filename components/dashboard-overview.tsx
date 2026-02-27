@@ -95,6 +95,12 @@ const trendingVehicles = [
   { make: "マツダ", model: "CX-5", str: 19.3, trend: "+1.5%", avgPrice: 275 },
 ]
 
+// Pre-compute all random KPI change values at module level to avoid hydration mismatch
+const kpiChangeSales = Math.floor(rand() * 12) - 3
+const kpiChangeInventory = Math.floor(rand() * 10) - 5
+const kpiChangeTurnover = parseFloat((rand() * 2 - 0.5).toFixed(1))
+const kpiChangeDays = -Math.floor(rand() * 5)
+
 // Ranking position
 const myRank = (() => {
   const sorted = [...allStoresWithMine].sort((a, b) => b.revenue - a.revenue)
@@ -122,7 +128,7 @@ export function DashboardOverview() {
       label: "月間販売台数",
       value: `${monthlySales}`,
       suffix: "台",
-      change: Math.floor(rand() * 12) - 3,
+      change: kpiChangeSales,
       icon: ShoppingCart,
       color: "text-chart-2",
       bgColor: "bg-chart-2/10",
@@ -131,7 +137,7 @@ export function DashboardOverview() {
       label: "在庫台数",
       value: `${myStore.avgInventory}`,
       suffix: "台",
-      change: Math.floor(rand() * 10) - 5,
+      change: kpiChangeInventory,
       icon: Package,
       color: "text-chart-4",
       bgColor: "bg-chart-4/10",
@@ -140,7 +146,7 @@ export function DashboardOverview() {
       label: "回転率",
       value: myStore.turnoverRate,
       suffix: "回/年",
-      change: parseFloat((rand() * 2 - 0.5).toFixed(1)),
+      change: kpiChangeTurnover,
       icon: RotateCw,
       color: "text-chart-3",
       bgColor: "bg-chart-3/10",
@@ -149,7 +155,7 @@ export function DashboardOverview() {
       label: "平均在庫日数",
       value: `${myStore.inventoryDays}`,
       suffix: "日",
-      change: -Math.floor(rand() * 5),
+      change: kpiChangeDays,
       icon: Clock,
       color: myStore.inventoryDays > 45 ? "text-destructive" : "text-chart-2",
       bgColor: myStore.inventoryDays > 45 ? "bg-destructive/10" : "bg-chart-2/10",
