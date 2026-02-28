@@ -594,25 +594,25 @@ export function SharedChatLayout({
           </div>
 
           {messages.length === 1 && (
-            <div className="shrink-0 border-t border-border/50 bg-muted/30 p-4">
-              <p className="text-xs font-medium mb-3 text-muted-foreground">{suggestedLabel}</p>
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {suggestedItems.map((item, index) => (
+            <div className="shrink-0 border-t border-border/50 bg-muted/30 p-3">
+              <p className="text-xs font-medium mb-2 text-muted-foreground">{suggestedLabel}</p>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {suggestedItems.slice(0, 3).map((item, index) => (
                   <button
                     key={index}
                     onClick={() => handleSend(item.text)}
                     className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg border border-border/50 bg-card hover:bg-muted/50 transition-colors text-left group",
+                      "flex items-center gap-2 p-2 rounded-lg border border-border/50 bg-card hover:bg-muted/50 transition-colors text-left group",
                       tc.suggestBorderClass,
                     )}
                   >
                     <div
                       className={cn(
-                        "flex h-8 w-8 items-center justify-center rounded-lg flex-shrink-0",
+                        "flex h-7 w-7 items-center justify-center rounded-md flex-shrink-0",
                         item.color ? `bg-gradient-to-br ${item.color} text-white` : "bg-muted",
                       )}
                     >
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="h-3.5 w-3.5" />
                     </div>
                     <span className="text-xs font-medium flex-1">{item.text}</span>
                     <ArrowRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />

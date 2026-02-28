@@ -294,21 +294,20 @@ function ChatPageContent() {
       <DashboardSidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <DashboardHeader />
-        <main className="flex-1 flex flex-col overflow-hidden p-3 md:p-4 lg:p-6">
-          <div className="flex min-h-0 w-full flex-1 flex-col gap-3 md:gap-4 lg:gap-6">
-              <div className="flex shrink-0 flex-col gap-3 border-b border-border pb-3 md:pb-4 lg:pb-6">
-                <div className="flex items-center gap-3 md:gap-4">
+        <main className="flex-1 flex flex-col overflow-hidden p-2 md:p-3 lg:p-4">
+          <div className="flex min-h-0 w-full flex-1 flex-col gap-2">
+              <div className="flex shrink-0 items-center gap-3 border-b border-border pb-2">
                   <Link href="/chat">
-                    <Button variant="ghost" size="icon" className="h-9 w-9">
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
                       <ArrowLeft className="h-4 w-4" />
                     </Button>
                   </Link>
-                  <div className="flex-1">
-                    <h1 className="text-2xl font-bold tracking-tight">{titleInfo.title}</h1>
-                    <p className="text-muted-foreground mt-0.5 text-sm">{titleInfo.subtitle}</p>
+                  <div className="flex-1 min-w-0">
+                    <h1 className="text-lg font-bold tracking-tight">{titleInfo.title}</h1>
                   </div>
-                </div>
-                <AiUsageBar />
+                  <div className="hidden sm:block flex-shrink-0 w-64">
+                    <AiUsageBar />
+                  </div>
               </div>
             {mode === "cpo" ? (
               <Tabs defaultValue="chat" className="min-h-0 flex-1 flex flex-col overflow-hidden">
