@@ -265,7 +265,7 @@ export default function SettingsPage() {
                           <Link2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                           <Input
                             id="new-url"
-                            placeholder="https://www.carsensor.net/shop/tokyo/..."
+                            placeholder="https://kurumaerabi.com/shop/..."
                             value={newUrl}
                             onChange={(e) => setNewUrl(e.target.value)}
                             className="pl-9"
@@ -395,29 +395,9 @@ export default function SettingsPage() {
                   </div>
                 )}
 
-                {/* Supported sites info */}
-                <div className="rounded-lg bg-muted/50 p-4 space-y-2">
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    対応サイト例
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      "カーセンサー",
-                      "グーネット",
-                      "自社ホームページ",
-                      "カーセブン",
-                      "ガリバー",
-                      "その他掲載サイト",
-                    ].map((site) => (
-                      <Badge key={site} variant="secondary" className="text-xs font-normal">
-                        {site}
-                      </Badge>
-                    ))}
-                  </div>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed mt-2">
-                    ※登録したURLから在庫データを自動的に取得し、分析に活用します。取得は通常閲覧の範囲内で行われます。
-                  </p>
-                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  ※お客様の責任において登録したURLから在庫データを自動的にローカルに保存し、分析に活用します。取得は通常閲覧の範囲内で行われます。
+                </p>
               </CardContent>
             </Card>
 
