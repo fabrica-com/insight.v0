@@ -251,7 +251,7 @@ export default function SettingsPage() {
                       </Label>
                       <Input
                         id="new-name"
-                        placeholder="例: カーセンサー掲載"
+                        placeholder="例: 車選び掲載"
                         value={newName}
                         onChange={(e) => setNewName(e.target.value)}
                       />
@@ -452,7 +452,7 @@ export default function SettingsPage() {
                         </Label>
                         <Input
                           id="comp-name"
-                          placeholder="例: ABC中古車センター"
+                          placeholder="例: 車選び掲載"
                           value={compNewName}
                           onChange={(e) => setCompNewName(e.target.value)}
                         />
@@ -466,7 +466,7 @@ export default function SettingsPage() {
                             <Link2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                               id="comp-url"
-                              placeholder="https://www.carsensor.net/shop/..."
+                              placeholder="https://kurumaerabi.com/shop/..."
                               value={compNewUrl}
                               onChange={(e) => setCompNewUrl(e.target.value)}
                               className="pl-9"
