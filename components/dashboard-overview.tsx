@@ -216,16 +216,9 @@ export function DashboardOverview() {
       <div className="grid gap-6 lg:grid-cols-5">
         {/* Sales Trend Chart (3/5) */}
         <Card className="lg:col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div>
+          <CardHeader className="pb-2">
               <CardTitle className="text-base font-semibold">売上・販売推移</CardTitle>
               <p className="text-xs text-muted-foreground mt-0.5">直近6ヶ月の月間推移</p>
-            </div>
-            <Link href="/reports">
-              <Button variant="ghost" size="sm" className="gap-1 text-xs text-primary hover:text-primary">
-                レポート <ArrowUpRight className="h-3.5 w-3.5" />
-              </Button>
-            </Link>
           </CardHeader>
           <CardContent>
             <div className="h-[220px]">
