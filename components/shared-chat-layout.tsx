@@ -20,6 +20,10 @@ import {
   X,
   FileText,
   ImageIcon,
+  Copy,
+  Check,
+  ThumbsUp,
+  ThumbsDown,
   type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -133,6 +137,8 @@ export function SharedChatLayout({
   const [isRevealing, setIsRevealing] = useState(false)
   const [fullResponseContent, setFullResponseContent] = useState("")
   const [pendingFiles, setPendingFiles] = useState<FileAttachment[]>([])
+  const [ratings, setRatings] = useState<Record<string, "up" | "down">>({})
+  const [copiedId, setCopiedId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -226,6 +232,24 @@ export function SharedChatLayout({
     setChatHistories(updatedHistories)
     saveChatHistory(storageKey, updatedHistories)
   }
+
+  const handleCopy = useCallback((messageId: string, content: string) => {
+    navigator.clipboard.writeText(content).then(() => {
+      setCopiedId(messageId)
+      setTimeout(() => setCopiedId(null), 2000)
+    })
+  }, [])
+
+  const handleRate = useCallback((messageId: string, rating: "up" | "down") => {
+    setRatings((prev) => {
+      if (prev[messageId] === rating) {
+        const next = { ...prev }
+        delete next[messageId]
+        return next
+      }
+      return { ...prev, [messageId]: rating }
+    })
+  }, [])
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -491,7 +515,7 @@ export function SharedChatLayout({
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={cn("flex gap-3", message.role === "user" ? "justify-end" : "justify-start")}
+                className={cn("flex gap-3 group", message.role === "user" ? "justify-end" : "justify-start")}
               >
                 {message.role === "assistant" && (
                   <div
@@ -553,6 +577,49 @@ export function SharedChatLayout({
                       : message.content}
                   </div>
                 </div>
+                {/* Rating & Copy for assistant messages (not the initial greeting, not while revealing) */}
+                {message.role === "assistant" && message.id !== "1" && !(isRevealing && message.id === messages[messages.length - 1]?.id) && (
+                  <div className="flex items-center gap-0.5 self-end mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(message.id, message.content)}
+                      className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      title="コピー"
+                    >
+                      {copiedId === message.id ? (
+                        <Check className="h-3.5 w-3.5 text-green-500" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRate(message.id, "up")}
+                      className={cn(
+                        "rounded-md p-1.5 transition-colors",
+                        ratings[message.id] === "up"
+                          ? "text-primary bg-primary/10"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                      )}
+                      title="参考になった"
+                    >
+                      <ThumbsUp className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleRate(message.id, "down")}
+                      className={cn(
+                        "rounded-md p-1.5 transition-colors",
+                        ratings[message.id] === "down"
+                          ? "text-destructive bg-destructive/10"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                      )}
+                      title="参考にならなかった"
+                    >
+                      <ThumbsDown className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
                 {message.role === "user" && (
                   <div className="flex h-8 w-8 items-center justify-center flex-shrink-0 rounded-lg bg-muted">
                     <User className="h-4 w-4 text-muted-foreground" />
