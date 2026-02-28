@@ -111,7 +111,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ホワイトパール",
     price: 4180000,
     listingDate: "2024-01-15",
-    url: "https://www.carsensor.net/usedcar/detail/AU1234567890/",
+    url: "https://kurumaerabi.com/usedcar/detail/AU1234567890/",
     newCarPrice: 5200000,
     priceHistory: [
       { date: "01/15", price: 4580000 },
@@ -137,7 +137,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ブラック",
     price: 3950000,
     listingDate: "2024-01-18",
-    url: "https://www.carsensor.net/usedcar/detail/AU2345678901/",
+    url: "https://kurumaerabi.com/usedcar/detail/AU2345678901/",
     newCarPrice: 4800000,
     priceHistory: [
       { date: "01/18", price: 4250000 },
@@ -160,7 +160,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ブラック",
     price: 3780000,
     listingDate: "2024-02-10",
-    url: "https://www.carsensor.net/usedcar/detail/AU2345678999/",
+    url: "https://kurumaerabi.com/usedcar/detail/AU2345678999/",
     newCarPrice: 5100000,
     priceHistory: [
       { date: "02/10", price: 4100000 },
@@ -182,7 +182,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ホワイトパール",
     price: 4350000,
     listingDate: "2024-01-20",
-    url: "https://www.carsensor.net/usedcar/detail/AU2345679001/",
+    url: "https://kurumaerabi.com/usedcar/detail/AU2345679001/",
     newCarPrice: 5000000,
     priceHistory: [
       { date: "01/20", price: 4600000 },
@@ -204,7 +204,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ホワイトパール",
     price: 4250000,
     listingDate: "2024-02-20",
-    url: "https://www.carsensor.net/usedcar/detail/AU1234567891/",
+    url: "https://kurumaerabi.com/usedcar/detail/AU1234567891/",
     newCarPrice: 5200000,
     priceHistory: [
       { date: "02/20", price: 4450000 },
@@ -225,7 +225,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ホワイトパール",
     price: 4080000,
     listingDate: "2024-03-01",
-    url: "https://www.carsensor.net/usedcar/detail/AU1234567892/",
+    url: "https://kurumaerabi.com/usedcar/detail/AU1234567892/",
     newCarPrice: 5200000,
     priceHistory: [
       { date: "03/01", price: 4280000 },
@@ -246,7 +246,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "プラチナホワイト",
     price: 3280000,
     listingDate: "2024-01-20",
-    url: "https://www.carsensor.net/usedcar/detail/AU3456789012/",
+    url: "https://kurumaerabi.com/usedcar/detail/AU3456789012/",
     newCarPrice: 3500000,
     priceHistory: [
       { date: "01/20", price: 3380000 },
@@ -257,7 +257,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
   {
     id: "COMP003B",
     competitorName: "オートギャラリー品川",
-    competitorArea: "東京都品�������区",
+    competitorArea: "東京都品���������区",
     manufacturer: "ホンダ",
     model: "ヴェゼル",
     modelCode: "RV5",
@@ -267,7 +267,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "クリスタルブラック",
     price: 2980000,
     listingDate: "2024-02-05",
-    url: "https://www.carsensor.net/usedcar/detail/AU3456789099/",
+    url: "https://kurumaerabi.com/usedcar/detail/AU3456789099/",
     newCarPrice: 3400000,
     priceHistory: [
       { date: "02/05", price: 3180000 },
@@ -288,7 +288,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "プラチナホワイト",
     price: 2920000,
     listingDate: "2024-03-10",
-    url: "https://www.carsensor.net/usedcar/detail/AU3456789100/",
+    url: "https://kurumaerabi.com/usedcar/detail/AU3456789100/",
     newCarPrice: 3400000,
     priceHistory: [
       { date: "03/10", price: 3100000 },
@@ -309,7 +309,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ダイヤモンドブラック",
     price: 4250000,
     listingDate: "2024-01-22",
-    url: "https://www.carsensor.net/usedcar/detail/AU4567890123/",
+    url: "https://kurumaerabi.com/usedcar/detail/AU4567890123/",
     newCarPrice: 4700000,
     priceHistory: [
       { date: "01/22", price: 4450000 },
@@ -330,7 +330,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "プレシャスブラック",
     price: 3980000,
     listingDate: "2024-01-25",
-    url: "https://www.carsensor.net/usedcar/detail/AU5678901234/",
+    url: "https://kurumaerabi.com/usedcar/detail/AU5678901234/",
     newCarPrice: 4500000,
     priceHistory: [
       { date: "01/25", price: 4280000 },
@@ -352,7 +352,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ホワイトパール",
     price: 3650000,
     listingDate: "2024-02-15",
-    url: "https://www.carsensor.net/usedcar/detail/AU5678901299/",
+    url: "https://kurumaerabi.com/usedcar/detail/AU5678901299/",
     newCarPrice: 4200000,
     priceHistory: [
       { date: "02/15", price: 3850000 },
@@ -373,7 +373,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "アッシュ",
     price: 3650000,
     listingDate: "2024-01-28",
-    url: "https://www.carsensor.net/usedcar/detail/AU6789012345/",
+    url: "https://kurumaerabi.com/usedcar/detail/AU6789012345/",
     newCarPrice: 3900000,
     priceHistory: [
       { date: "01/28", price: 3750000 },
@@ -394,7 +394,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ソウルレッド",
     price: 3480000,
     listingDate: "2024-01-30",
-    url: "https://www.carsensor.net/usedcar/detail/AU7890123456/",
+    url: "https://kurumaerabi.com/usedcar/detail/AU7890123456/",
     newCarPrice: 4000000,
     priceHistory: [
       { date: "01/30", price: 3680000 },
@@ -415,7 +415,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ジェットブラック",
     price: 2680000,
     listingDate: "2024-02-20",
-    url: "https://www.carsensor.net/usedcar/detail/AU7890123499/",
+    url: "https://kurumaerabi.com/usedcar/detail/AU7890123499/",
     newCarPrice: 3800000,
     priceHistory: [
       { date: "02/20", price: 2880000 },
@@ -436,7 +436,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ソウルレッドクリスタル",
     price: 2750000,
     listingDate: "2024-03-05",
-    url: "https://www.carsensor.net/usedcar/detail/AU7890123500/",
+    url: "https://kurumaerabi.com/usedcar/detail/AU7890123500/",
     newCarPrice: 3800000,
     priceHistory: [
       { date: "03/05", price: 2950000 },
@@ -457,7 +457,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ホワイトパール",
     price: 8500000,
     listingDate: "2024-02-01",
-    url: "https://www.carsensor.net/usedcar/detail/AU8901234567/",
+    url: "https://kurumaerabi.com/usedcar/detail/AU8901234567/",
     newCarPrice: 10500000,
     priceHistory: [
       { date: "02/01", price: 9200000 },
@@ -748,7 +748,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
             if (color.includes("ホワイト") || color.includes("パール") || color.includes("白")) return "white"
             if (color.includes("ブラック") || color.includes("黒")) return "black"
             if (color.includes("レッド") || color.includes("赤")) return "red"
-            if (color.includes("シル���ー") || color.includes("銀")) return "silver"
+            if (color.includes("���ル���ー") || color.includes("銀")) return "silver"
             return color
           }
           if (normalizeColor(comp.color) !== normalizeColor(item.color)) return false

@@ -67,13 +67,9 @@ const INITIAL_COMPETITORS: Competitor[] = [
 ]
 
 const SAMPLE_FETCHED_DATA: Record<string, Partial<Competitor>> = {
-  "carsensor.net": {
+  "kurumaerabi.com": {
     name: "カーセレクト東京",
     region: "東京都渋谷区",
-  },
-  "goo-net.com": {
-    name: "オートプラザ横浜",
-    region: "神奈川県横浜市",
   },
   default: {
     name: "不明な店舗",
@@ -170,7 +166,7 @@ export function CompetitorComparison() {
     try {
       const urlObj = new URL(url)
       const domain = urlObj.hostname.replace("www.", "")
-      const supportedDomains = ["carsensor.net", "goo-net.com", "carview.co.jp", "autoc-one.jp"]
+      const supportedDomains = ["kurumaerabi.com"]
       const isSupported = supportedDomains.some((d) => domain.includes(d))
       const pathParts = urlObj.pathname.split("/").filter(Boolean)
       const storeId = pathParts[pathParts.length - 1] || `store-${Date.now()}`
@@ -1310,7 +1306,7 @@ export function CompetitorComparison() {
                         <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="store-url"
-                          placeholder="https://www.carsensor.net/shop/..."
+                          placeholder="https://kurumaerabi.com/shop/..."
                           value={competitorUrl}
                           onChange={(e) => {
                             setCompetitorUrl(e.target.value)
@@ -1329,7 +1325,7 @@ export function CompetitorComparison() {
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    カーセンサー、グーネット等の店舗ページURLに対応しています
+                    車選びドットコム等の店舗ページURLに対応しています
                   </p>
                 </TabsContent>
               </Tabs>

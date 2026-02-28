@@ -502,7 +502,7 @@ export function TrendingAnalysis() {
             <div className="flex flex-wrap gap-2">
               {[
                 { value: "all", label: "すべて" },
-                { value: "国産車", label: "国産車" },
+                { value: "国産車", label: "���産車" },
                 { value: "輸入車", label: "輸入車" },
                 { value: "軽自動車", label: "軽自動車" },
                 { value: "segment-all", label: "すべて", desc: "" },
@@ -587,7 +587,7 @@ export function TrendingAnalysis() {
 
           <div className="h-px bg-border" />
 
-          {/* Body Type Visual Grid - カーセンサー風 */}
+          {/* Body Type Visual Grid */}
           <div className="space-y-3">
             <Label className="text-base font-semibold">ボディタイプから検索</Label>
             <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-8">

@@ -683,7 +683,7 @@ export function MarketTrends() {
   // 走行距離フィルターの処理
   // 個別車両URL処理
   const isValidVehicleUrl = (url: string) => {
-    return url.includes("carsensor.net") || url.includes("kurumaerabi.com")
+    return url.includes("kurumaerabi.com")
   }
 
   const handleVehicleUrlSubmit = () => {
@@ -693,7 +693,7 @@ export function MarketTrends() {
     setIframeUrl(vehicleUrl)
 
     // URLからサイト名を判定してタイトル生成
-    const siteName = vehicleUrl.includes("carsensor.net") ? "カーセンサー" : "車選びドットコム"
+    const siteName = "車選びドットコム"
     setVehicleTitle(`${siteName}掲載車両`)
 
     // 個別車両の価格推移データ生成（シミュレーション）
@@ -706,7 +706,7 @@ export function MarketTrends() {
       const date = new Date(Date.now() - i * 7 * 24 * 60 * 60 * 1000)
       const weekStr = `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getDate()).padStart(2, "0")}`
 
-      // 段階的に価格が下がるステップパターン（カーセンサーのような値下げ表現）
+      // 段階的に価格が下がるステップパターン
       if (Math.random() < 0.08) {
         // 約8%の確率で値下げ（週次）
         currentPrice = currentPrice * (0.95 + Math.random() * 0.03)
@@ -1373,7 +1373,7 @@ export function MarketTrends() {
                 ランキング絞り込み
               </CardTitle>
               <CardDescription>
-                過去12ヶ月での価格下落率が低い（または上昇した���車種ランキング
+                過去12ヶ月での価格下落率が低い（または上昇した���車���ランキング
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -1696,7 +1696,7 @@ export function MarketTrends() {
                 車両情報を取得
               </CardTitle>
               <CardDescription>
-                カーセンサーまたは車選びドットコムの車両ページURLを入力してください
+                車選びドットコムの車両ページURLを入力してください
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -1704,7 +1704,7 @@ export function MarketTrends() {
                 <div className="relative flex-1">
                   <Input
                     type="url"
-                    placeholder="https://www.carsensor.net/... または https://www.kurumaerabi.com/..."
+                    placeholder="https://kurumaerabi.com/..."
                     value={vehicleUrl}
                     onChange={(e) => setVehicleUrl(e.target.value)}
                     onKeyDown={(e) => {
@@ -1714,7 +1714,7 @@ export function MarketTrends() {
                   />
                   {vehicleUrl && !isValidVehicleUrl(vehicleUrl) && (
                     <p className="mt-1.5 text-xs text-destructive">
-                      カーセンサー(carsensor.net)または車選びドットコム(kurumaerabi.com)のURLを入力してください
+                      車選びドットコム(kurumaerabi.com)のURLを入力してください
                     </p>
                   )}
                 </div>
@@ -1878,14 +1878,10 @@ export function MarketTrends() {
                 <Car className="h-12 w-12 text-muted-foreground/40" />
                 <h3 className="mt-4 text-lg font-semibold text-muted-foreground">車両URLを入力してください</h3>
                 <p className="mt-2 max-w-sm text-center text-sm text-muted-foreground/70">
-                  カーセンサーまたは車選びドットコムの車両詳細ページURLを入力すると、
+                  車選びドットコムの車両詳細ページURLを入力すると、
                   価格推移グラフと車両情報を表示します。
                 </p>
                 <div className="mt-6 flex flex-wrap gap-2 justify-center">
-                  <Badge variant="outline" className="gap-1">
-                    <span className="text-green-600">carsensor.net</span>
-                    対応
-                  </Badge>
                   <Badge variant="outline" className="gap-1">
                     <span className="text-blue-600">kurumaerabi.com</span>
                     対応

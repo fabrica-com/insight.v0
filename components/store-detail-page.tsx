@@ -94,7 +94,7 @@ function generateCeoCommentary(store: StoreData): string {
   } else if (monthlySales >= 10) {
     sections.push(`月販${monthlySales}台は標準的な水準です。1台あたり${perCarRevenue.toLocaleString()}万円の単価を維持しつつ、問い合わせ数を増やすことで月販15〜20台を狙える位置にあります。`)
   } else {
-    sections.push(`月販${monthlySales}台は伸び代があります。まずカーセンサー等の掲載写真を全車20枚以上にする、コメント欄を充実させるなど、0円でできる改善から着手してください。`)
+    sections.push(`月販${monthlySales}台は伸び代があります。まず車選びドットコム等の掲載写真を全車20枚以上にする、コメント欄を充実させるなど、0円でできる改善から着手してください。`)
   }
 
   // 変動
@@ -162,7 +162,7 @@ function generateCeoCommentary(store: StoreData): string {
     actions.push("1. 60日超の在庫を全台リストアップし、値下げまたは業販で1ヶ月以内に処分")
   }
   if (change < 0) {
-    actions.push(`${actions.length + 1}. カーセンサー掲載の全車両の写真を20枚以上に増やし、コメント欄を充実させる（0円で即実行可能）`)
+    actions.push(`${actions.length + 1}. 車選びドットコム掲載の全車両の写真を20枚以上に増やし、コメント欄を充実させる（0円で即実行可能）`)
   }
   if (turnover < 6) {
     actions.push(`${actions.length + 1}. 売れ筋分析データを活用し、地域で回転の速い車種に仕入れを集中させる`)
