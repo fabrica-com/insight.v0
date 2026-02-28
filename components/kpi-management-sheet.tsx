@@ -33,6 +33,7 @@ import {
 // KPI definitions
 const KPI_ITEMS = [
   { key: "salesUnits", label: "販売台数", unit: "台", format: "integer" },
+  { key: "wholesaleUnits", label: "業販台数", unit: "台", format: "integer" },
   { key: "revenue", label: "売上高", unit: "万円", format: "currency" },
   { key: "grossProfit", label: "粗利合計", unit: "万円", format: "currency" },
   { key: "grossMargin", label: "粗利率", unit: "%", format: "percent" },

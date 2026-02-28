@@ -27,7 +27,7 @@ const CREDIT_OPTIONS = [
   { amount: 10000, tokens: 800000, label: "エンタープライズ", popular: false },
 ]
 
-export function AiUsageBar() {
+export function AiUsageBar({ compact = false }: { compact?: boolean }) {
   const [used] = useState(AI_USED)
   const [limit] = useState(AI_MONTHLY_LIMIT)
   const [showPurchaseModal, setShowPurchaseModal] = useState(false)
@@ -53,6 +53,38 @@ export function AiUsageBar() {
       setShowPurchaseModal(false)
       setSelectedCredit(null)
     }, 2000)
+  }
+
+  if (compact) {
+    return (
+      <>
+        <button
+          type="button"
+          className="flex items-center gap-2 w-full group"
+          onClick={(isNearLimit || isOverLimit) ? () => setShowPurchaseModal(true) : undefined}
+          title={`${(used / 1000).toFixed(0)}K / ${(limit / 1000).toFixed(0)}K トークン`}
+        >
+          <span className={cn(
+            "text-[10px] font-medium whitespace-nowrap",
+            isOverLimit ? "text-destructive" : isNearLimit ? "text-amber-600" : "text-muted-foreground"
+          )}>
+            {(used / 1000).toFixed(0)}K/{(limit / 1000).toFixed(0)}K
+          </span>
+          <Progress
+            value={percentage}
+            className={cn(
+              "h-1.5 flex-1",
+              isOverLimit
+                ? "[&>div]:bg-destructive"
+                : isNearLimit
+                  ? "[&>div]:bg-amber-500"
+                  : "[&>div]:bg-primary"
+            )}
+          />
+        </button>
+        {renderPurchaseModal()}
+      </>
+    )
   }
 
   return (
@@ -125,7 +157,12 @@ export function AiUsageBar() {
         </div>
       </div>
 
-      {/* Purchase Modal */}
+      {renderPurchaseModal()}
+    </>
+  )
+
+  function renderPurchaseModal() {
+    return (
       <Dialog open={showPurchaseModal} onOpenChange={(open) => { setShowPurchaseModal(open); if (!open) { setSelectedCredit(null); setShowConfirm(false); setPurchased(false) } }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -233,6 +270,6 @@ export function AiUsageBar() {
           )}
         </DialogContent>
       </Dialog>
-    </>
-  )
+    )
+  }
 }

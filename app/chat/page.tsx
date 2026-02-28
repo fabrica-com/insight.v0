@@ -305,8 +305,8 @@ function ChatPageContent() {
                   <div className="flex-1 min-w-0">
                     <h1 className="text-lg font-bold tracking-tight">{titleInfo.title}</h1>
                   </div>
-                  <div className="hidden sm:block flex-shrink-0 w-64">
-                    <AiUsageBar />
+                  <div className="hidden sm:flex flex-shrink-0 w-48 items-center">
+                    <AiUsageBar compact />
                   </div>
               </div>
             {mode === "cpo" ? (
