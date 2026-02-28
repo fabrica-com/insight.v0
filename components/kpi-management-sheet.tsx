@@ -7,6 +7,13 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Save,
   CheckCircle2,
   TrendingUp,
@@ -17,6 +24,7 @@ import {
   Target,
   BarChart3,
   AlertTriangle,
+  Settings2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
@@ -58,8 +66,34 @@ interface YearlyKpiData {
   [month: string]: MonthlyKpiData
 }
 
-const MONTHS = ["4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月", "1月", "2月", "3月"]
+const ALL_MONTH_LABELS = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"]
+
+function getMonths(startMonth: number): string[] {
+  const months: string[] = []
+  for (let i = 0; i < 12; i++) {
+    const m = ((startMonth - 1 + i) % 12) + 1
+    months.push(`${m}月`)
+  }
+  return months
+}
+
 const STORAGE_KEY = "symphony-kpi-data"
+const FISCAL_START_KEY = "symphony-kpi-fiscal-start"
+
+function loadFiscalStart(): number {
+  if (typeof window === "undefined") return 4
+  try {
+    const stored = localStorage.getItem(FISCAL_START_KEY)
+    return stored ? Number(stored) : 4
+  } catch {
+    return 4
+  }
+}
+
+function saveFiscalStart(month: number) {
+  if (typeof window === "undefined") return
+  localStorage.setItem(FISCAL_START_KEY, String(month))
+}
 
 function createEmptyMonth(): MonthlyKpiData {
   const empty: Record<string, number | null> = {}
@@ -145,18 +179,44 @@ function TrendIcon({ rate, kpiKey }: { rate: number | null; kpiKey: KpiKey }) {
 }
 
 export function KpiManagementSheet() {
+  const [fiscalStartMonth, setFiscalStartMonth] = useState(4)
+  const MONTHS = getMonths(fiscalStartMonth)
+
   const currentDate = new Date()
-  const currentFiscalYear = currentDate.getMonth() >= 3 ? currentDate.getFullYear() : currentDate.getFullYear() - 1
+  const currentMonth = currentDate.getMonth() + 1 // 1-12
+  const currentFiscalYear = currentMonth >= fiscalStartMonth
+    ? currentDate.getFullYear()
+    : currentDate.getFullYear() - 1
   const [fiscalYear, setFiscalYear] = useState(currentFiscalYear)
   const [kpiData, setKpiData] = useState<YearlyKpiData>({})
   const [selectedMonth, setSelectedMonth] = useState(MONTHS[0])
   const [saveMessage, setSaveMessage] = useState("")
   const [mounted, setMounted] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
 
   useEffect(() => {
+    const start = loadFiscalStart()
+    setFiscalStartMonth(start)
+    setSelectedMonth(getMonths(start)[0])
     setMounted(true)
+  }, [])
+
+  useEffect(() => {
     setKpiData(loadKpiData(fiscalYear))
   }, [fiscalYear])
+
+  const handleFiscalStartChange = (value: string) => {
+    const newStart = Number(value)
+    setFiscalStartMonth(newStart)
+    saveFiscalStart(newStart)
+    const newMonths = getMonths(newStart)
+    setSelectedMonth(newMonths[0])
+    // Recalculate fiscal year
+    const cm = currentDate.getMonth() + 1
+    const newFiscalYear = cm >= newStart ? currentDate.getFullYear() : currentDate.getFullYear() - 1
+    setFiscalYear(newFiscalYear)
+    setShowSettings(false)
+  }
 
   const getMonthData = useCallback(
     (month: string): MonthlyKpiData => {
@@ -249,6 +309,34 @@ export function KpiManagementSheet() {
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setFiscalYear((y) => y + 1)}>
               <ChevronRight className="h-4 w-4" />
             </Button>
+          </div>
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1 text-xs text-muted-foreground"
+              onClick={() => setShowSettings(!showSettings)}
+            >
+              <Settings2 className="h-3.5 w-3.5" />
+              始期: {fiscalStartMonth}月
+            </Button>
+            {showSettings && (
+              <div className="absolute top-full left-0 mt-1 z-50 rounded-md border border-border bg-card p-3 shadow-lg min-w-[180px]">
+                <p className="text-[10px] font-medium text-muted-foreground mb-2">年度始期（開始月）</p>
+                <Select value={String(fiscalStartMonth)} onValueChange={handleFiscalStartChange}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ALL_MONTH_LABELS.map((label, i) => (
+                      <SelectItem key={i + 1} value={String(i + 1)} className="text-xs">
+                        {label}始まり
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
