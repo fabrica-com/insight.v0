@@ -247,7 +247,7 @@ export default function SettingsPage() {
                   <div className="grid gap-3 sm:grid-cols-[200px_1fr]">
                     <div className="space-y-1.5">
                       <Label htmlFor="new-name" className="text-xs text-muted-foreground">
-                        車選び掲載
+                        表示名（任意）
                       </Label>
                       <Input
                         id="new-name"
