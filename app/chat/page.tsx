@@ -14,6 +14,7 @@ import { ChroChat } from "@/components/chro-chat"
 import { CpoChat } from "@/components/cpo-chat"
 import { CustomChat } from "@/components/custom-chat"
 import { Card, CardContent } from "@/components/ui/card"
+import { AiUsageBar } from "@/components/ai-usage-bar"
 import { Badge } from "@/components/ui/badge"
 import { BarChart3, Flame, Sparkles, ArrowLeft, Crown, Wallet, Megaphone, Award, Users, PieChart } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -161,9 +162,12 @@ function ChatPageContent() {
           <DashboardHeader />
           <main className="flex-1 overflow-y-auto p-6">
             <div className="mx-auto w-full max-w-5xl space-y-8">
-              <div className="border-b border-border pb-6">
-                <h1 className="text-2xl font-bold tracking-tight">AI分析・コンサルティング</h1>
-                <p className="text-muted-foreground mt-1 text-sm">利用するAIチャットを選択してください</p>
+              <div className="border-b border-border pb-6 space-y-4">
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight">AI分析・コンサルティング</h1>
+                  <p className="text-muted-foreground mt-1 text-sm">利用するAIチャットを選択してください</p>
+                </div>
+                <AiUsageBar />
               </div>
 
               {/* CEO featured card */}
@@ -290,17 +294,20 @@ function ChatPageContent() {
         <DashboardHeader />
         <main className="flex-1 flex flex-col overflow-hidden p-3 md:p-4 lg:p-6">
           <div className="flex min-h-0 w-full flex-1 flex-col gap-3 md:gap-4 lg:gap-6">
-            <div className="flex shrink-0 items-center gap-3 md:gap-4 border-b border-border pb-3 md:pb-4 lg:pb-6">
-              <Link href="/chat">
-                <Button variant="ghost" size="icon" className="h-9 w-9">
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              </Link>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">{titleInfo.title}</h1>
-                <p className="text-muted-foreground mt-0.5 text-sm">{titleInfo.subtitle}</p>
+              <div className="flex shrink-0 flex-col gap-3 border-b border-border pb-3 md:pb-4 lg:pb-6">
+                <div className="flex items-center gap-3 md:gap-4">
+                  <Link href="/chat">
+                    <Button variant="ghost" size="icon" className="h-9 w-9">
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <div className="flex-1">
+                    <h1 className="text-2xl font-bold tracking-tight">{titleInfo.title}</h1>
+                    <p className="text-muted-foreground mt-0.5 text-sm">{titleInfo.subtitle}</p>
+                  </div>
+                </div>
+                <AiUsageBar />
               </div>
-            </div>
             <div className="min-h-0 flex-1 overflow-hidden">
               <ChatComponent />
             </div>
