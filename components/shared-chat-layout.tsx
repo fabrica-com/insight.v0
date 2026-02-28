@@ -463,7 +463,7 @@ export function SharedChatLayout({
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto p-2 space-y-1">
               {chatHistories.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-8">履歴がありません</p>
+                <p className="text-xs text-muted-foreground text-center py-8">履歴���ありません</p>
               ) : (
                 chatHistories.map((chat) => (
                   <button
@@ -531,95 +531,97 @@ export function SharedChatLayout({
                     )}
                   </div>
                 )}
-                <div
-                  className={cn(
-                    "max-w-[600px] rounded-xl px-4 py-3 text-sm leading-relaxed",
-                    message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted/70",
-                  )}
-                >
-                  {/* File attachments */}
-                  {message.attachments && message.attachments.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {message.attachments.map((file) => (
-                        <div key={file.id} className={cn(
-                          "rounded-lg overflow-hidden border",
-                          message.role === "user" ? "border-primary-foreground/20" : "border-border",
-                        )}>
-                          {file.type.startsWith("image/") ? (
-                            <img
-                              src={file.dataUrl}
-                              alt={file.name}
-                              className="max-w-[200px] max-h-[150px] object-cover"
-                            />
-                          ) : (
-                            <div className={cn(
-                              "flex items-center gap-2 px-3 py-2 text-xs",
-                              message.role === "user" ? "bg-primary-foreground/10" : "bg-muted",
-                            )}>
-                              <FileText className="h-4 w-4 flex-shrink-0" />
-                              <span className="truncate max-w-[150px]">{file.name}</span>
-                              <span className="text-[10px] opacity-70">{(file.size / 1024).toFixed(0)}KB</span>
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                <div className="flex flex-col">
+                  <div
+                    className={cn(
+                      "max-w-[600px] rounded-xl px-4 py-3 text-sm leading-relaxed",
+                      message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted/70",
+                    )}
+                  >
+                    {/* File attachments */}
+                    {message.attachments && message.attachments.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {message.attachments.map((file) => (
+                          <div key={file.id} className={cn(
+                            "rounded-lg overflow-hidden border",
+                            message.role === "user" ? "border-primary-foreground/20" : "border-border",
+                          )}>
+                            {file.type.startsWith("image/") ? (
+                              <img
+                                src={file.dataUrl}
+                                alt={file.name}
+                                className="max-w-[200px] max-h-[150px] object-cover"
+                              />
+                            ) : (
+                              <div className={cn(
+                                "flex items-center gap-2 px-3 py-2 text-xs",
+                                message.role === "user" ? "bg-primary-foreground/10" : "bg-muted",
+                              )}>
+                                <FileText className="h-4 w-4 flex-shrink-0" />
+                                <span className="truncate max-w-[150px]">{file.name}</span>
+                                <span className="text-[10px] opacity-70">{(file.size / 1024).toFixed(0)}KB</span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {/* Message content */}
+                    <div className="whitespace-pre-wrap">
+                      {message.role === "assistant" &&
+                       isRevealing &&
+                       message.id === messages[messages.length - 1]?.id
+                        ? <>
+                            {displayedContent}
+                            <span className="inline-block w-0.5 h-4 bg-foreground/70 animate-pulse ml-0.5 align-text-bottom" />
+                          </>
+                        : message.content}
+                    </div>
+                  </div>
+                  {/* Rating & Copy below the bubble */}
+                  {message.role === "assistant" && message.id !== "1" && !(isRevealing && message.id === messages[messages.length - 1]?.id) && (
+                    <div className="flex items-center gap-0.5 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(message.id, message.content)}
+                        className="rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                        title="コピー"
+                      >
+                        {copiedId === message.id ? (
+                          <Check className="h-3.5 w-3.5 text-green-500" />
+                        ) : (
+                          <Copy className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRate(message.id, "up")}
+                        className={cn(
+                          "rounded-md p-1 transition-colors",
+                          ratings[message.id] === "up"
+                            ? "text-primary bg-primary/10"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                        )}
+                        title="参考になった"
+                      >
+                        <ThumbsUp className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRate(message.id, "down")}
+                        className={cn(
+                          "rounded-md p-1 transition-colors",
+                          ratings[message.id] === "down"
+                            ? "text-destructive bg-destructive/10"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                        )}
+                        title="参考にならなかった"
+                      >
+                        <ThumbsDown className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   )}
-                  {/* Message content */}
-                  <div className="whitespace-pre-wrap">
-                    {message.role === "assistant" &&
-                     isRevealing &&
-                     message.id === messages[messages.length - 1]?.id
-                      ? <>
-                          {displayedContent}
-                          <span className="inline-block w-0.5 h-4 bg-foreground/70 animate-pulse ml-0.5 align-text-bottom" />
-                        </>
-                      : message.content}
-                  </div>
                 </div>
-                {/* Rating & Copy for assistant messages (not the initial greeting, not while revealing) */}
-                {message.role === "assistant" && message.id !== "1" && !(isRevealing && message.id === messages[messages.length - 1]?.id) && (
-                  <div className="flex items-center gap-0.5 self-end mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      type="button"
-                      onClick={() => handleCopy(message.id, message.content)}
-                      className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                      title="コピー"
-                    >
-                      {copiedId === message.id ? (
-                        <Check className="h-3.5 w-3.5 text-green-500" />
-                      ) : (
-                        <Copy className="h-3.5 w-3.5" />
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleRate(message.id, "up")}
-                      className={cn(
-                        "rounded-md p-1.5 transition-colors",
-                        ratings[message.id] === "up"
-                          ? "text-primary bg-primary/10"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                      )}
-                      title="参考になった"
-                    >
-                      <ThumbsUp className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleRate(message.id, "down")}
-                      className={cn(
-                        "rounded-md p-1.5 transition-colors",
-                        ratings[message.id] === "down"
-                          ? "text-destructive bg-destructive/10"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                      )}
-                      title="参考にならなかった"
-                    >
-                      <ThumbsDown className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                )}
                 {message.role === "user" && (
                   <div className="flex h-8 w-8 items-center justify-center flex-shrink-0 rounded-lg bg-muted">
                     <User className="h-4 w-4 text-muted-foreground" />
