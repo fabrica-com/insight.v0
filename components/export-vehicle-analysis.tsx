@@ -142,8 +142,6 @@ export function ExportVehicleAnalysis() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
   const [view, setView] = useState<"summary" | "list">("summary")
   const [expandedModel, setExpandedModel] = useState<string | null>(null)
-  const [rankingPeriod, setRankingPeriod] = useState<number>(6)
-  const [rankingCountry, setRankingCountry] = useState<string>("all")
 
   // Unique values for filter dropdowns
   const uniqueMakers = useMemo(() => [...new Set(allExportData.map((d) => d.maker))].sort(), [])
@@ -198,37 +196,6 @@ export function ExportVehicleAnalysis() {
     if (filtered.length === 0) return 0
     return Math.round(filtered.reduce((s, v) => s + v.mileage, 0) / filtered.length)
   }, [filtered])
-
-  // Period + country filtered data for the ranking table
-  const filteredForRanking = useMemo(() => {
-    const cutoff = new Date(2025, 12 - rankingPeriod, 1)
-    return filtered.filter((v) => {
-      const [y, m] = v.date.split("/").map(Number)
-      const passDate = new Date(y, m - 1, 1) >= cutoff
-      const passCountry = rankingCountry === "all" || v.destination === rankingCountry
-      return passDate && passCountry
-    })
-  }, [filtered, rankingPeriod, rankingCountry])
-
-  const byModelForRanking = useMemo(() => {
-    const counts: Record<string, { count: number; maker: string; totalPrice: number }> = {}
-    for (const v of filteredForRanking) {
-      const key = `${v.maker} ${v.model}`
-      if (!counts[key]) counts[key] = { count: 0, maker: v.maker, totalPrice: 0 }
-      counts[key].count++
-      counts[key].totalPrice += v.purchasePrice
-    }
-    const total = filteredForRanking.length
-    return Object.entries(counts)
-      .map(([label, d]) => ({
-        label,
-        count: d.count,
-        percentage: total > 0 ? (d.count / total) * 100 : 0,
-        maker: d.maker,
-        avgPrice: d.count > 0 ? d.totalPrice / d.count : 0,
-      }))
-      .sort((a, b) => b.count - a.count)
-  }, [filteredForRanking])
 
   const topModelsChart = byModel.slice(0, 10)
 
@@ -715,47 +682,11 @@ export function ExportVehicleAnalysis() {
           {/* Procurement Recommendations */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between gap-4 flex-wrap">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <ShoppingCart className="h-5 w-5" />
-                    仕入れ推奨 輸出向け車両ランキング
-                  </CardTitle>
-                  <CardDescription className="mt-1">車種をクリックすると輸出明細が表示されます（国別・期間で絞込可能）</CardDescription>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">国</span>
-                    <Select value={rankingCountry} onValueChange={(v) => { setRankingCountry(v); setExpandedModel(null) }}>
-                      <SelectTrigger className="w-[140px] h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">全ての国</SelectItem>
-                        {byDestination.map((d) => (
-                          <SelectItem key={d.label} value={d.label}>{d.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">期間</span>
-                    <Select value={String(rankingPeriod)} onValueChange={(v) => { setRankingPeriod(Number(v)); setExpandedModel(null) }}>
-                      <SelectTrigger className="w-[120px] h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">直近1ヶ月</SelectItem>
-                        <SelectItem value="2">直近2ヶ月</SelectItem>
-                        <SelectItem value="3">直近3ヶ月</SelectItem>
-                        <SelectItem value="4">直近4ヶ月</SelectItem>
-                        <SelectItem value="5">直近5ヶ月</SelectItem>
-                        <SelectItem value="6">直近6ヶ月</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
+              <CardTitle className="flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5" />
+                仕入れ推奨 輸出向け車両ランキング
+              </CardTitle>
+              <CardDescription>車種をクリックすると輸出明細が表示されます</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -772,9 +703,9 @@ export function ExportVehicleAnalysis() {
                     </tr>
                   </thead>
                   <tbody>
-                    {byModelForRanking.slice(0, 15).map((item, idx) => {
+                    {byModel.slice(0, 15).map((item, idx) => {
                       // Find top destination for this model
-                      const modelVehicles = filteredForRanking.filter((v) => `${v.maker} ${v.model}` === item.label)
+                      const modelVehicles = filtered.filter((v) => `${v.maker} ${v.model}` === item.label)
                       const destCounts: Record<string, number> = {}
                       modelVehicles.forEach((v) => { destCounts[v.destination] = (destCounts[v.destination] || 0) + 1 })
                       const topDest = Object.entries(destCounts).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k]) => k)
