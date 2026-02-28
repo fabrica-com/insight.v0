@@ -26,7 +26,7 @@ const CREDIT_OPTIONS = [
   { amount: 10000, tokens: 800000, label: "エンタープライズ", popular: false },
 ]
 
-export function AiUsageBar() {
+export function AiUsageBar({ compact = false }: { compact?: boolean }) {
   const [used] = useState(AI_USED)
   const [limit] = useState(AI_MONTHLY_LIMIT)
   const [showPurchaseModal, setShowPurchaseModal] = useState(false)
@@ -35,6 +35,7 @@ export function AiUsageBar() {
   const [purchased, setPurchased] = useState(false)
 
   const percentage = Math.min((used / limit) * 100, 100)
+  const remaining = limit - used
   const isNearLimit = percentage >= 80
   const isOverLimit = percentage >= 100
 
@@ -53,21 +54,80 @@ export function AiUsageBar() {
     }, 2000)
   }
 
+  if (compact) {
+    return (
+      <>
+        <div className="flex items-center gap-2 w-full">
+          <span
+            className={cn(
+              "text-[10px] whitespace-nowrap font-medium",
+              isOverLimit ? "text-destructive" : isNearLimit ? "text-amber-600" : "text-muted-foreground",
+            )}
+          >
+            {(used / 1000).toFixed(0)}K/{(limit / 1000).toFixed(0)}K
+          </span>
+          <Progress
+            value={percentage}
+            className={cn(
+              "h-1.5 flex-1 min-w-[60px]",
+              isOverLimit
+                ? "[&>div]:bg-destructive"
+                : isNearLimit
+                  ? "[&>div]:bg-amber-500"
+                  : "[&>div]:bg-primary",
+            )}
+          />
+          {(isNearLimit || isOverLimit) && (
+            <button
+              type="button"
+              onClick={() => setShowPurchaseModal(true)}
+              className={cn(
+                "text-[10px] whitespace-nowrap font-medium underline underline-offset-2 hover:opacity-80 transition-opacity",
+                isOverLimit ? "text-destructive" : "text-amber-600",
+              )}
+            >
+              追加購入
+            </button>
+          )}
+        </div>
+        {renderPurchaseModal()}
+      </>
+    )
+  }
+
   return (
     <>
-      <div className="flex items-center gap-2 w-full">
-        <span
-          className={cn(
-            "text-[10px] whitespace-nowrap font-medium",
-            isOverLimit ? "text-destructive" : isNearLimit ? "text-amber-600" : "text-muted-foreground",
-          )}
-        >
-          {(used / 1000).toFixed(0)}K/{(limit / 1000).toFixed(0)}K
-        </span>
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Zap className={cn("h-4 w-4", isOverLimit ? "text-destructive" : isNearLimit ? "text-amber-500" : "text-primary")} />
+            <span className="text-sm font-semibold">AI利用量</span>
+            <Badge
+              variant="outline"
+              className={cn(
+                "text-[10px] px-1.5",
+                isOverLimit
+                  ? "border-destructive text-destructive bg-destructive/5"
+                  : isNearLimit
+                    ? "border-amber-400 text-amber-600 bg-amber-50"
+                    : "border-border",
+              )}
+            >
+              {new Date().getMonth() + 1}月
+            </Badge>
+          </div>
+          <span className="text-xs text-muted-foreground">
+            <span className={cn("font-bold", isOverLimit ? "text-destructive" : isNearLimit ? "text-amber-600" : "text-foreground")}>
+              {(used / 1000).toFixed(0)}K
+            </span>
+            {" / "}{(limit / 1000).toFixed(0)}K トークン
+          </span>
+        </div>
+
         <Progress
           value={percentage}
           className={cn(
-            "h-1.5 flex-1 min-w-[60px]",
+            "h-2.5",
             isOverLimit
               ? "[&>div]:bg-destructive"
               : isNearLimit
@@ -75,20 +135,41 @@ export function AiUsageBar() {
                 : "[&>div]:bg-primary",
           )}
         />
-        {(isNearLimit || isOverLimit) && (
-          <button
-            type="button"
-            onClick={() => setShowPurchaseModal(true)}
-            className={cn(
-              "text-[10px] whitespace-nowrap font-medium underline underline-offset-2 hover:opacity-80 transition-opacity",
-              isOverLimit ? "text-destructive" : "text-amber-600",
-            )}
-          >
-            追加購入
-          </button>
-        )}
+
+        <div className="flex items-center justify-between mt-2">
+          <span className={cn(
+            "text-xs",
+            isOverLimit ? "text-destructive font-medium" : isNearLimit ? "text-amber-600" : "text-muted-foreground",
+          )}>
+            {isOverLimit
+              ? "月間利用上限に達しました"
+              : isNearLimit
+                ? `残り${(remaining / 1000).toFixed(0)}Kトークン（上限間近）`
+                : `残り${(remaining / 1000).toFixed(0)}Kトークン`}
+          </span>
+          {(isNearLimit || isOverLimit) && (
+            <Button
+              size="sm"
+              variant={isOverLimit ? "default" : "outline"}
+              className={cn(
+                "h-7 text-xs gap-1",
+                isOverLimit && "bg-primary hover:bg-primary/90",
+              )}
+              onClick={() => setShowPurchaseModal(true)}
+            >
+              <Sparkles className="h-3 w-3" />
+              追加購入
+            </Button>
+          )}
+        </div>
       </div>
 
+      {renderPurchaseModal()}
+    </>
+  )
+
+  function renderPurchaseModal() {
+    return (
       <Dialog
         open={showPurchaseModal}
         onOpenChange={(open) => {
@@ -200,6 +281,6 @@ export function AiUsageBar() {
           )}
         </DialogContent>
       </Dialog>
-    </>
-  )
+    )
+  }
 }
