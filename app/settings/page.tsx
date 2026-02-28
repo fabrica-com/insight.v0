@@ -247,7 +247,7 @@ export default function SettingsPage() {
                   <div className="grid gap-3 sm:grid-cols-[200px_1fr]">
                     <div className="space-y-1.5">
                       <Label htmlFor="new-name" className="text-xs text-muted-foreground">
-                        表示名（任意）
+                        車選び掲載
                       </Label>
                       <Input
                         id="new-name"
@@ -320,7 +320,7 @@ export default function SettingsPage() {
                                 value={entry.name}
                                 onChange={(e) => handleUpdateUrl(entry.id, "name", e.target.value)}
                                 className="h-8 text-sm"
-                                placeholder="表示名"
+                                placeholder="車選び掲載"
                               />
                               <div className="relative">
                                 <Link2 className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
