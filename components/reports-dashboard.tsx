@@ -413,15 +413,9 @@ export function ReportsDashboard() {
             </CardContent>
           </Card>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4">
             {[
-              { icon: Globe, title: "輸出レポート", desc: "国別・車種別データ", color: "from-chart-1 to-primary" },
-              {
-                icon: Package,
-                title: "新車情報レポート",
-                desc: "新規投入車両の分析",
-                color: "from-chart-2 to-green-500",
-              },
+              { icon: Globe, title: "市場動向レポート", desc: "国別・車種別データ", color: "from-chart-1 to-primary" },
             ].map((report, i) => (
               <Card key={i} className="border-border/50 hover:border-primary/30 transition-colors cursor-pointer group">
                 <CardContent className="flex items-center gap-4 p-4">
