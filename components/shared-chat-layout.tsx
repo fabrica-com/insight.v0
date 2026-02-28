@@ -332,7 +332,7 @@ export function SharedChatLayout({
 
   const isConsultant = theme === "consultant"
 
-  const themeConfig: Record<string, { avatarIcon: typeof Bot; avatarClass: string; borderClass: string; buttonClass: string; suggestBorderClass: string }> = {
+  const themeConfig: Record<string, { avatarIcon: typeof Bot; avatarSrc?: string; avatarClass: string; borderClass: string; buttonClass: string; suggestBorderClass: string }> = {
     "data-analysis": {
       avatarIcon: Bot,
       avatarClass: "rounded-lg bg-gradient-to-br from-chart-4 to-primary text-white",
@@ -342,7 +342,8 @@ export function SharedChatLayout({
     },
     consultant: {
       avatarIcon: Flame,
-      avatarClass: "rounded-full bg-gradient-to-br from-red-500 to-orange-600",
+      avatarSrc: "/images/consultant-avatar.jpg",
+      avatarClass: "rounded-full bg-gradient-to-br from-red-500 to-orange-600 overflow-hidden",
       borderClass: "border-red-500/20",
       buttonClass: "bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 text-white",
       suggestBorderClass: "border-red-500/30 hover:bg-red-500/10 hover:text-red-600",
@@ -499,7 +500,11 @@ export function SharedChatLayout({
                       tc.avatarClass,
                     )}
                   >
-                    <AvatarIcon className="h-4 w-4 text-white" />
+                    {tc.avatarSrc ? (
+                      <img src={tc.avatarSrc} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <AvatarIcon className="h-4 w-4 text-white" />
+                    )}
                   </div>
                 )}
                 <div
@@ -564,7 +569,11 @@ export function SharedChatLayout({
                     tc.avatarClass,
                   )}
                 >
-                  <AvatarIcon className="h-4 w-4 text-white animate-pulse" />
+                  {tc.avatarSrc ? (
+                    <img src={tc.avatarSrc} alt="" className="h-full w-full object-cover animate-pulse" />
+                  ) : (
+                    <AvatarIcon className="h-4 w-4 text-white animate-pulse" />
+                  )}
                 </div>
                 <div className="rounded-xl bg-muted/70 px-4 py-3">
                   <div className="flex items-center gap-2.5">

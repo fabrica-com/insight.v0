@@ -108,10 +108,10 @@ const chatOptions = [
     icon: Flame,
     iconBg: "bg-chart-3/10 text-chart-3",
     borderHover: "hover:border-chart-3/50 hover:bg-chart-3/5",
-    title: "経営コンサルタント",
+    title: "辛口経営コンサルタント",
     badge: null,
     badgeClass: "",
-    description: "経営課題の相談・壁打ちチャット",
+    description: "歯に衣着せぬ辛口アドバイスで経営課題を壁打ち",
   },
   {
     mode: "custom",
@@ -128,7 +128,7 @@ const chatOptions = [
 
 const chatTitles: Record<string, { title: string; subtitle: string }> = {
   "data-analysis": { title: "データ分析", subtitle: "自然言語でデータ分析と市場インサイトを取得" },
-  consultant: { title: "経営コンサルタント", subtitle: "経営課題の相談・壁打ちチャット" },
+  consultant: { title: "辛口経営コンサルタント", subtitle: "歯に衣着せぬ辛口アドバイスで経営課題を壁打ち" },
   ceo: { title: "AI社長（Co-CEO）", subtitle: "経営判断を統合的にサポートするAI参謀" },
   cfo: { title: "AI金庫番", subtitle: "お金まわりの一切を見守り、先回りして助言" },
   cmo: { title: "AI集客参謀", subtitle: "WEB集客を横断的に見渡し最適な施策を提案" },
@@ -233,9 +233,15 @@ function ChatPageContent() {
                     <Link key={option.mode} href={option.href}>
                       <Card className={`h-full cursor-pointer transition-all ${option.borderHover} hover:shadow-sm`}>
                         <CardContent className="flex flex-col items-center p-6 text-center">
-                          <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${option.iconBg} mb-3`}>
-                            <option.icon className="h-6 w-6" />
-                          </div>
+                          {option.mode === "consultant" ? (
+                            <div className="h-12 w-12 rounded-full overflow-hidden shadow-md mb-3 ring-2 ring-red-500/30">
+                              <img src="/images/consultant-avatar.jpg" alt="" className="h-full w-full object-cover" />
+                            </div>
+                          ) : (
+                            <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${option.iconBg} mb-3`}>
+                              <option.icon className="h-6 w-6" />
+                            </div>
+                          )}
                           <h2 className="text-sm font-semibold mb-1">{option.title}</h2>
                           <p className="text-xs text-muted-foreground leading-relaxed">{option.description}</p>
                         </CardContent>

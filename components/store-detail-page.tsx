@@ -62,7 +62,7 @@ interface StoreData {
   change: number
 }
 
-// AI経営コンサルタント総評生成（CEO AI「AI社長（Co-CEO）」ロジック）
+// AI辛口経営コンサルタント総評生成（CEO AI「AI社長（Co-CEO）」ロジック）
 function generateCeoCommentary(store: StoreData): string {
   const monthlyRevenue = store.revenue / 12
   const monthlyRevenueMillion = monthlyRevenue / 10000
@@ -184,7 +184,7 @@ function generateCeoCommentary(store: StoreData): string {
   if (overallScore === "優良" || overallScore === "良好") {
     sections.push(`この店舗のオペレーションは${scaleLabel}として${overallScore}な水準にあります。特に${strengths[0] || "経営の安定性"}は、同規模の販売店が学ぶべきポイントです。さらなる成長には、仕入れの精度向上と集客チャネルの多角化が鍵になるでしょう。`)
   } else {
-    sections.push(`この店舗は${improvements[0] || "経営改善"}に取り組むことで、大きく改善する余地があります。まず上記のアクション1番を今週中に実行してください。「考えた」で���わらせず「やった」に変えることが、数字を動かす唯一の方法です。`)
+    sections.push(`この店舗は${improvements[0] || "経営改善"}に取り���むことで、大きく改善する余地があります。まず上記のアクション1番を今週中に実行してください。「考えた」で���わらせず「やった」に変えることが、数字を動かす唯一の方法です。`)
   }
 
   return sections.join("\n")
@@ -721,17 +721,17 @@ export function StoreDetailPageContent({ store }: { store: StoreData }) {
         </TabsContent>
       </Tabs>
 
-      {/* AI経営コンサルタント総評 */}
-      <Card className="border-2 border-amber-500/30 overflow-hidden">
-        <div className="bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-transparent p-6 pb-4">
+      {/* AI辛口経営コンサルタント総評 */}
+      <Card className="border-2 border-red-500/30 overflow-hidden">
+        <div className="bg-gradient-to-r from-red-500/10 via-orange-400/5 to-transparent p-6 pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-md">
-                <Sparkles className="h-5 w-5 text-white" />
+              <div className="h-10 w-10 rounded-full overflow-hidden shadow-md ring-2 ring-red-500/30 flex-shrink-0">
+                <img src="/images/consultant-avatar.jpg" alt="" className="h-full w-full object-cover" />
               </div>
               <div>
-                <h3 className="text-lg font-bold tracking-tight">AI経営コンサルタント総評</h3>
-                <p className="text-xs text-muted-foreground">AI社長（Co-CEO） による店舗分析レポート</p>
+                <h3 className="text-lg font-bold tracking-tight">AI辛口経営コンサルタント総評</h3>
+                <p className="text-xs text-muted-foreground">辛口経営コンサルタント による店舗分析レポート</p>
               </div>
             </div>
             <Button
