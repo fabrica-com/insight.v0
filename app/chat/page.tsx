@@ -14,9 +14,11 @@ import { ChroChat } from "@/components/chro-chat"
 import { CpoChat } from "@/components/cpo-chat"
 import { CustomChat } from "@/components/custom-chat"
 import { Card, CardContent } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AiUsageBar } from "@/components/ai-usage-bar"
+import { KpiManagementSheet } from "@/components/kpi-management-sheet"
 import { Badge } from "@/components/ui/badge"
-import { BarChart3, Flame, Sparkles, ArrowLeft, Crown, Wallet, Megaphone, Award, Users, PieChart } from "lucide-react"
+import { BarChart3, Flame, Sparkles, ArrowLeft, Crown, Wallet, Megaphone, Award, Users, PieChart, MessageSquare, Target } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
@@ -308,9 +310,30 @@ function ChatPageContent() {
                 </div>
                 <AiUsageBar />
               </div>
-            <div className="min-h-0 flex-1 overflow-hidden">
-              <ChatComponent />
-            </div>
+            {mode === "cpo" ? (
+              <Tabs defaultValue="chat" className="min-h-0 flex-1 flex flex-col overflow-hidden">
+                <TabsList className="flex-shrink-0 mb-3">
+                  <TabsTrigger value="chat" className="gap-1.5 text-sm">
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    チャット
+                  </TabsTrigger>
+                  <TabsTrigger value="kpi" className="gap-1.5 text-sm">
+                    <Target className="h-3.5 w-3.5" />
+                    月次KPI管理
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="chat" className="flex-1 min-h-0 overflow-hidden data-[state=inactive]:hidden">
+                  <ChatComponent />
+                </TabsContent>
+                <TabsContent value="kpi" className="flex-1 min-h-0 overflow-y-auto data-[state=inactive]:hidden">
+                  <KpiManagementSheet />
+                </TabsContent>
+              </Tabs>
+            ) : (
+              <div className="min-h-0 flex-1 overflow-hidden">
+                <ChatComponent />
+              </div>
+            )}
           </div>
         </main>
       </div>

@@ -347,6 +347,7 @@ export function CpoChat() {
       theme="cpo"
       inputPlaceholder="数字や予算について相談してください..."
       typingDelay={1600}
+      enableFileUpload={true}
     />
   )
 }
