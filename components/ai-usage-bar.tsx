@@ -17,14 +17,14 @@ import { Zap, AlertTriangle, CheckCircle2, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 // Mock usage data
-const AI_MONTHLY_LIMIT = 100 // messages per month
-const AI_USED = 82 // current usage
+const AI_MONTHLY_LIMIT = 100000 // tokens per month
+const AI_USED = 82000 // current usage
 
 const CREDIT_OPTIONS = [
-  { amount: 1000, messages: 50, label: "ライト", popular: false },
-  { amount: 2000, messages: 120, label: "スタンダード", popular: true },
-  { amount: 5000, messages: 350, label: "プロ", popular: false },
-  { amount: 10000, messages: 800, label: "エンタープライズ", popular: false },
+  { amount: 1000, tokens: 50000, label: "ライト", popular: false },
+  { amount: 2000, tokens: 120000, label: "スタンダード", popular: true },
+  { amount: 5000, tokens: 350000, label: "プロ", popular: false },
+  { amount: 10000, tokens: 800000, label: "エンタープライズ", popular: false },
 ]
 
 export function AiUsageBar() {
@@ -78,9 +78,9 @@ export function AiUsageBar() {
           </div>
           <span className="text-xs text-muted-foreground">
             <span className={cn("font-bold", isOverLimit ? "text-destructive" : isNearLimit ? "text-amber-600" : "text-foreground")}>
-              {used}
+              {(used / 1000).toFixed(0)}K
             </span>
-            {" / "}{limit} メッセージ
+            {" / "}{(limit / 1000).toFixed(0)}K トークン
           </span>
         </div>
 
@@ -104,8 +104,8 @@ export function AiUsageBar() {
             {isOverLimit
               ? "月間利用上限に達しました"
               : isNearLimit
-                ? `残り${remaining}メッセージ（上限間近）`
-                : `残り${remaining}メッセージ`
+                ? `残り${(remaining / 1000).toFixed(0)}Kトークン（上限間近）`
+                : `残り${(remaining / 1000).toFixed(0)}Kトークン`
             }
           </span>
           {(isNearLimit || isOverLimit) && (
@@ -155,7 +155,7 @@ export function AiUsageBar() {
                     <p className="text-sm font-semibold text-amber-800">購入確認</p>
                     <p className="text-xs text-amber-700 leading-relaxed">
                       {CREDIT_OPTIONS.find(c => c.amount === selectedCredit)?.label}プラン
-                      （{selectedCredit?.toLocaleString()}円 / {CREDIT_OPTIONS.find(c => c.amount === selectedCredit)?.messages}メッセージ）を購入します。
+                      （{selectedCredit?.toLocaleString()}円 / {((CREDIT_OPTIONS.find(c => c.amount === selectedCredit)?.tokens ?? 0) / 1000).toFixed(0)}Kトークン）を購入します。
                       この料金は今月の月額利用料と合わせてご請求されます。
                     </p>
                   </div>
@@ -200,7 +200,7 @@ export function AiUsageBar() {
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          +{option.messages}メッセージ
+                          +{(option.tokens / 1000).toFixed(0)}Kトークン
                         </p>
                       </div>
                     </div>
