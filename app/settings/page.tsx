@@ -233,7 +233,7 @@ export default function SettingsPage() {
                       在庫管理にシンフォニーシリーズをご利用でない場合、
                       自社の在庫情報が掲載されているWEBサイトのURLを登録することで、
                       在庫データを自動取得して分析に活用できます。
-                      カーセンサー、グーネット等の掲載ページや自社サイトの在庫ページURLをご登録ください。
+                      車選びドットコム等の掲載ページや自社サイトの在庫ページURLをご登録ください。
                     </p>
                   </div>
                 </div>
@@ -429,7 +429,7 @@ export default function SettingsPage() {
                     </p>
                     <p className="text-amber-700 dark:text-amber-400/80 leading-relaxed">
                       同一商圏の競合店を最大{MAX_COMPETITORS}店舗まで登録できます。
-                      カーセンサーやグーネット等での競合店の在庫ページURLを登録すると、
+                      車選びドットコム等での競合店の在庫ページURLを登録すると、
                       価格帯・在庫構成・回転率などを自動比較し、AI分析レポートに反映されます。
                     </p>
                   </div>
@@ -600,7 +600,7 @@ export default function SettingsPage() {
                     URLの探し方
                   </h4>
                   <ul className="text-[11px] text-muted-foreground leading-relaxed space-y-1">
-                    <li>1. カーセンサーやグーネットで競合店名を検索</li>
+                    <li>1. 車選びドットコム等で競合店名を検索</li>
                     <li>2. 競合店の在庫一覧ページを開く</li>
                     <li>3. ブラウザのアドレスバーからURLをコピーして貼り付け</li>
                   </ul>
