@@ -22,13 +22,6 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-interface InventoryUrl {
-  id: string
-  name: string
-  url: string
-  status: "valid" | "invalid" | "unchecked"
-}
-
 interface CompetitorStore {
   id: string
   name: string
@@ -54,21 +47,21 @@ function saveCompetitors(stores: CompetitorStore[]) {
   localStorage.setItem(COMPETITOR_STORAGE_KEY, JSON.stringify(stores))
 }
 
-const STORAGE_KEY = "symphony-insight-inventory-urls"
+const STORAGE_KEY = "symphony-insight-inventory-url"
 
-function loadUrls(): InventoryUrl[] {
-  if (typeof window === "undefined") return []
+function loadInventoryUrl(): { name: string; url: string } {
+  if (typeof window === "undefined") return { name: "", url: "" }
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    return stored ? JSON.parse(stored) : []
+    return stored ? JSON.parse(stored) : { name: "", url: "" }
   } catch {
-    return []
+    return { name: "", url: "" }
   }
 }
 
-function saveUrls(urls: InventoryUrl[]) {
+function saveInventoryUrl(data: { name: string; url: string }) {
   if (typeof window === "undefined") return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(urls))
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
 }
 
 function isValidUrl(str: string): boolean {
@@ -81,10 +74,9 @@ function isValidUrl(str: string): boolean {
 }
 
 export default function SettingsPage() {
-  const [urls, setUrls] = useState<InventoryUrl[]>([])
-  const [newName, setNewName] = useState("")
-  const [newUrl, setNewUrl] = useState("")
-  const [saveMessage, setSaveMessage] = useState("")
+  const [invName, setInvName] = useState("")
+  const [invUrl, setInvUrl] = useState("")
+  const [invSaveMessage, setInvSaveMessage] = useState("")
   const [mounted, setMounted] = useState(false)
 
   // Competitor stores
@@ -95,50 +87,25 @@ export default function SettingsPage() {
 
   useEffect(() => {
     setMounted(true)
-    setUrls(loadUrls())
+    const inv = loadInventoryUrl()
+    setInvName(inv.name)
+    setInvUrl(inv.url)
     setCompetitors(loadCompetitors())
   }, [])
 
-  const handleAddUrl = () => {
-    if (!newUrl.trim()) return
-
-    const entry: InventoryUrl = {
-      id: Date.now().toString(),
-      name: newName.trim() || extractDomain(newUrl.trim()),
-      url: newUrl.trim(),
-      status: isValidUrl(newUrl.trim()) ? "valid" : "invalid",
-    }
-
-    const updated = [...urls, entry]
-    setUrls(updated)
-    saveUrls(updated)
-    setNewName("")
-    setNewUrl("")
+  const handleSaveInventory = () => {
+    saveInventoryUrl({ name: invName.trim(), url: invUrl.trim() })
+    setInvSaveMessage("保存しました")
+    setTimeout(() => setInvSaveMessage(""), 2000)
   }
 
-  const handleRemoveUrl = (id: string) => {
-    const updated = urls.filter((u) => u.id !== id)
-    setUrls(updated)
-    saveUrls(updated)
+  const handleClearInventory = () => {
+    setInvName("")
+    setInvUrl("")
+    saveInventoryUrl({ name: "", url: "" })
   }
 
-  const handleUpdateUrl = (id: string, field: "name" | "url", value: string) => {
-    const updated = urls.map((u) => {
-      if (u.id !== id) return u
-      const newEntry = { ...u, [field]: value }
-      if (field === "url") {
-        newEntry.status = isValidUrl(value) ? "valid" : value.trim() ? "invalid" : "unchecked"
-      }
-      return newEntry
-    })
-    setUrls(updated)
-  }
-
-  const handleSaveAll = () => {
-    saveUrls(urls)
-    setSaveMessage("保存しました")
-    setTimeout(() => setSaveMessage(""), 2000)
-  }
+  const invUrlStatus = invUrl.trim() ? (isValidUrl(invUrl.trim()) ? "valid" : "invalid") : "unchecked"
 
   // Competitor handlers
   const handleAddCompetitor = () => {
@@ -238,162 +205,85 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                {/* Add new URL form */}
-                <div className="rounded-lg border border-dashed border-border p-4 space-y-4">
-                  <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                    <Plus className="h-4 w-4" />
-                    新しいURLを追加
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-[200px_1fr]">
+                {/* Single store URL form */}
+                <div className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-[200px_1fr]">
                     <div className="space-y-1.5">
-                      <Label htmlFor="new-name" className="text-xs text-muted-foreground">
+                      <Label htmlFor="inv-name" className="text-xs text-muted-foreground">
                         表示名（任意）
                       </Label>
                       <Input
-                        id="new-name"
+                        id="inv-name"
                         placeholder="例: 車選び掲載"
-                        value={newName}
-                        onChange={(e) => setNewName(e.target.value)}
+                        value={invName}
+                        onChange={(e) => setInvName(e.target.value)}
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="new-url" className="text-xs text-muted-foreground">
+                      <Label htmlFor="inv-url" className="text-xs text-muted-foreground">
                         在庫ページURL
                       </Label>
-                      <div className="flex gap-2">
-                        <div className="relative flex-1">
-                          <Link2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                          <Input
-                            id="new-url"
-                            placeholder="https://kurumaerabi.com/shop/..."
-                            value={newUrl}
-                            onChange={(e) => setNewUrl(e.target.value)}
-                            className="pl-9"
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") handleAddUrl()
-                            }}
-                          />
-                        </div>
-                        <Button onClick={handleAddUrl} disabled={!newUrl.trim()}>
-                          <Plus className="h-4 w-4 mr-1.5" />
-                          追加
-                        </Button>
+                      <div className="relative">
+                        <Link2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          id="inv-url"
+                          placeholder="https://kurumaerabi.com/shop/..."
+                          value={invUrl}
+                          onChange={(e) => setInvUrl(e.target.value)}
+                          className="pl-9"
+                        />
                       </div>
                     </div>
+                  </div>
+
+                  {invUrl.trim() && (
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "text-[10px] h-5",
+                          invUrlStatus === "valid"
+                            ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400"
+                            : "border-destructive/30 bg-destructive/10 text-destructive",
+                        )}
+                      >
+                        {invUrlStatus === "valid" && <CheckCircle2 className="h-3 w-3 mr-1" />}
+                        {invUrlStatus === "invalid" && <AlertCircle className="h-3 w-3 mr-1" />}
+                        {invUrlStatus === "valid" ? "URL有効" : "URL無効"}
+                      </Badge>
+                      {invUrlStatus === "valid" && (
+                        <a
+                          href={invUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] text-muted-foreground hover:text-primary flex items-center gap-0.5 transition-colors"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          開く
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                    <Button onClick={handleSaveInventory} disabled={!invUrl.trim()}>
+                      <Save className="h-4 w-4 mr-1.5" />
+                      保存
+                    </Button>
+                    {invUrl.trim() && (
+                      <Button variant="outline" onClick={handleClearInventory}>
+                        <Trash2 className="h-4 w-4 mr-1.5" />
+                        クリア
+                      </Button>
+                    )}
+                    {invSaveMessage && (
+                      <span className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1 animate-in fade-in">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        {invSaveMessage}
+                      </span>
+                    )}
                   </div>
                 </div>
-
-                {/* Registered URLs list */}
-                {urls.length > 0 ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-sm font-medium text-foreground">
-                        登録済みURL（{urls.length}件）
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        {saveMessage && (
-                          <span className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1 animate-in fade-in">
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            {saveMessage}
-                          </span>
-                        )}
-                        <Button size="sm" onClick={handleSaveAll}>
-                          <Save className="h-3.5 w-3.5 mr-1.5" />
-                          保存
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      {urls.map((entry) => (
-                        <div
-                          key={entry.id}
-                          className="group flex items-start gap-3 rounded-lg border border-border bg-card p-3 hover:border-border/80 transition-colors"
-                        >
-                          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-muted flex-shrink-0 mt-0.5">
-                            <Store className="h-4 w-4 text-muted-foreground" />
-                          </div>
-
-                          <div className="flex-1 min-w-0 space-y-2">
-                            <div className="grid gap-2 sm:grid-cols-[180px_1fr]">
-                              <Input
-                                value={entry.name}
-                                onChange={(e) => handleUpdateUrl(entry.id, "name", e.target.value)}
-                                className="h-8 text-sm"
-                                placeholder="車選び掲載"
-                              />
-                              <div className="relative">
-                                <Link2 className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                                <Input
-                                  value={entry.url}
-                                  onChange={(e) => handleUpdateUrl(entry.id, "url", e.target.value)}
-                                  className="h-8 text-sm pl-8 font-mono"
-                                  placeholder="https://..."
-                                />
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  "text-[10px] h-5",
-                                  entry.status === "valid"
-                                    ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400"
-                                    : entry.status === "invalid"
-                                      ? "border-destructive/30 bg-destructive/10 text-destructive"
-                                      : "border-border bg-muted text-muted-foreground",
-                                )}
-                              >
-                                {entry.status === "valid" && (
-                                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                                )}
-                                {entry.status === "invalid" && (
-                                  <AlertCircle className="h-3 w-3 mr-1" />
-                                )}
-                                {entry.status === "valid"
-                                  ? "URL有効"
-                                  : entry.status === "invalid"
-                                    ? "URL無効"
-                                    : "未確認"}
-                              </Badge>
-                              {entry.status === "valid" && (
-                                <a
-                                  href={entry.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-[10px] text-muted-foreground hover:text-primary flex items-center gap-0.5 transition-colors"
-                                >
-                                  <ExternalLink className="h-3 w-3" />
-                                  開く
-                                </a>
-                              )}
-                            </div>
-                          </div>
-
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                            onClick={() => handleRemoveUrl(entry.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">削除</span>
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-10 text-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-3">
-                      <Globe className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                    <p className="text-sm font-medium text-foreground">URLが登録されていません</p>
-                    <p className="text-xs text-muted-foreground mt-1 max-w-[300px]">
-                      上のフォームから、自社の在庫情報が掲載されているWEBサイトのURLを追加してください
-                    </p>
-                  </div>
-                )}
 
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
                   ※お客様の責任において登録したURLから在庫データを自動的にローカルに保存し、分析に活用します。取得は通常閲覧の範囲内で行われます。
