@@ -260,7 +260,7 @@ export function ReportsDashboard() {
           </TabsTrigger>
           <TabsTrigger value="export" className="gap-2 text-sm">
             <Ship className="h-4 w-4" />
-            輸出ランキング
+            輸出動向
           </TabsTrigger>
         </TabsList>
 
