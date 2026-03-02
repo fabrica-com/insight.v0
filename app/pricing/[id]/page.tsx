@@ -1352,7 +1352,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                         <TableRow>
                           <TableHead className="w-[160px]">競合店</TableHead>
                           <TableHead>仕様</TableHead>
-                          <TableHead className="text-center w-[60px]">在庫日数</TableHead>
+                          <TableHead className="text-center w-[90px]">在庫始期/日数</TableHead>
                           <TableHead className="text-right">価格</TableHead>
                           <TableHead className="text-right w-[80px]">差額</TableHead>
                         </TableRow>
@@ -1384,9 +1384,12 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                                 </div>
                               </TableCell>
                               <TableCell className="text-center">
-                                <Badge variant="outline" className={`text-xs ${comp.daysOnMarket > 60 ? "border-destructive text-destructive" : comp.daysOnMarket > 30 ? "border-amber-400 text-amber-600" : "border-green-400 text-green-600"}`}>
-                                  {comp.daysOnMarket}日
-                                </Badge>
+                                <div className="flex flex-col items-center gap-0.5">
+                                  <span className="text-xs text-muted-foreground">{comp.listingDate.slice(5).replace("-", "/")}</span>
+                                  <Badge variant="outline" className={`text-xs ${comp.daysOnMarket > 60 ? "border-destructive text-destructive" : comp.daysOnMarket > 30 ? "border-amber-400 text-amber-600" : "border-green-400 text-green-600"}`}>
+                                    {comp.daysOnMarket}日
+                                  </Badge>
+                                </div>
                               </TableCell>
                               <TableCell className="text-right">
                                 <div className="flex flex-col">
@@ -1509,7 +1512,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                         <TableRow>
                           <TableHead className="w-[160px]">競合店</TableHead>
                           <TableHead>仕様</TableHead>
-                          <TableHead className="text-center w-[60px]">在庫日数</TableHead>
+                          <TableHead className="text-center w-[90px]">在庫始期/日数</TableHead>
                           <TableHead className="text-right">価格</TableHead>
                           <TableHead className="text-right w-[80px]">差額</TableHead>
                         </TableRow>
@@ -1541,9 +1544,12 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                                 </div>
                               </TableCell>
                               <TableCell className="text-center">
-                                <Badge variant="outline" className={`text-xs ${vehicle.daysOnMarket > 60 ? "border-destructive text-destructive" : vehicle.daysOnMarket > 30 ? "border-amber-400 text-amber-600" : "border-green-400 text-green-600"}`}>
-                                  {vehicle.daysOnMarket}日
-                                </Badge>
+                                <div className="flex flex-col items-center gap-0.5">
+                                  <span className="text-xs text-muted-foreground">{vehicle.listingDate.slice(5).replace("-", "/")}</span>
+                                  <Badge variant="outline" className={`text-xs ${vehicle.daysOnMarket > 60 ? "border-destructive text-destructive" : vehicle.daysOnMarket > 30 ? "border-amber-400 text-amber-600" : "border-green-400 text-green-600"}`}>
+                                    {vehicle.daysOnMarket}日
+                                  </Badge>
+                                </div>
                               </TableCell>
                               <TableCell className="text-right">
                                 <div className="flex flex-col">
@@ -1974,7 +1980,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                 </div>
 
                 <div className="flex items-center justify-between p-3 rounded-lg border">
-                  <div className="space-y-0.5"><Label>自動追従を有効化</Label><p className="text-xs text-muted-foreground">相手���価格変更したら自動で追従</p></div>
+                  <div className="space-y-0.5"><Label>自動追��を有効化</Label><p className="text-xs text-muted-foreground">相手���価格変更したら自動で追従</p></div>
                   <Switch checked={trackingActive} onCheckedChange={setTrackingActive} />
                 </div>
 
