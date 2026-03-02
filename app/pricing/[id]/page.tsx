@@ -644,7 +644,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     newCarPrice: 10500000,
     transmission: "CVT", drivetrain: "4WD", fuelType: "ハイブリッド",
     inspection: "2027年1月", repairHistory: "なし",
-    equipment: ["エグゼクティブラウンジシート", "JBLサウンド", "デジタルキー", "パノラミックビュー"],
+    equipment: ["エグゼクティブラウンジシート", "JBLサウンド", "デジ���ルキー", "パノラミックビュー"],
     daysOnMarket: 15,
     priceHistory: [
       { date: "02/01", price: 9200000 }, { date: "02/15", price: 8800000 },
@@ -1213,7 +1213,73 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
             </div>
           )}
 
-
+          {/* Price Comparison Chart - Own vs Market */}
+          {selectedItem.priceHistory.length > 0 && competitors.length > 0 && (() => {
+            const timeline = ["09/01","10/01","11/01","12/01","01/01","02/01","03/01","04/01","05/01","06/01","07/01","08/01"]
+            const ownPrice = selectedItem.currentPrice
+            const relevantComps = competitors.filter(c => c.price >= ownPrice * 0.4 && c.price <= ownPrice * 2.0)
+            const ownByMonth = new Map<string, number>()
+            selectedItem.priceHistory.forEach(p => { ownByMonth.set(p.date.slice(0, 2) + "/01", p.price) })
+            const compByMonthArr = relevantComps.map(c => {
+              const map = new Map<string, number>()
+              c.priceHistory.forEach(p => { map.set(p.date.slice(0, 2) + "/01", p.price) })
+              return map
+            })
+            const ownMonths = timeline.filter(m => ownByMonth.has(m))
+            if (ownMonths.length === 0) return null
+            const si = timeline.indexOf(ownMonths[0])
+            const ei = timeline.indexOf(ownMonths[ownMonths.length - 1])
+            const active = si <= ei ? timeline.slice(si, ei + 1) : [...timeline.slice(si), ...timeline.slice(0, ei + 1)]
+            let pOwn = ownByMonth.get(active[0]) ?? ownPrice
+            const pComp = compByMonthArr.map(m => { for (const t of active) { if (m.has(t)) return m.get(t)! } return null })
+            const chartData = active.map((month) => {
+              if (ownByMonth.has(month)) pOwn = ownByMonth.get(month)!
+              const prices: number[] = []
+              compByMonthArr.forEach((m, ci) => { if (m.has(month)) pComp[ci] = m.get(month)!; if (pComp[ci] !== null) prices.push(pComp[ci]!) })
+              return {
+                date: month.replace("/01", "月"), own: pOwn,
+                avgComp: prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : pOwn,
+                minComp: prices.length > 0 ? Math.min(...prices) : pOwn,
+                maxComp: prices.length > 0 ? Math.max(...prices) : pOwn,
+              }
+            })
+            return (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    価格推移比較
+                  </CardTitle>
+                  <CardDescription className="text-xs">自社 {selectedItem.model} {selectedItem.grade} と競合（{relevantComps.length}台）の全体平均推移</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[260px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                        <YAxis tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} tick={{ fontSize: 11 }} domain={["auto", "auto"]} />
+                        <Tooltip formatter={(value: number, name: string) => {
+                          const label = name === "own" ? `自社 ${selectedItem.model} ${selectedItem.grade}` : name === "avgComp" ? "他社平均" : name === "minComp" ? "他社最安" : "他社最高"
+                          return [`\u00A5${value.toLocaleString()}`, label]
+                        }} />
+                        <Line type="monotone" dataKey="own" name="own" stroke="#2563eb" strokeWidth={3} dot={{ fill: "#2563eb", strokeWidth: 2, r: 4 }} />
+                        <Line type="monotone" dataKey="avgComp" name="avgComp" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" dot={{ fill: "#f59e0b", strokeWidth: 1, r: 3 }} />
+                        <Line type="monotone" dataKey="minComp" name="minComp" stroke="#10b981" strokeWidth={1.5} strokeDasharray="3 3" dot={{ fill: "#10b981", r: 2 }} />
+                        <Line type="monotone" dataKey="maxComp" name="maxComp" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="3 3" dot={{ fill: "#ef4444", r: 2 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex items-center gap-4 mt-2 justify-center text-xs flex-wrap">
+                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "#2563eb" }} /> 自社 {selectedItem.model} {selectedItem.grade}</span>
+                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t-2 border-dashed" style={{ borderColor: "#f59e0b" }} /> 他社平均</span>
+                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t border-dashed" style={{ borderColor: "#10b981" }} /> 他社最安</span>
+                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t border-dashed" style={{ borderColor: "#ef4444" }} /> 他社最高</span>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })()}
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* Left: Competitor store comparison */}
