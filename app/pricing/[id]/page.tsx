@@ -816,7 +816,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
   const [adjustedPrice, setAdjustedPrice] = useState<string>(selectedItem?.currentPrice.toString() || "")
   const [adjustedTotalPrice, setAdjustedTotalPrice] = useState<string>("")
   const [expenses, setExpenses] = useState<number>(0)
-  const [selectedCompetitorForChart, setSelectedCompetitorForChart] = useState<CompetitorInventoryItem | null>(null)
+
 
   const [trackingModalOpen, setTrackingModalOpen] = useState(false)
   const [selectedTrackingTarget, setSelectedTrackingTarget] = useState<CompetitorInventoryItem | null>(null)
@@ -829,10 +829,19 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
   const [areaScope, setAreaScope] = useState<"prefecture" | "kanto" | "all">("prefecture")
   const [compFilterExpanded, setCompFilterExpanded] = useState(false)
   const [compFilters, setCompFilters] = useState({
-    yearRange: 2 as 0 | 1 | 2, // 0=same, 1=+-1, 2=+-2
+    yearRange: 2 as 0 | 1 | 2,
     mileageRange: 30000,
     sameColor: false,
   })
+  const [areaFilterExpanded, setAreaFilterExpanded] = useState(false)
+  const [areaFilters, setAreaFilters] = useState({
+    yearRange: 2 as 0 | 1 | 2,
+    mileageRange: 30000,
+    sameColor: false,
+  })
+  const [compChartModalOpen, setCompChartModalOpen] = useState(false)
+  const [areaChartModalOpen, setAreaChartModalOpen] = useState(false)
+
   const [step, setStep] = useState<1 | "2a" | "2b" | 3>(1)
 
 
@@ -904,7 +913,6 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
   const getAreaVehicles = (item: InventoryItem) => {
     return mockCompetitorInventory
       .filter((comp) => {
-        // Must be same model
         if (comp.manufacturer !== item.manufacturer || comp.model !== item.model) return false
         // Area filter
         if (areaScope === "prefecture") {
@@ -914,7 +922,19 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
           const kantoRegions = ["東京", "神奈川", "千葉", "埼玉", "茨城", "栃木", "群馬"]
           if (!kantoRegions.some((r) => comp.competitorArea.includes(r))) return false
         }
-        // "all" = no area filter
+        // Year filter
+        if (Math.abs(comp.year - item.year) > areaFilters.yearRange) return false
+        // Mileage filter
+        if (Math.abs(comp.mileage - item.mileage) > areaFilters.mileageRange) return false
+        // Color filter
+        if (areaFilters.sameColor) {
+          const normalize = (c: string) => {
+            if (c.includes("ホワイト") || c.includes("パール") || c.includes("白")) return "white"
+            if (c.includes("ブラック") || c.includes("黒")) return "black"
+            return c
+          }
+          if (normalize(comp.color) !== normalize(item.color)) return false
+        }
         return true
       })
       .sort((a, b) => a.price - b.price)
@@ -1193,107 +1213,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
             </div>
           )}
 
-          {/* Price Comparison Chart - Own vs Market */}
-          {selectedItem.priceHistory.length > 0 && competitors.length > 0 && (() => {
-            // Fixed chronological timeline (fiscal year order: Sep -> Aug)
-            const timeline = ["09/01","10/01","11/01","12/01","01/01","02/01","03/01","04/01","05/01","06/01","07/01","08/01"]
 
-            // Filter out extreme outliers (price > 2x or < 0.5x of own)
-            const ownPrice = selectedItem.currentPrice
-            const relevantComps = competitors.filter(c => c.price >= ownPrice * 0.4 && c.price <= ownPrice * 2.0)
-
-            // Build own price per month (snap each date to its month)
-            const ownByMonth = new Map<string, number>()
-            selectedItem.priceHistory.forEach(p => {
-              const monthKey = p.date.slice(0, 2) + "/01"
-              ownByMonth.set(monthKey, p.price)
-            })
-
-            // Build each competitor price per month
-            const compByMonth = relevantComps.map(c => {
-              const map = new Map<string, number>()
-              c.priceHistory.forEach(p => {
-                const monthKey = p.date.slice(0, 2) + "/01"
-                map.set(monthKey, p.price)
-              })
-              return map
-            })
-
-            // Only include months where own data exists, carry-forward for gaps
-            const ownMonths = timeline.filter(m => ownByMonth.has(m))
-            if (ownMonths.length === 0) return null
-
-            // Expand to range: from earliest own month to latest own month
-            const startIdx = timeline.indexOf(ownMonths[0])
-            const endIdx = timeline.indexOf(ownMonths[ownMonths.length - 1])
-            const activeTimeline = startIdx <= endIdx
-              ? timeline.slice(startIdx, endIdx + 1)
-              : [...timeline.slice(startIdx), ...timeline.slice(0, endIdx + 1)]
-
-            // Build chart data with carry-forward (no nulls)
-            let prevOwn = ownByMonth.get(activeTimeline[0]) ?? ownPrice
-            const prevComp = compByMonth.map(m => {
-              // Find initial value: first available price
-              for (const t of activeTimeline) { if (m.has(t)) return m.get(t)! }
-              return null
-            })
-
-            const chartData = activeTimeline.map((month, i) => {
-              // Own price
-              if (ownByMonth.has(month)) prevOwn = ownByMonth.get(month)!
-              const own = prevOwn
-
-              // Competitor prices with carry-forward
-              const compPrices: number[] = []
-              compByMonth.forEach((m, ci) => {
-                if (m.has(month)) prevComp[ci] = m.get(month)!
-                if (prevComp[ci] !== null) compPrices.push(prevComp[ci]!)
-              })
-
-              const avg = compPrices.length > 0 ? Math.round(compPrices.reduce((a, b) => a + b, 0) / compPrices.length) : own
-              const min = compPrices.length > 0 ? Math.min(...compPrices) : own
-              const max = compPrices.length > 0 ? Math.max(...compPrices) : own
-
-              return { date: month.replace("/01", "月"), own, avgComp: avg, minComp: min, maxComp: max, _idx: i }
-            })
-
-            return (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4" />
-                    価格推移比較
-                  </CardTitle>
-                  <CardDescription className="text-xs">自社 {selectedItem.model} {selectedItem.grade} と他社（{relevantComps.length}台）の推移</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[260px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                        <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                        <YAxis tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} tick={{ fontSize: 11 }} domain={["auto", "auto"]} />
-                        <Tooltip formatter={(value: number, name: string) => {
-                          const label = name === "own" ? `自社 ${selectedItem.model} ${selectedItem.grade}` : name === "avgComp" ? "他社平均" : name === "minComp" ? "他社最安" : "他社最高"
-                          return [`¥${value.toLocaleString()}`, label]
-                        }} />
-                        <Line type="monotone" dataKey="own" name="own" stroke="#2563eb" strokeWidth={3} dot={{ fill: "#2563eb", strokeWidth: 2, r: 4 }} />
-                        <Line type="monotone" dataKey="avgComp" name="avgComp" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" dot={{ fill: "#f59e0b", strokeWidth: 1, r: 3 }} />
-                        <Line type="monotone" dataKey="minComp" name="minComp" stroke="#10b981" strokeWidth={1.5} strokeDasharray="3 3" dot={{ fill: "#10b981", r: 2 }} />
-                        <Line type="monotone" dataKey="maxComp" name="maxComp" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="3 3" dot={{ fill: "#ef4444", r: 2 }} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="flex items-center gap-4 mt-2 justify-center text-xs flex-wrap">
-                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "#2563eb" }} /> 自社 {selectedItem.model} {selectedItem.grade}</span>
-                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t-2 border-dashed" style={{ borderColor: "#f59e0b" }} /> 他社平均</span>
-                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t border-dashed" style={{ borderColor: "#10b981" }} /> 他社最安</span>
-                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t border-dashed" style={{ borderColor: "#ef4444" }} /> 他社最高</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })()}
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* Left: Competitor store comparison */}
@@ -1314,6 +1234,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" className="gap-1 bg-transparent text-xs" onClick={() => setCompChartModalOpen(true)} disabled={competitors.length === 0}><TrendingUp className="h-3.5 w-3.5" />グラフ</Button>
                     <Dialog open={compFilterExpanded} onOpenChange={setCompFilterExpanded}>
                       <DialogTrigger asChild>
                         <Button variant="outline" size="sm" className="gap-1 bg-transparent text-xs"><Filter className="h-3.5 w-3.5" />絞り込み</Button>
@@ -1372,9 +1293,8 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                       <TableBody>
                         {competitors.map((comp) => {
                           const pd = selectedItem.currentPrice - comp.price
-                          const isSelected = selectedCompetitorForChart?.id === comp.id
                           return (
-                            <TableRow key={comp.id} className={`cursor-pointer transition-colors ${isSelected ? "bg-primary/10" : "hover:bg-muted/50"}`} onClick={() => setSelectedCompetitorForChart(comp)}>
+                            <TableRow key={comp.id} className="hover:bg-muted/50">
                               <TableCell>
                                 <div className="flex flex-col gap-0.5">
                                   <span className="font-medium text-sm flex items-center gap-1"><Building2 className="h-3 w-3" />{comp.competitorName}</span>
@@ -1422,71 +1342,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                     </Table>
                   </ScrollArea>
                 )}
-                {selectedCompetitorForChart && (
-                  <Card className="bg-muted/30 mt-4">
-                    <CardHeader className="pb-2 pt-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle className="text-sm">価格推移比較: {selectedCompetitorForChart.competitorName} / {selectedCompetitorForChart.model} {selectedCompetitorForChart.grade}</CardTitle>
-                          <CardDescription className="text-xs">{selectedCompetitorForChart.year}年{selectedCompetitorForChart.month}月 / {selectedCompetitorForChart.mileage.toLocaleString()}km / {selectedCompetitorForChart.inspection}</CardDescription>
-                        </div>
-                        <Button variant="ghost" size="sm" onClick={() => setSelectedCompetitorForChart(null)}>閉じる</Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-[200px] w-full">
-                        {(() => {
-                          const timeline = ["09/01","10/01","11/01","12/01","01/01","02/01","03/01","04/01","05/01","06/01","07/01","08/01"]
-                          // Snap dates to month keys
-                          const compByMonth = new Map<string, number>()
-                          selectedCompetitorForChart.priceHistory.forEach(p => {
-                            compByMonth.set(p.date.slice(0, 2) + "/01", p.price)
-                          })
-                          const ownByMonth = new Map<string, number>()
-                          selectedItem.priceHistory.forEach(p => {
-                            ownByMonth.set(p.date.slice(0, 2) + "/01", p.price)
-                          })
-                          // Find range: earliest month with any data to latest
-                          const allKeys = new Set([...compByMonth.keys(), ...ownByMonth.keys()])
-                          const activeMonths = timeline.filter(m => allKeys.has(m))
-                          if (activeMonths.length === 0) return null
-                          const startIdx = timeline.indexOf(activeMonths[0])
-                          const endIdx = timeline.indexOf(activeMonths[activeMonths.length - 1])
-                          const range = startIdx <= endIdx
-                            ? timeline.slice(startIdx, endIdx + 1)
-                            : [...timeline.slice(startIdx), ...timeline.slice(0, endIdx + 1)]
 
-                          let prevOwn = ownByMonth.get(range[0]) ?? selectedItem.currentPrice
-                          let prevComp = compByMonth.get(range[0]) ?? selectedCompetitorForChart.price
-
-                          const mergedData = range.map(month => {
-                            if (ownByMonth.has(month)) prevOwn = ownByMonth.get(month)!
-                            if (compByMonth.has(month)) prevComp = compByMonth.get(month)!
-                            return { date: month.replace("/01", "月"), own: prevOwn, competitor: prevComp }
-                          })
-                          return (
-                            <ResponsiveContainer width="100%" height="100%">
-                              <LineChart data={mergedData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                                <YAxis tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} tick={{ fontSize: 11 }} domain={["auto", "auto"]} />
-                                <Tooltip formatter={(value: number, name: string) => {
-                                  return [`¥${value.toLocaleString()}`, name === "own" ? `自社 ${selectedItem.model} ${selectedItem.grade}` : `${selectedCompetitorForChart.competitorName} ${selectedCompetitorForChart.model} ${selectedCompetitorForChart.grade}`]
-                                }} />
-                                <Line type="monotone" dataKey="own" name="own" stroke="#2563eb" strokeWidth={2.5} dot={{ fill: "#2563eb", strokeWidth: 2, r: 4 }} />
-                                <Line type="monotone" dataKey="competitor" name="competitor" stroke="#f59e0b" strokeWidth={2} dot={{ fill: "#f59e0b", strokeWidth: 2, r: 3 }} />
-                              </LineChart>
-                            </ResponsiveContainer>
-                          )
-                        })()}
-                      </div>
-                      <div className="flex items-center gap-4 mt-2 justify-center text-xs flex-wrap">
-                        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "#2563eb" }} /> 自社 {selectedItem.model} {selectedItem.grade}</span>
-                        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "#f59e0b" }} /> {selectedCompetitorForChart.competitorName} {selectedCompetitorForChart.model} {selectedCompetitorForChart.grade}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
               </CardContent>
             </Card>
 
@@ -1499,13 +1355,17 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                       <MapPin className="h-4 w-4 text-emerald-600" />
                       エリア別比較
                     </CardTitle>
-                    <CardDescription className="mt-1 text-xs">
-                      <span className="font-medium text-emerald-600">{selectedItem.model}</span> の同エリア在庫
+                    <CardDescription className="mt-1 text-xs flex items-center gap-1 flex-wrap">
+                      <span className="font-medium text-emerald-600">{selectedItem.model}</span>
+                      {areaFilters.yearRange > 0 && <Badge variant="outline" className="text-[10px] h-4">{`\u00B1${areaFilters.yearRange}年`}</Badge>}
+                      {areaFilters.yearRange === 0 && <Badge variant="outline" className="text-[10px] h-4">同年式</Badge>}
+                      <Badge variant="outline" className="text-[10px] h-4">{`\u00B1${(areaFilters.mileageRange / 10000).toFixed(0)}万km`}</Badge>
+                      {areaFilters.sameColor && <Badge variant="outline" className="text-[10px] h-4">同色</Badge>}
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
                     <Select value={areaScope} onValueChange={(v) => setAreaScope(v as "prefecture" | "kanto" | "all")}>
-                      <SelectTrigger className="w-[140px] h-8 text-xs">
+                      <SelectTrigger className="w-[120px] h-8 text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1514,6 +1374,40 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                         <SelectItem value="all">全国</SelectItem>
                       </SelectContent>
                     </Select>
+                    <Button variant="outline" size="sm" className="gap-1 bg-transparent text-xs" onClick={() => setAreaChartModalOpen(true)} disabled={areaVehicles.length === 0}><TrendingUp className="h-3.5 w-3.5" />グラフ</Button>
+                    <Dialog open={areaFilterExpanded} onOpenChange={setAreaFilterExpanded}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-1 bg-transparent text-xs"><Filter className="h-3.5 w-3.5" />絞り込み</Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>エリア別比較 絞り込み条件</DialogTitle>
+                          <DialogDescription>年式・走行距離・色で絞り込みます</DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">年式</Label>
+                            <div className="flex gap-2">
+                              {([{v:0,l:"同年式"},{v:1,l:"\u00B11年"},{v:2,l:"\u00B12年"}] as const).map(o => (
+                                <Button key={o.v} type="button" variant={areaFilters.yearRange === o.v ? "default" : "outline"} size="sm" onClick={() => setAreaFilters(p => ({...p, yearRange: o.v}))}>{o.l}</Button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between"><Label className="text-sm font-medium">走行距離</Label><span className="text-sm text-muted-foreground">{`\u00B1${(areaFilters.mileageRange / 10000).toFixed(1)}万km`}</span></div>
+                            <Slider value={[areaFilters.mileageRange]} onValueChange={([v]) => setAreaFilters(p => ({...p, mileageRange: v}))} min={5000} max={50000} step={5000} />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm font-medium">同系色のみ</Label>
+                            <Switch checked={areaFilters.sameColor} onCheckedChange={(c) => setAreaFilters(p => ({...p, sameColor: c}))} />
+                          </div>
+                        </div>
+                        <DialogFooter className="flex justify-between sm:justify-between">
+                          <Button type="button" variant="outline" onClick={() => setAreaFilters({ yearRange: 2, mileageRange: 30000, sameColor: false })}>リセット</Button>
+                          <Button type="button" onClick={() => setAreaFilterExpanded(false)}>適用</Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                     <Badge className="px-2.5 py-0.5 bg-emerald-100 text-emerald-700 border-emerald-200">{areaVehicles.length}台</Badge>
                   </div>
                 </div>
@@ -1608,6 +1502,140 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
               </CardContent>
             </Card>
           </div>
+
+          {/* Competitor Chart Modal */}
+          <Dialog open={compChartModalOpen} onOpenChange={setCompChartModalOpen}>
+            <DialogContent className="sm:max-w-3xl">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2"><TrendingUp className="h-4 w-4" />競合店比較 価格推移グラフ</DialogTitle>
+                <DialogDescription>自社 {selectedItem.model} {selectedItem.grade} と競合店（{competitors.length}台）の価格推移</DialogDescription>
+              </DialogHeader>
+              {(() => {
+                const timeline = ["09/01","10/01","11/01","12/01","01/01","02/01","03/01","04/01","05/01","06/01","07/01","08/01"]
+                const ownPrice = selectedItem.currentPrice
+                const relevantComps = competitors.filter(c => c.price >= ownPrice * 0.4 && c.price <= ownPrice * 2.0)
+                const ownByMonth = new Map<string, number>()
+                selectedItem.priceHistory.forEach(p => { ownByMonth.set(p.date.slice(0, 2) + "/01", p.price) })
+                const compByMonthArr = relevantComps.map(c => {
+                  const map = new Map<string, number>()
+                  c.priceHistory.forEach(p => { map.set(p.date.slice(0, 2) + "/01", p.price) })
+                  return map
+                })
+                const ownMonths = timeline.filter(m => ownByMonth.has(m))
+                if (ownMonths.length === 0) return <p className="text-sm text-muted-foreground p-4">データがありません</p>
+                const si = timeline.indexOf(ownMonths[0])
+                const ei = timeline.indexOf(ownMonths[ownMonths.length - 1])
+                const active = si <= ei ? timeline.slice(si, ei + 1) : [...timeline.slice(si), ...timeline.slice(0, ei + 1)]
+                let pOwn = ownByMonth.get(active[0]) ?? ownPrice
+                const pComp = compByMonthArr.map(m => { for (const t of active) { if (m.has(t)) return m.get(t)! } return null })
+                const chartData = active.map((month) => {
+                  if (ownByMonth.has(month)) pOwn = ownByMonth.get(month)!
+                  const prices: number[] = []
+                  compByMonthArr.forEach((m, ci) => { if (m.has(month)) pComp[ci] = m.get(month)!; if (pComp[ci] !== null) prices.push(pComp[ci]!) })
+                  return {
+                    date: month.replace("/01", "月"), own: pOwn,
+                    avgComp: prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : pOwn,
+                    minComp: prices.length > 0 ? Math.min(...prices) : pOwn,
+                    maxComp: prices.length > 0 ? Math.max(...prices) : pOwn,
+                  }
+                })
+                return (
+                  <div className="space-y-4">
+                    <div className="h-[340px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                          <YAxis tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} tick={{ fontSize: 12 }} domain={["auto", "auto"]} />
+                          <Tooltip formatter={(value: number, name: string) => {
+                            const label = name === "own" ? `自社 ${selectedItem.model} ${selectedItem.grade}` : name === "avgComp" ? "他社平均" : name === "minComp" ? "他社最安" : "他社最高"
+                            return [`\u00A5${value.toLocaleString()}`, label]
+                          }} />
+                          <Line type="monotone" dataKey="own" name="own" stroke="#2563eb" strokeWidth={3} dot={{ fill: "#2563eb", strokeWidth: 2, r: 4 }} />
+                          <Line type="monotone" dataKey="avgComp" name="avgComp" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" dot={{ fill: "#f59e0b", strokeWidth: 1, r: 3 }} />
+                          <Line type="monotone" dataKey="minComp" name="minComp" stroke="#10b981" strokeWidth={1.5} strokeDasharray="3 3" dot={{ fill: "#10b981", r: 2 }} />
+                          <Line type="monotone" dataKey="maxComp" name="maxComp" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="3 3" dot={{ fill: "#ef4444", r: 2 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="flex items-center gap-4 justify-center text-xs flex-wrap">
+                      <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "#2563eb" }} /> 自社 {selectedItem.model} {selectedItem.grade}</span>
+                      <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t-2 border-dashed" style={{ borderColor: "#f59e0b" }} /> 他社平均</span>
+                      <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t border-dashed" style={{ borderColor: "#10b981" }} /> 他社最安</span>
+                      <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t border-dashed" style={{ borderColor: "#ef4444" }} /> 他社最高</span>
+                    </div>
+                  </div>
+                )
+              })()}
+            </DialogContent>
+          </Dialog>
+
+          {/* Area Chart Modal */}
+          <Dialog open={areaChartModalOpen} onOpenChange={setAreaChartModalOpen}>
+            <DialogContent className="sm:max-w-3xl">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2"><TrendingUp className="h-4 w-4" />エリア別比較 価格推移グラフ</DialogTitle>
+                <DialogDescription>自社 {selectedItem.model} {selectedItem.grade} と{areaScope === "prefecture" ? OWN_STORE_AREA : areaScope === "kanto" ? "関東圏" : "全国"}（{areaVehicles.length}台）の価格推移</DialogDescription>
+              </DialogHeader>
+              {(() => {
+                const timeline = ["09/01","10/01","11/01","12/01","01/01","02/01","03/01","04/01","05/01","06/01","07/01","08/01"]
+                const ownPrice = selectedItem.currentPrice
+                const relevantArea = areaVehicles.filter(c => c.price >= ownPrice * 0.4 && c.price <= ownPrice * 2.0)
+                const ownByMonth = new Map<string, number>()
+                selectedItem.priceHistory.forEach(p => { ownByMonth.set(p.date.slice(0, 2) + "/01", p.price) })
+                const areaByMonthArr = relevantArea.map(c => {
+                  const map = new Map<string, number>()
+                  c.priceHistory.forEach(p => { map.set(p.date.slice(0, 2) + "/01", p.price) })
+                  return map
+                })
+                const ownMonths = timeline.filter(m => ownByMonth.has(m))
+                if (ownMonths.length === 0) return <p className="text-sm text-muted-foreground p-4">データがありません</p>
+                const si = timeline.indexOf(ownMonths[0])
+                const ei = timeline.indexOf(ownMonths[ownMonths.length - 1])
+                const active = si <= ei ? timeline.slice(si, ei + 1) : [...timeline.slice(si), ...timeline.slice(0, ei + 1)]
+                let pOwn = ownByMonth.get(active[0]) ?? ownPrice
+                const pArea = areaByMonthArr.map(m => { for (const t of active) { if (m.has(t)) return m.get(t)! } return null })
+                const chartData = active.map((month) => {
+                  if (ownByMonth.has(month)) pOwn = ownByMonth.get(month)!
+                  const prices: number[] = []
+                  areaByMonthArr.forEach((m, ci) => { if (m.has(month)) pArea[ci] = m.get(month)!; if (pArea[ci] !== null) prices.push(pArea[ci]!) })
+                  return {
+                    date: month.replace("/01", "月"), own: pOwn,
+                    avgArea: prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : pOwn,
+                    minArea: prices.length > 0 ? Math.min(...prices) : pOwn,
+                    maxArea: prices.length > 0 ? Math.max(...prices) : pOwn,
+                  }
+                })
+                return (
+                  <div className="space-y-4">
+                    <div className="h-[340px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                          <YAxis tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} tick={{ fontSize: 12 }} domain={["auto", "auto"]} />
+                          <Tooltip formatter={(value: number, name: string) => {
+                            const label = name === "own" ? `自社 ${selectedItem.model} ${selectedItem.grade}` : name === "avgArea" ? "エリア平均" : name === "minArea" ? "エリア最安" : "エリア最高"
+                            return [`\u00A5${value.toLocaleString()}`, label]
+                          }} />
+                          <Line type="monotone" dataKey="own" name="own" stroke="#2563eb" strokeWidth={3} dot={{ fill: "#2563eb", strokeWidth: 2, r: 4 }} />
+                          <Line type="monotone" dataKey="avgArea" name="avgArea" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" dot={{ fill: "#f59e0b", strokeWidth: 1, r: 3 }} />
+                          <Line type="monotone" dataKey="minArea" name="minArea" stroke="#10b981" strokeWidth={1.5} strokeDasharray="3 3" dot={{ fill: "#10b981", r: 2 }} />
+                          <Line type="monotone" dataKey="maxArea" name="maxArea" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="3 3" dot={{ fill: "#ef4444", r: 2 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="flex items-center gap-4 justify-center text-xs flex-wrap">
+                      <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "#2563eb" }} /> 自社 {selectedItem.model} {selectedItem.grade}</span>
+                      <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t-2 border-dashed" style={{ borderColor: "#f59e0b" }} /> エリア平均</span>
+                      <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t border-dashed" style={{ borderColor: "#10b981" }} /> エリア最安</span>
+                      <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t border-dashed" style={{ borderColor: "#ef4444" }} /> エリア最高</span>
+                    </div>
+                  </div>
+                )
+              })()}
+            </DialogContent>
+          </Dialog>
 
           {/* Action buttons at bottom of Step 1 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
