@@ -25,7 +25,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 import {
   ArrowLeft,
   TrendingUp,
@@ -48,9 +48,12 @@ import {
   ChevronUp,
   ExternalLink,
   Calculator,
+  ArrowRight,
+  Check,
+  Pencil,
 } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible" // Added
+
 
 type InventoryItem = {
   id: string
@@ -655,10 +658,8 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
     mileageRange: 10000,
     sameColor: true,
   })
-  const [filterExpanded, setFilterExpanded] = useState(false) // Replaced filterPopoverOpen
-  const [pricingMode, setPricingMode] = useState<"manual" | "tracking">(
-    trackingSettings?.isActive ? "tracking" : "manual"
-  )
+  const [filterExpanded, setFilterExpanded] = useState(false)
+  const [step, setStep] = useState<1 | "2a" | "2b" | 3>(1)
 
 
 
@@ -827,8 +828,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
     setTrackingSettings(newSettings)
     setAdjustedTotalPrice(Math.round(finalTotalPrice).toString())
     setAdjustedPrice(Math.max(0, Math.round(finalTotalPrice) - expenses).toString())
-    setPricingMode("tracking")
-    setTrackingModalOpen(false)
+    setStep(3)
   }
 
   const calculateMetrics = (item: InventoryItem | null, price: string) => {
@@ -854,13 +854,11 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
     }
   }
 
-  const handleSavePrice = () => {
-    // Use adjustedTotalPrice for saving
-    const finalTotalPriceNum = Number(adjustedTotalPrice.replace(/,/g, ""))
-    console.log("[v0] Saving new price:", finalTotalPriceNum, "for item:", selectedItem?.id)
-    if (trackingSettings) {
-      console.log("[v0] With tracking settings:", trackingSettings)
-    }
+  const handleGoToConfirm = () => {
+    setStep(3)
+  }
+
+  const handleExecute = () => {
     router.push("/pricing")
   }
 
@@ -901,617 +899,597 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
         <main className="flex-1 overflow-y-auto p-6">
           <div className="mx-auto max-w-[1800px] space-y-6">
 
-      {/* Header with back button */}
+      {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push("/pricing")}>
+        <Button variant="ghost" size="sm" onClick={() => {
+          if (step === 1) router.push("/pricing")
+          else if (step === "2a" || step === "2b") setStep(1)
+          else setStep(step === 3 && trackingSettings?.isActive ? "2b" : "2a")
+        }}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          戻る
+          {step === 1 ? "一覧に戻る" : "前へ戻る"}
         </Button>
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Car className="h-6 w-6" />
-            競合比較・価格調整
+        <div className="flex-1">
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            <Car className="h-5 w-5" />
+            {selectedItem.manufacturer} {selectedItem.model} <span className="text-muted-foreground font-normal text-base">{selectedItem.grade}</span>
           </h1>
-          <p className="text-sm text-muted-foreground">自社車両と競合店の同型式車両を比較し、最適な価格を設定</p>
         </div>
       </div>
 
-      <Card className="border-2 border-primary/30 bg-background sticky top-4 z-10 shadow-lg">
-        <CardContent className="py-4 bg-primary/5 rounded-lg">
-          <div className="flex items-center justify-between gap-6">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <Badge className="bg-primary text-primary-foreground">自社在庫</Badge>
-                <Badge variant="outline" className="font-mono">
-                  {selectedItem.modelCode}
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className={
-                    selectedItem.status === "overpriced"
-                      ? "border-destructive text-destructive"
-                      : selectedItem.status === "underpriced"
-                        ? "border-chart-2 text-chart-2"
-                        : "border-success text-success"
-                  }
-                >
-                  {selectedItem.status === "overpriced"
-                    ? "高価格"
-                    : selectedItem.status === "underpriced"
-                      ? "低価格"
-                      : "適正"}
-                </Badge>
-                {trackingSettings?.isActive && (
-                  <Badge className="bg-emerald-600 text-white gap-1">
-                    <Link2 className="h-3 w-3" />
-                    価格追従中
-                  </Badge>
-                )}
-                <a
-                  href="https://www.kurumaerabi.com/usedcar/detail/24068-25295/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-                  suppressHydrationWarning
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  車選びドットコム
-                </a>
-              </div>
-              <div className="flex items-center gap-4">
-                <h2 className="font-bold text-xl">
-                  {selectedItem.manufacturer} {selectedItem.model}
-                </h2>
-                <span className="text-muted-foreground">{selectedItem.grade}</span>
-                <span className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {selectedItem.year}年
-                </span>
-                <span className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Gauge className="h-3 w-3" />
-                  {selectedItem.mileage.toLocaleString()}km
-                </span>
-                <span className="text-sm text-muted-foreground">{selectedItem.color}</span>
-                <Badge
-                  variant="outline"
-                  className={
-                    selectedItem.daysOnMarket > 60
-                      ? "border-destructive text-destructive"
-                      : selectedItem.daysOnMarket > 30
-                        ? "border-warning text-warning"
-                        : ""
-                  }
-                >
-                  在���{selectedItem.daysOnMarket}日
-                </Badge>
-              </div>
+      {/* Stepper */}
+      <div className="flex items-center gap-0 bg-muted/30 rounded-lg p-2">
+        {[
+          { key: 1 as const, label: "競合比較", icon: Store },
+          { key: "2" as const, label: "価格設定", icon: Pencil },
+          { key: 3 as const, label: "確認・実行", icon: CheckCircle2 },
+        ].map((s, i) => {
+          const isCurrent = s.key === 1 ? step === 1 : s.key === "2" ? step === "2a" || step === "2b" : step === 3
+          const isDone = s.key === 1 ? step !== 1 : s.key === "2" ? step === 3 : false
+          return (
+            <React.Fragment key={s.key}>
+              {i > 0 && <div className={`flex-shrink-0 w-8 h-px ${isDone || isCurrent ? "bg-primary" : "bg-border"}`} />}
+              <button
+                type="button"
+                onClick={() => { if (isDone) { if (s.key === 1) setStep(1); } }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  isCurrent
+                    ? "bg-primary text-primary-foreground"
+                    : isDone
+                      ? "bg-primary/10 text-primary cursor-pointer hover:bg-primary/20"
+                      : "text-muted-foreground"
+                }`}
+              >
+                {isDone ? <Check className="h-4 w-4" /> : <s.icon className="h-4 w-4" />}
+                {s.label}
+              </button>
+            </React.Fragment>
+          )
+        })}
+      </div>
+
+      {/* Compact vehicle info bar */}
+      <Card className="border-primary/20">
+        <CardContent className="py-3">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3 flex-wrap">
+              <Badge className="bg-primary text-primary-foreground">自社在庫</Badge>
+              <Badge variant="outline" className="font-mono">{selectedItem.modelCode}</Badge>
+              <span className="text-sm text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" />{selectedItem.year}年</span>
+              <span className="text-sm text-muted-foreground flex items-center gap-1"><Gauge className="h-3 w-3" />{selectedItem.mileage.toLocaleString()}km</span>
+              <span className="text-sm text-muted-foreground">{selectedItem.color}</span>
+              <Badge variant="outline" className={selectedItem.daysOnMarket > 60 ? "border-destructive text-destructive" : selectedItem.daysOnMarket > 30 ? "border-amber-500 text-amber-600" : ""}>
+                在庫{selectedItem.daysOnMarket}日
+              </Badge>
             </div>
-            {/* Own inventory card - Sticky */}
             <div className="flex items-center gap-6">
               <div className="text-right">
-                {/* Display Total Price */}
-                <div className="text-xs text-muted-foreground">支払総額（税込）</div>
-                <div className="text-2xl font-bold text-primary">
-                  ¥{calculatePaymentTotal(adjustedTotalPrice).toLocaleString()}
-                </div>
-                <div className="text-xs text-muted-foreground mt-0.5">車両本体 ¥{adjustedPrice.toLocaleString()}</div>
+                <div className="text-[10px] text-muted-foreground">現在支払総額</div>
+                <div className="text-lg font-bold text-primary">¥{calculatePaymentTotal(selectedItem.currentPrice).toLocaleString()}</div>
               </div>
               <div className="text-right">
-                <div className="text-xs text-muted-foreground">市場相場（税込）</div>
-                <div className="text-lg">¥{calculatePaymentTotal(selectedItem.marketPrice).toLocaleString()}</div>
-                <div className="text-xs text-muted-foreground mt-0.5">
-                  車両本体 ¥{selectedItem.marketPrice.toLocaleString()}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-xs text-muted-foreground">差額</div>
-                {selectedItem.currentPrice > selectedItem.marketPrice ? (
-                  <span className="text-destructive font-medium">
-                    +¥{(selectedItem.currentPrice - selectedItem.marketPrice).toLocaleString()}
-                  </span>
-                ) : selectedItem.currentPrice < selectedItem.marketPrice ? (
-                  <span className="text-chart-2 font-medium">
-                    -¥{(selectedItem.marketPrice - selectedItem.currentPrice).toLocaleString()}
-                  </span>
-                ) : (
-                  <span className="text-success font-medium">適正</span>
-                )}
+                <div className="text-[10px] text-muted-foreground">市場相場</div>
+                <div className="text-base">¥{calculatePaymentTotal(selectedItem.marketPrice).toLocaleString()}</div>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Main content - 3 column layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr,1fr,380px] gap-6">
-        {/* Competitor list (all same model) */}
-        <Card className="border-indigo-500/20">
-          <CardHeader className="pb-3 bg-indigo-500/5 rounded-t-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Store className="h-5 w-5 text-indigo-600" />
-                  同型式の他社在庫一覧
-                </CardTitle>
-                <CardDescription className="mt-1">
-                  <span className="font-medium text-indigo-600">{selectedItem.model}</span> の全在庫 -- 型式・年式・色・距離を問わず同じ車種名の競合車両すべて
-                </CardDescription>
-              </div>
-              <Badge className="text-base px-3 py-1 bg-indigo-100 text-indigo-700 border-indigo-200">
-                {competitors.length}台
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {competitors.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                <Store className="h-16 w-16 mb-4 opacity-30" />
-                <p className="text-lg">同型式の競合車両はありません</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {/* Add filter button */}
-                <Collapsible open={filterExpanded} onOpenChange={setFilterExpanded}>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="outline" className="flex items-center gap-1 bg-transparent w-full justify-between">
-                      <span className="flex items-center gap-1">
-                        <Filter className="h-4 w-4" />
-                        絞り込み条件 ({getActiveFilterCount()})
-                      </span>
-                      {filterExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-3 p-4 border rounded-lg bg-muted/30">
-                    <div className="grid grid-cols-1 gap-4">
-                      {/* Model Code */}
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="sameModelCode" className="text-sm">
-                          同一型式
-                        </Label>
-                        <Switch
-                          id="sameModelCode"
-                          checked={similarFilters.sameModelCode}
-                          onCheckedChange={(checked) =>
-                            setSimilarFilters((prev) => ({ ...prev, sameModelCode: checked }))
-                          }
-                        />
-                      </div>
-
-                      {/* Year */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="sameYear" className="text-sm">
-                            年式フィルター
-                          </Label>
-                          <Switch
-                            id="sameYear"
-                            checked={similarFilters.sameYear}
-                            onCheckedChange={(checked) => setSimilarFilters((prev) => ({ ...prev, sameYear: checked }))}
-                          />
-                        </div>
-                        {similarFilters.sameYear && (
-                          <div className="flex gap-1 pl-2">
-                            {[0, 1, 2].map((val) => (
-                              <Button
-                                key={val}
-                                type="button"
-                                size="sm"
-                                variant={similarFilters.yearRange === val ? "default" : "outline"}
-                                className="flex-1 h-7 text-xs"
-                                onClick={() => setSimilarFilters((prev) => ({ ...prev, yearRange: val }))}
-                              >
-                                ±{val}年
-                              </Button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Region */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="sameRegion" className="text-sm">
-                            地域フィルター
-                          </Label>
-                          <Switch
-                            id="sameRegion"
-                            checked={similarFilters.sameRegion}
-                            onCheckedChange={(checked) =>
-                              setSimilarFilters((prev) => ({ ...prev, sameRegion: checked }))
-                            }
-                          />
-                        </div>
-                        {similarFilters.sameRegion && (
-                          <div className="flex gap-1 pl-2">
-                            {[
-                              { value: "prefecture", label: "都道府県" },
-                              { value: "kanto", label: "関東圏" },
-                              { value: "all", label: "全国" },
-                            ].map((opt) => (
-                              <Button
-                                key={opt.value}
-                                type="button"
-                                size="sm"
-                                variant={similarFilters.regionScope === opt.value ? "default" : "outline"}
-                                className="flex-1 h-7 text-xs"
-                                onClick={() =>
-                                  setSimilarFilters((prev) => ({ ...prev, regionScope: opt.value as any }))
-                                }
-                              >
-                                {opt.label}
-                              </Button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Mileage */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label className="text-sm">走行距離範囲</Label>
-                          <span className="text-sm font-medium">
-                            ±{(similarFilters.mileageRange / 10000).toFixed(1)}万km
-                          </span>
-                        </div>
-                        <Slider
-                          value={[similarFilters.mileageRange]}
-                          onValueChange={([v]) => setSimilarFilters((prev) => ({ ...prev, mileageRange: v }))}
-                          min={5000}
-                          max={50000}
-                          step={5000}
-                          className="w-full"
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>±0.5万km</span>
-                          <span>±5万km</span>
-                        </div>
-                      </div>
-
-                      {/* Color */}
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="sameColor" className="text-sm">
-                          同系色のみ
-                        </Label>
-                        <Switch
-                          id="sameColor"
-                          checked={similarFilters.sameColor}
-                          onCheckedChange={(checked) => setSimilarFilters((prev) => ({ ...prev, sameColor: checked }))}
-                        />
-                      </div>
-
-                      {/* Reset button */}
-                      <Button variant="ghost" size="sm" onClick={resetFilters} className="w-full mt-2">
-                        <RotateCcw className="h-3 w-3 mr-1" />
-                        条件をリセット
-                      </Button>
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-
-                <ScrollArea className="h-[350px]">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[180px]">競合店</TableHead>
-                        <TableHead>仕様</TableHead>
-                        <TableHead className="text-right">価格</TableHead>
-                        <TableHead className="text-right">差額</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {competitors.map((comp) => {
-                        const priceDiff = selectedItem.currentPrice - comp.price
-                        const isSelected = selectedCompetitorForChart?.id === comp.id
-                        return (
-                          <TableRow
-                            key={comp.id}
-                            className={`cursor-pointer transition-colors ${isSelected ? "bg-primary/10" : "hover:bg-muted/50"}`}
-                            onClick={() => setSelectedCompetitorForChart(comp)}
-                          >
-                            <TableCell>
-                              <div className="flex flex-col gap-0.5">
-                                <span className="font-medium text-sm flex items-center gap-1">
-                                  <Building2 className="h-3 w-3" />
-                                  {comp.competitorName}
-                                </span>
-                                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <MapPin className="h-3 w-3" />
-                                  {comp.competitorArea}
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex flex-col gap-0.5">
-                                <span className="text-sm">{comp.grade}</span>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  <span>{comp.year}年</span>
-                                  <span>{comp.mileage.toLocaleString()}km</span>
+      {/* ===== STEP 1: 競合比較 ===== */}
+      {step === 1 && (
+        <>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {/* Left: All same model */}
+            <Card className="border-indigo-500/20">
+              <CardHeader className="pb-3 bg-indigo-500/5 rounded-t-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Store className="h-4 w-4 text-indigo-600" />
+                      同型式の他社在庫一覧
+                    </CardTitle>
+                    <CardDescription className="mt-1 text-xs">
+                      <span className="font-medium text-indigo-600">{selectedItem.model}</span> の全在庫
+                    </CardDescription>
+                  </div>
+                  <Badge className="px-2.5 py-0.5 bg-indigo-100 text-indigo-700 border-indigo-200">{competitors.length}台</Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {competitors.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                    <Store className="h-12 w-12 mb-3 opacity-30" />
+                    <p>同型式の競合車両はありません</p>
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[400px]">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[180px]">競合店</TableHead>
+                          <TableHead>仕様</TableHead>
+                          <TableHead className="text-right">価格</TableHead>
+                          <TableHead className="text-right">差額</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {competitors.map((comp) => {
+                          const pd = selectedItem.currentPrice - comp.price
+                          const isSelected = selectedCompetitorForChart?.id === comp.id
+                          return (
+                            <TableRow key={comp.id} className={`cursor-pointer transition-colors ${isSelected ? "bg-primary/10" : "hover:bg-muted/50"}`} onClick={() => setSelectedCompetitorForChart(comp)}>
+                              <TableCell>
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="font-medium text-sm flex items-center gap-1"><Building2 className="h-3 w-3" />{comp.competitorName}</span>
+                                  <span className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{comp.competitorArea}</span>
                                 </div>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex flex-col">
-                                <span className="font-bold text-chart-1">
-                                  ¥{calculatePaymentTotal(comp.price).toLocaleString()}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  本体 ¥{comp.price.toLocaleString()}
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {priceDiff > 0 ? (
-                                <span className="text-destructive text-sm">+¥{priceDiff.toLocaleString()}</span>
-                              ) : priceDiff < 0 ? (
-                                <span className="text-chart-2 text-sm">-¥{Math.abs(priceDiff).toLocaleString()}</span>
-                              ) : (
-                                <span className="text-muted-foreground text-sm">同額</span>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })}
-                    </TableBody>
-                  </Table>
-                </ScrollArea>
-
-                {/* Price history chart for selected competitor */}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="text-sm">{comp.grade}</span>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <span>{comp.year}年</span><span>{comp.mileage.toLocaleString()}km</span>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex flex-col">
+                                  <span className="font-bold">¥{calculatePaymentTotal(comp.price).toLocaleString()}</span>
+                                  <span className="text-xs text-muted-foreground">本体 ¥{comp.price.toLocaleString()}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {pd > 0 ? <span className="text-destructive text-sm">+¥{pd.toLocaleString()}</span> : pd < 0 ? <span className="text-chart-2 text-sm">-¥{Math.abs(pd).toLocaleString()}</span> : <span className="text-muted-foreground text-sm">同額</span>}
+                              </TableCell>
+                            </TableRow>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                )}
                 {selectedCompetitorForChart && (
-                  <Card className="bg-muted/30">
+                  <Card className="bg-muted/30 mt-4">
                     <CardHeader className="pb-2 pt-3">
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-sm flex items-center gap-2">
-                          価格推移: {selectedCompetitorForChart.competitorName}
-                        </CardTitle>
-                        <Button variant="ghost" size="sm" onClick={() => setSelectedCompetitorForChart(null)}>
-                          閉じる
-                        </Button>
+                        <CardTitle className="text-sm">価格推移: {selectedCompetitorForChart.competitorName}</CardTitle>
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedCompetitorForChart(null)}>閉じる</Button>
                       </div>
                     </CardHeader>
                     <CardContent>
                       <div className="h-[180px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                          <LineChart
-                            data={selectedCompetitorForChart.priceHistory}
-                            margin={{ top: 10, right: 30, left: 20, bottom: 10 }}
-                          >
+                          <LineChart data={selectedCompetitorForChart.priceHistory} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                             <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                            <YAxis
-                              tickFormatter={(value) => `${(value / 10000).toFixed(0)}万`}
-                              tick={{ fontSize: 11 }}
-                              domain={["dataMin - 200000", "dataMax + 200000"]}
-                            />
-                            <Tooltip formatter={(value: number) => [`¥{value.toLocaleString()}`, "価格"]} />
-                            <ReferenceLine
-                              y={selectedItem.currentPrice}
-                              stroke="hsl(var(--primary))"
-                              strokeDasharray="5 5"
-                              label={{
-                                value: "自社",
-                                position: "right",
-                                fontSize: 10,
-                                fill: "hsl(var(--primary))",
-                              }}
-                            />
-                            <Line
-                              type="stepAfter"
-                              dataKey="price"
-                              stroke="hsl(var(--chart-1))"
-                              strokeWidth={2}
-                              dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 2, r: 3 }}
-                            />
+                            <YAxis tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} tick={{ fontSize: 11 }} domain={["dataMin - 200000", "dataMax + 200000"]} />
+                            <Tooltip formatter={(value: number) => [`¥${value.toLocaleString()}`, "価格"]} />
+                            <ReferenceLine y={selectedItem.currentPrice} stroke="hsl(var(--primary))" strokeDasharray="5 5" label={{ value: "自社", position: "right", fontSize: 10, fill: "hsl(var(--primary))" }} />
+                            <Line type="stepAfter" dataKey="price" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 2, r: 3 }} />
                           </LineChart>
                         </ResponsiveContainer>
                       </div>
                     </CardContent>
                   </Card>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Right: Similar condition */}
+            <Card className="border-emerald-500/20">
+              <CardHeader className="pb-3 bg-emerald-500/5 rounded-t-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Target className="h-4 w-4 text-emerald-600" />
+                      類似条件の競合在庫
+                    </CardTitle>
+                    <CardDescription className="flex items-center gap-1 flex-wrap mt-1">
+                      {similarFilters.sameModelCode && <Badge variant="outline" className="text-xs">同型式</Badge>}
+                      {similarFilters.sameYear && <Badge variant="outline" className="text-xs">{similarFilters.yearRange === 0 ? "同年式" : `±${similarFilters.yearRange}年`}</Badge>}
+                      {similarFilters.sameRegion && <Badge variant="outline" className="text-xs">{similarFilters.regionScope === "prefecture" ? "同地域" : similarFilters.regionScope === "kanto" ? "関東圏" : "全国"}</Badge>}
+                      <Badge variant="outline" className="text-xs">±{(similarFilters.mileageRange / 10000).toFixed(0)}万km</Badge>
+                      {similarFilters.sameColor && <Badge variant="outline" className="text-xs">同色</Badge>}
+                    </CardDescription>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Dialog open={filterExpanded} onOpenChange={setFilterExpanded}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-1 bg-transparent text-xs"><Filter className="h-3.5 w-3.5" />絞り込み</Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>絞り込み条件</DialogTitle>
+                          <DialogDescription>類似条件の他社在庫の検索条件を変更</DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="flex items-center justify-between"><Label>同一型式</Label><Switch checked={similarFilters.sameModelCode} onCheckedChange={(c) => handleFilterChange("sameModelCode", c)} /></div>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between"><Label>年式</Label><Switch checked={similarFilters.sameYear} onCheckedChange={(c) => handleFilterChange("sameYear", c)} /></div>
+                            {similarFilters.sameYear && <div className="flex gap-2 pl-4">{[{v:0,l:"同年式"},{v:1,l:"±1年"},{v:2,l:"±2年"}].map(o=><Button key={o.v} type="button" variant={similarFilters.yearRange===o.v?"default":"outline"} size="sm" onClick={()=>handleFilterChange("yearRange",o.v)}>{o.l}</Button>)}</div>}
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between"><Label>地域</Label><Switch checked={similarFilters.sameRegion} onCheckedChange={(c) => handleFilterChange("sameRegion", c)} /></div>
+                            {similarFilters.sameRegion && <div className="flex gap-2 pl-4">{[{v:"prefecture",l:"同一都道府県"},{v:"kanto",l:"関東圏"},{v:"all",l:"全国"}].map(o=><Button key={o.v} type="button" variant={similarFilters.regionScope===o.v?"default":"outline"} size="sm" onClick={()=>handleFilterChange("regionScope",o.v)}>{o.l}</Button>)}</div>}
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between"><Label>走行距離</Label><span className="text-sm text-muted-foreground">±{(similarFilters.mileageRange/10000).toFixed(1)}万km</span></div>
+                            <Slider value={[similarFilters.mileageRange]} onValueChange={([v])=>handleFilterChange("mileageRange",v)} min={5000} max={50000} step={5000} />
+                          </div>
+                          <div className="flex items-center justify-between"><Label>同系色のみ</Label><Switch checked={similarFilters.sameColor} onCheckedChange={(c) => handleFilterChange("sameColor", c)} /></div>
+                        </div>
+                        <DialogFooter className="flex justify-between sm:justify-between">
+                          <Button type="button" variant="outline" onClick={resetFilters}><RotateCcw className="h-3 w-3 mr-1" />リセット</Button>
+                          <Button type="button" onClick={()=>setFilterExpanded(false)}>適用</Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                    <Badge className="px-2.5 py-0.5 bg-emerald-100 text-emerald-700 border-emerald-200">{similarVehicles.length}台</Badge>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-2">
+                <ScrollArea className="h-[400px]">
+                  {similarVehicles.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                      <Car className="h-12 w-12 mb-2 opacity-30" />
+                      <p className="text-sm">条件に一致する車両がありません</p>
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[160px]">競合店</TableHead>
+                          <TableHead>仕様</TableHead>
+                          <TableHead className="text-right">価格</TableHead>
+                          <TableHead className="text-right w-[80px]">差額</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {similarVehicles.map((vehicle) => {
+                          const pd2 = Number(adjustedTotalPrice.replace(/,/g,"")) - calculatePaymentTotal(vehicle.price)
+                          return (
+                            <TableRow key={vehicle.id} className="hover:bg-muted/50">
+                              <TableCell>
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="font-medium text-sm flex items-center gap-1"><Building2 className="h-3 w-3" />{vehicle.competitorName}</span>
+                                  <span className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{vehicle.competitorArea}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="text-sm">{vehicle.grade}</span>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <span>{vehicle.year}年</span><span>{vehicle.mileage.toLocaleString()}km</span><span>{vehicle.color}</span>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex flex-col">
+                                  <span className="font-bold">¥{calculatePaymentTotal(vehicle.price).toLocaleString()}</span>
+                                  <span className="text-xs text-muted-foreground">本体 ¥{vehicle.price.toLocaleString()}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {pd2 > 0 ? <span className="text-destructive text-sm">+{Math.round(pd2/10000).toLocaleString()}万</span> : pd2 < 0 ? <span className="text-chart-2 text-sm">{Math.round(pd2/10000).toLocaleString()}万</span> : <span className="text-muted-foreground text-sm">同額</span>}
+                              </TableCell>
+                            </TableRow>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Action buttons at bottom of Step 1 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Card className="cursor-pointer transition-all hover:border-primary hover:shadow-md group" onClick={() => setStep("2a")}>
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors flex-shrink-0">
+                  <Calculator className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold">手動で価格を変更する</p>
+                  <p className="text-sm text-muted-foreground">比較結果をもとに、自分で価格を決めて入力</p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              </CardContent>
+            </Card>
+            <Card className="cursor-pointer transition-all hover:border-emerald-500 hover:shadow-md group" onClick={() => setStep("2b")}>
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 group-hover:bg-emerald-200 transition-colors flex-shrink-0">
+                  <Link2 className="h-6 w-6 text-emerald-700" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold">競合に自動追従する</p>
+                  <p className="text-sm text-muted-foreground">特定の競合車両の価格変動に連動して自動調整</p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-emerald-600 transition-colors" />
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      )}
+
+      {/* ===== STEP 2a: 手動価格変更 ===== */}
+      {step === "2a" && (
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr,340px] gap-6">
+          <div className="space-y-4">
+            {/* Summary of competitors */}
+            {competitors.length > 0 && (
+              <div className="grid grid-cols-3 gap-3">
+                <Card className="bg-muted/30"><CardContent className="py-3 text-center"><div className="text-xs text-muted-foreground">競合最安</div><div className="text-lg font-bold">¥{calculatePaymentTotal(Math.min(...competitors.map(c=>c.price))).toLocaleString()}</div></CardContent></Card>
+                <Card className="bg-muted/30"><CardContent className="py-3 text-center"><div className="text-xs text-muted-foreground">競合平均</div><div className="text-lg font-bold">¥{calculatePaymentTotal(Math.round(competitors.reduce((s,c)=>s+c.price,0)/competitors.length)).toLocaleString()}</div></CardContent></Card>
+                <Card className="bg-muted/30"><CardContent className="py-3 text-center"><div className="text-xs text-muted-foreground">競合台数</div><div className="text-lg font-bold">{competitors.length}台</div></CardContent></Card>
               </div>
             )}
-          </CardContent>
-        </Card>
 
-        {/* Center Column - Similar Condition Inventory with Price Tracking */}
-        <Card className="border-emerald-500/30">
-          <CardHeader className="pb-3 bg-emerald-500/5 rounded-t-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-emerald-600" />
-                  類似条件の競合在庫
-                </CardTitle>
-                <p className="text-xs text-muted-foreground mt-0.5 mb-1.5">自社車両と近い条件に絞り込んだ直接比較用リスト</p>
-                <CardDescription className="flex items-center gap-1 flex-wrap">
-                  {similarFilters.sameModelCode && (
-                    <Badge variant="outline" className="text-xs">
-                      同型式
-                    </Badge>
-                  )}
-                  {similarFilters.sameYear && (
-                    <Badge variant="outline" className="text-xs">
-                      {similarFilters.yearRange === 0 ? "同年式" : `±${similarFilters.yearRange}年`}
-                    </Badge>
-                  )}
-                  {similarFilters.sameRegion && (
-                    <Badge variant="outline" className="text-xs">
-                      {similarFilters.regionScope === "prefecture"
-                        ? "同地域"
-                        : similarFilters.regionScope === "kanto"
-                          ? "関東圏"
-                          : "全国"}
-                    </Badge>
-                  )}
-                  <Badge variant="outline" className="text-xs">
-                    ±{(similarFilters.mileageRange / 10000).toFixed(0)}万km
-                  </Badge>
-                  {similarFilters.sameColor && (
-                    <Badge variant="outline" className="text-xs">
-                      同色
-                    </Badge>
-                  )}
-                </CardDescription>
-              </div>
-              <div className="flex items-center gap-2">
-                <Dialog open={filterExpanded} onOpenChange={setFilterExpanded}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="flex items-center gap-1 bg-transparent">
-                      <Filter className="h-4 w-4" />
-                      絞り込み ({getActiveFilterCount()})
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>絞り込み条件</DialogTitle>
-                      <DialogDescription>類似条件の他社在庫の検索条件を変更できます</DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      {/* Model Code */}
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="sameModelCode">同一型式</Label>
-                        <Switch
-                          id="sameModelCode"
-                          checked={similarFilters.sameModelCode}
-                          onCheckedChange={(checked) => {
-                            console.log("[v0] sameModelCode changed to:", checked)
-                            setSimilarFilters((prev) => ({ ...prev, sameModelCode: checked }))
-                          }}
-                        />
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-base flex items-center gap-2"><Calculator className="h-4 w-4" />新しい価格を入力</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">支払総額（税込）</Label>
+                  <div className="flex items-center gap-2 max-w-[320px]">
+                    <span className="text-xl font-bold flex-shrink-0">¥</span>
+                    <Input type="text" value={Number(adjustedTotalPrice).toLocaleString()} onChange={(e) => handleTotalPriceChange(e.target.value)} className="text-xl font-bold text-right h-12" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">車両本体価格</Label>
+                  <div className="flex items-center gap-2 max-w-[320px]">
+                    <span className="text-base text-muted-foreground flex-shrink-0">¥</span>
+                    <Input type="text" value={Number(adjustedPrice).toLocaleString()} onChange={(e) => handleVehiclePriceChange(e.target.value)} className="text-base text-right h-10 text-muted-foreground" />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">諸費用（登録費用・税金・保険等）</Label>
+                  <div className="flex items-center gap-2 max-w-[320px]">
+                    <span className="text-sm text-muted-foreground flex-shrink-0">¥</span>
+                    <Input type="text" value={expenses.toLocaleString()} onChange={(e) => handleExpensesChange(e.target.value)} className="text-sm text-right h-9 text-muted-foreground" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
+                  <Button variant="outline" size="sm" onClick={() => setQuickTotalPrice(calculatePaymentTotal(selectedItem.marketPrice))}>相場総額</Button>
+                  <Button variant="outline" size="sm" onClick={() => setQuickTotalPrice(calculatePaymentTotal(selectedItem.marketPrice) - 100000)}>相場-10万</Button>
+                  <Button variant="outline" size="sm" onClick={() => setQuickTotalPrice(calculatePaymentTotal(selectedItem.marketPrice) - 200000)}>相場-20万</Button>
+                  {competitors.length > 0 && <Button variant="outline" size="sm" onClick={() => setQuickTotalPrice(calculatePaymentTotal(Math.min(...competitors.map(c=>c.price))) - 50000)}>最安-5万</Button>}
+                </div>
+              </CardContent>
+            </Card>
+
+            {competitors.length > 0 && (
+              <Alert><Info className="h-4 w-4" /><AlertDescription>
+                調整支払総額 ¥{Number(adjustedTotalPrice).toLocaleString()} は、競合{competitors.length}台中で
+                <strong className="mx-1">{(() => { const all = [...competitors.map(c=>calculatePaymentTotal(c.price)), Number(adjustedTotalPrice)].sort((a,b)=>a-b); return all.indexOf(Number(adjustedTotalPrice))+1 })()}位</strong>の価格です
+              </AlertDescription></Alert>
+            )}
+
+            <Button onClick={handleGoToConfirm} className="gap-2 w-full" size="lg">
+              確認画面へ
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Prediction metrics sidebar */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2"><TrendingUp className="h-4 w-4" />予測指標</h3>
+            <Card><CardContent className="py-3 flex items-center justify-between"><span className="text-sm text-muted-foreground">販売確率</span><span className={`text-xl font-bold ${calculateMetrics(selectedItem,adjustedPrice).salesProbability >= 90 ? "text-green-600" : calculateMetrics(selectedItem,adjustedPrice).salesProbability >= 75 ? "text-amber-600" : "text-destructive"}`}>{calculateMetrics(selectedItem,adjustedPrice).salesProbability}%</span></CardContent></Card>
+            <Card><CardContent className="py-3 flex items-center justify-between"><span className="text-sm text-muted-foreground">予測掲載順位</span><span className="text-xl font-bold">{calculateMetrics(selectedItem,adjustedPrice).listingRank}位</span></CardContent></Card>
+            <Card><CardContent className="py-3 flex items-center justify-between"><span className="text-sm text-muted-foreground">粗利額</span><span className={`text-xl font-bold ${calculateMetrics(selectedItem,adjustedPrice).grossProfit >= 500000 ? "text-green-600" : calculateMetrics(selectedItem,adjustedPrice).grossProfit >= 300000 ? "text-amber-600" : "text-destructive"}`}>¥{calculateMetrics(selectedItem,adjustedPrice).grossProfit.toLocaleString()}</span></CardContent></Card>
+          </div>
+        </div>
+      )}
+
+      {/* ===== STEP 2b: 自動追従 ===== */}
+      {step === "2b" && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left: Select tracking target */}
+          <Card className="border-emerald-500/20">
+            <CardHeader className="pb-3 bg-emerald-500/5 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-base"><Target className="h-4 w-4 text-emerald-600" />追従対象を選択</CardTitle>
+              <CardDescription className="text-xs">価格変動に追従したい競合車両を選んでください</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <ScrollArea className="h-[400px]">
+                {similarVehicles.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                    <Car className="h-12 w-12 mb-2 opacity-30" /><p className="text-sm">条件に一致する車両がありません</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {similarVehicles.map((vehicle) => {
+                      const isSelected = selectedTrackingTarget?.id === vehicle.id
+                      return (
+                        <Card key={vehicle.id} className={`cursor-pointer transition-all ${isSelected ? "border-emerald-500 ring-1 ring-emerald-500 bg-emerald-50/50" : "hover:border-emerald-300"}`} onClick={() => {
+                          setSelectedTrackingTarget(vehicle)
+                          setTrackingOffset(-10000)
+                          setTrackingOffsetType("fixed")
+                          setTrackingMinPrice(selectedItem ? calculatePaymentTotal(selectedItem.purchasePrice + 200000).toString() : "")
+                          setTrackingActive(true)
+                        }}>
+                          <CardContent className="p-3 flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-sm">{vehicle.competitorName}</p>
+                              <p className="text-xs text-muted-foreground">{vehicle.grade} / {vehicle.year}年 / {vehicle.mileage.toLocaleString()}km</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold">¥{calculatePaymentTotal(vehicle.price).toLocaleString()}</p>
+                              <p className="text-xs text-muted-foreground">本体 ¥{vehicle.price.toLocaleString()}</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )
+                    })}
+                  </div>
+                )}
+              </ScrollArea>
+            </CardContent>
+          </Card>
+
+          {/* Right: Tracking settings inline */}
+          <div className="space-y-4">
+            {selectedTrackingTarget ? (
+              <>
+                <Card className="bg-muted/30">
+                  <CardContent className="pt-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="font-medium">{selectedTrackingTarget.competitorName}</p>
+                        <p className="text-sm text-muted-foreground">{selectedTrackingTarget.manufacturer} {selectedTrackingTarget.model} {selectedTrackingTarget.grade}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{selectedTrackingTarget.year}年 / {selectedTrackingTarget.mileage.toLocaleString()}km / {selectedTrackingTarget.color}</p>
                       </div>
-
-                      {/* Year */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="sameYear">年式で絞り込み</Label>
-                          <Switch
-                            id="sameYear"
-                            checked={similarFilters.sameYear}
-                            onCheckedChange={(checked) => {
-                              console.log("[v0] sameYear changed to:", checked)
-                              setSimilarFilters((prev) => ({ ...prev, sameYear: checked }))
-                            }}
-                          />
-                        </div>
-                        {similarFilters.sameYear && (
-                          <div className="flex gap-2 pl-4">
-                            {[
-                              { value: 0, label: "同年式" },
-                              { value: 1, label: "±1年" },
-                              { value: 2, label: "±2年" },
-                            ].map((opt) => (
-                              <Button
-                                key={opt.value}
-                                type="button"
-                                variant={similarFilters.yearRange === opt.value ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => {
-                                  console.log("[v0] yearRange changed to:", opt.value)
-                                  setSimilarFilters((prev) => ({ ...prev, yearRange: opt.value }))
-                                }}
-                              >
-                                {opt.label}
-                              </Button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Region */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="sameRegion">地域で絞り込み</Label>
-                          <Switch
-                            id="sameRegion"
-                            checked={similarFilters.sameRegion}
-                            onCheckedChange={(checked) => {
-                              console.log("[v0] sameRegion changed to:", checked)
-                              setSimilarFilters((prev) => ({ ...prev, sameRegion: checked }))
-                            }}
-                          />
-                        </div>
-                        {similarFilters.sameRegion && (
-                          <div className="flex gap-2 pl-4">
-                            {[
-                              { value: "prefecture", label: "同一都道府県" },
-                              { value: "kanto", label: "関東圏" },
-                              { value: "all", label: "全国" },
-                            ].map((opt) => (
-                              <Button
-                                key={opt.value}
-                                type="button"
-                                variant={similarFilters.regionScope === opt.value ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => {
-                                  console.log("[v0] regionScope changed to:", opt.value)
-                                  setSimilarFilters((prev) => ({
-                                    ...prev,
-                                    regionScope: opt.value as "prefecture" | "kanto" | "all",
-                                  }))
-                                }}
-                              >
-                                {opt.label}
-                              </Button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Mileage */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label>走行距離</Label>
-                          <span className="text-sm text-muted-foreground">
-                            ±{(similarFilters.mileageRange / 10000).toFixed(1)}万km
-                          </span>
-                        </div>
-                        <Slider
-                          value={[similarFilters.mileageRange]}
-                          onValueChange={([v]) => {
-                            console.log("[v0] mileageRange changed to:", v)
-                            setSimilarFilters((prev) => ({ ...prev, mileageRange: v }))
-                          }}
-                          min={5000}
-                          max={50000}
-                          step={5000}
-                          className="w-full"
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                          <span>±0.5万km</span>
-                          <span>±5万km</span>
-                        </div>
-                      </div>
-
-                      {/* Color */}
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="sameColor">同系色のみ</Label>
-                        <Switch
-                          id="sameColor"
-                          checked={similarFilters.sameColor}
-                          onCheckedChange={(checked) => {
-                            console.log("[v0] sameColor changed to:", checked)
-                            setSimilarFilters((prev) => ({ ...prev, sameColor: checked }))
-                          }}
-                        />
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">支払総額</p>
+                        <p className="text-xl font-bold text-emerald-700">¥{calculatePaymentTotal(selectedTrackingTarget.price).toLocaleString()}</p>
                       </div>
                     </div>
-                    <DialogFooter className="flex justify-between sm:justify-between">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          console.log("[v0] resetting filters")
-                          resetFilters()
-                        }}
-                      >
-                        <RotateCcw className="h-3 w-3 mr-1" />
-                        リセット
-                      </Button>
-                      <Button type="button" onClick={() => setFilterExpanded(false)}>
-                        適用
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                  </CardContent>
+                </Card>
+
+                <div className="space-y-3">
+                  <Label>価格差の設定方法</Label>
+                  <Select value={trackingOffsetType} onValueChange={(v) => setTrackingOffsetType(v as "fixed" | "percentage")}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="fixed">固定金額（例：1万円下回る）</SelectItem>
+                      <SelectItem value="percentage">割合（例：2%下回る）</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-3">
+                  <Label>{trackingOffsetType === "fixed" ? "価格差（円）" : "価格差（%）"}</Label>
+                  <Slider value={[trackingOffset]} onValueChange={([v]) => setTrackingOffset(v)} min={trackingOffsetType === "fixed" ? -200000 : -20} max={trackingOffsetType === "fixed" ? 100000 : 10} step={trackingOffsetType === "fixed" ? 10000 : 1} />
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">{trackingOffsetType === "fixed" ? "-20万円" : "-20%"}</span>
+                    <span className="font-medium text-lg">{trackingOffset === 0 ? "同額" : trackingOffsetType === "fixed" ? `${trackingOffset > 0 ? "+" : ""}${(trackingOffset / 10000).toFixed(0)}万円` : `${trackingOffset > 0 ? "+" : ""}${trackingOffset}%`}</span>
+                    <span className="text-muted-foreground">{trackingOffsetType === "fixed" ? "+10万円" : "+10%"}</span>
+                  </div>
+                  <Card className="border-emerald-300 bg-emerald-50/50"><CardContent className="py-3">
+                    <div className="flex items-center justify-between"><span className="text-sm text-muted-foreground">追従支払総額</span><span className="text-xl font-bold text-emerald-700">¥{calculateTrackingPrice().toLocaleString()}</span></div>
+                    <div className="flex items-center justify-between mt-1"><span className="text-xs text-muted-foreground">車両本体価格</span><span className="text-sm text-muted-foreground">¥{Math.max(0, calculateTrackingPrice() - expenses).toLocaleString()}</span></div>
+                  </CardContent></Card>
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-2">下限支払総額<span className="text-xs text-muted-foreground font-normal">（これ以下には設定されません）</span></Label>
+                  <div className="flex items-center gap-2"><span className="text-lg">¥</span><Input type="text" value={trackingMinPrice} onChange={(e) => setTrackingMinPrice(e.target.value.replace(/[^0-9]/g, ""))} placeholder="例: 4500000" className="text-lg" /></div>
+                  {Number(trackingMinPrice) > 0 && calculateTrackingPrice() < Number(trackingMinPrice) && (
+                    <Alert className="bg-amber-50 border-amber-300"><AlertTriangle className="h-4 w-4 text-amber-600" /><AlertDescription className="text-sm">追従価格が下限を下回るため、下限総額 ¥{Number(trackingMinPrice).toLocaleString()} が適用されます</AlertDescription></Alert>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between p-3 rounded-lg border">
+                  <div className="space-y-0.5"><Label>自動追従を有効化</Label><p className="text-xs text-muted-foreground">相手が価格変更したら自動で追従</p></div>
+                  <Switch checked={trackingActive} onCheckedChange={setTrackingActive} />
+                </div>
+
+                <Button onClick={saveTrackingSettings} className="gap-2 w-full" size="lg">
+                  確認画面へ
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </>
+            ) : (
+              <Card className="border-dashed"><CardContent className="pt-6 pb-6 flex flex-col items-center text-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100"><Link2 className="h-6 w-6 text-emerald-600" /></div>
+                <div><p className="font-medium text-sm">追従対象を選択してください</p><p className="text-xs text-muted-foreground mt-1">左のリストから車両を選ぶと、追従設定が表示されます</p></div>
+              </CardContent></Card>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ===== STEP 3: 確認・実行 ===== */}
+      {step === 3 && (() => {
+        const currentMetrics = calculateMetrics(selectedItem, selectedItem.currentPrice.toString())
+        const newMetrics = calculateMetrics(selectedItem, adjustedPrice)
+        const isTracking = trackingSettings?.isActive
+        return (
+          <div className="max-w-2xl mx-auto space-y-6">
+            <Card className="border-2 border-primary/30">
+              <CardHeader className="bg-primary/5 rounded-t-lg">
+                <CardTitle className="text-lg">変更内容の確認</CardTitle>
+                <CardDescription>{isTracking ? "自動追従設定による価格変更" : "手動による価格変更"}</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-6">
+                {/* Price change summary */}
+                <div className="flex items-center justify-center gap-8">
+                  <div className="text-center">
+                    <div className="text-xs text-muted-foreground mb-1">現在の支払総額</div>
+                    <div className="text-2xl font-bold">¥{calculatePaymentTotal(selectedItem.currentPrice).toLocaleString()}</div>
+                    <div className="text-xs text-muted-foreground">本体 ¥{selectedItem.currentPrice.toLocaleString()}</div>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <ArrowRight className="h-6 w-6 text-primary" />
+                    {(() => {
+                      const diff = Number(adjustedTotalPrice) - calculatePaymentTotal(selectedItem.currentPrice)
+                      return (
+                        <span className={`text-sm font-bold ${diff > 0 ? "text-destructive" : diff < 0 ? "text-chart-2" : "text-muted-foreground"}`}>
+                          {diff > 0 ? "+" : ""}{(diff / 10000).toFixed(1)}万円
+                        </span>
+                      )
+                    })()}
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xs text-muted-foreground mb-1">新しい支払総額</div>
+                    <div className="text-2xl font-bold text-primary">¥{Number(adjustedTotalPrice).toLocaleString()}</div>
+                    <div className="text-xs text-muted-foreground">本体 ¥{Number(adjustedPrice).toLocaleString()}</div>
+                  </div>
+                </div>
+
+                {/* Tracking info */}
+                {isTracking && trackingSettings && (
+                  <Card className="bg-emerald-50/50 border-emerald-200">
+                    <CardContent className="py-3 space-y-1 text-sm">
+                      <div className="flex justify-between"><span className="text-muted-foreground">追従対象</span><span className="font-medium">{trackingSettings.targetCompetitorName}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">価格差</span><span className="font-medium">{trackingSettings.offsetType === "fixed" ? `${trackingSettings.priceOffset >= 0 ? "+" : ""}¥${trackingSettings.priceOffset.toLocaleString()}` : `${trackingSettings.priceOffset}%`}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">下限総額</span><span className="font-medium">¥{trackingSettings.minPrice.toLocaleString()}</span></div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Metrics comparison */}
+                <div>
+                  <h4 className="text-sm font-semibold mb-3">予測指標の変化</h4>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { label: "販売確率", before: `${currentMetrics.salesProbability}%`, after: `${newMetrics.salesProbability}%`, diff: newMetrics.salesProbability - currentMetrics.salesProbability, unit: "%" },
+                      { label: "掲載順位", before: `${currentMetrics.listingRank}位`, after: `${newMetrics.listingRank}位`, diff: currentMetrics.listingRank - newMetrics.listingRank, unit: "位" },
+                      { label: "粗利額", before: `¥${currentMetrics.grossProfit.toLocaleString()}`, after: `¥${newMetrics.grossProfit.toLocaleString()}`, diff: newMetrics.grossProfit - currentMetrics.grossProfit, unit: "" },
+                    ].map((m) => (
+                      <Card key={m.label} className="bg-muted/30">
+                        <CardContent className="py-3 text-center space-y-1">
+                          <div className="text-xs text-muted-foreground">{m.label}</div>
+                          <div className="text-sm line-through text-muted-foreground">{m.before}</div>
+                          <div className="text-lg font-bold">{m.after}</div>
+                          <div className={`text-xs font-medium ${m.diff > 0 ? "text-green-600" : m.diff < 0 ? "text-destructive" : "text-muted-foreground"}`}>
+                            {m.diff > 0 ? "+" : ""}{m.label === "粗利額" ? `¥${m.diff.toLocaleString()}` : `${m.diff}${m.unit}`}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex items-center gap-3">
+              <Button variant="outline" onClick={() => setStep(isTracking ? "2b" : "2a")} className="flex-1">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                戻って修正
+              </Button>
+              <Button onClick={handleExecute} size="lg" className="flex-1 gap-2">
+                <CheckCircle2 className="h-5 w-5" />
+                価格を更新する
+              </Button>
+            </div>
+          </div>
+        )
+      })()}
                 <Badge className="text-base px-3 py-1 bg-emerald-100 text-emerald-700 border-emerald-200">
                   {similarVehicles.length}台
                 </Badge>
@@ -1657,7 +1635,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                 <Alert className="border-amber-300 bg-amber-50/50">
                   <AlertTriangle className="h-4 w-4 text-amber-600" />
                   <AlertDescription className="text-xs text-amber-800">
-                    現在「自動追従」が有効です。手動で価格を変更すると追従が解除されます。
+                    現在「自動追従」が有効です。手動で価格を変更��ると追従が解除されます。
                   </AlertDescription>
                 </Alert>
               )}
@@ -1913,154 +1891,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
         </CardContent>
       </Card>
 
-      {/* Auto Price Tracking Modal */}
-      <Dialog open={trackingModalOpen} onOpenChange={setTrackingModalOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Link2 className="h-5 w-5 text-chart-1" />
-              自動価格追従設定
-            </DialogTitle>
-            <DialogDescription>選択した競合車両の支払総額に自動で追従します</DialogDescription>
-          </DialogHeader>
 
-          {selectedTrackingTarget && (
-            <div className="space-y-6">
-              {/* Target vehicle info */}
-              <Card className="bg-muted/30">
-                <CardContent className="pt-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-medium">{selectedTrackingTarget.competitorName}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {selectedTrackingTarget.manufacturer} {selectedTrackingTarget.model}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {selectedTrackingTarget.year}年 / {selectedTrackingTarget.mileage.toLocaleString()}km /{" "}
-                        {selectedTrackingTarget.color}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-muted-foreground">支払総額</p>
-                      <p className="text-xl font-bold text-chart-1">
-                        ¥{calculatePaymentTotal(selectedTrackingTarget.price).toLocaleString()}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        本体 ¥{selectedTrackingTarget.price.toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Offset type selection */}
-              <div className="space-y-3">
-                <Label>価格差の設定方法（支払総額ベース）</Label>
-                <Select
-                  value={trackingOffsetType}
-                  onValueChange={(v) => setTrackingOffsetType(v as "fixed" | "percentage")}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="fixed">固定金額（例：1万円下回る）</SelectItem>
-                    <SelectItem value="percentage">割合（例：2%下回る）</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Offset value */}
-              <div className="space-y-3">
-                <Label>{trackingOffsetType === "fixed" ? "価格差（円）" : "価格差（%）"}</Label>
-                <div className="space-y-2">
-                  <Slider
-                    value={[trackingOffset]}
-                    onValueChange={([v]) => setTrackingOffset(v)}
-                    min={trackingOffsetType === "fixed" ? -200000 : -20}
-                    max={trackingOffsetType === "fixed" ? 100000 : 10}
-                    step={trackingOffsetType === "fixed" ? 10000 : 1}
-                    className="w-full"
-                  />
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{trackingOffsetType === "fixed" ? "-20万円" : "-20%"}</span>
-                    <span className="font-medium text-lg">
-                      {trackingOffset === 0
-                        ? "同額"
-                        : trackingOffsetType === "fixed"
-                          ? `${trackingOffset > 0 ? "+" : ""}${(trackingOffset / 10000).toFixed(0)}万円`
-                          : `${trackingOffset > 0 ? "+" : ""}${trackingOffset}%`}
-                    </span>
-                    <span className="text-muted-foreground">{trackingOffsetType === "fixed" ? "+10万円" : "+10%"}</span>
-                  </div>
-                </div>
-
-                <div className="p-3 rounded-lg bg-chart-1/10 border border-chart-1/30">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">追従支払総額</span>
-                    <span className="text-xl font-bold text-chart-1">¥{calculateTrackingPrice().toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-muted-foreground">車両本体価格</span>
-                    <span className="text-sm text-muted-foreground">
-                      ¥{Math.max(0, calculateTrackingPrice() - expenses).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <Label className="flex items-center gap-2">
-                  下限支払総額
-                  <span className="text-xs text-muted-foreground font-normal">（これ以下には設定されません）</span>
-                </Label>
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">¥</span>
-                  <Input
-                    type="text"
-                    value={trackingMinPrice}
-                    onChange={(e) => setTrackingMinPrice(e.target.value.replace(/[^0-9]/g, ""))}
-                    placeholder="例: 4500000"
-                    className="text-lg"
-                  />
-                </div>
-                {Number(trackingMinPrice) > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    下限時の車両本体価格: ¥{Math.max(0, Number(trackingMinPrice) - expenses).toLocaleString()}
-                  </p>
-                )}
-                {Number(trackingMinPrice) > 0 && calculateTrackingPrice() < Number(trackingMinPrice) && (
-                  <Alert className="bg-warning/10 border-warning/30">
-                    <AlertTriangle className="h-4 w-4 text-warning" />
-                    <AlertDescription className="text-sm">
-                      追従価格が下限を下回るため、下限総額 ¥{Number(trackingMinPrice).toLocaleString()} が適用されます
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-
-              {/* Active toggle */}
-              <div className="flex items-center justify-between p-3 rounded-lg border">
-                <div className="space-y-0.5">
-                  <Label>自動追従を有効化</Label>
-                  <p className="text-xs text-muted-foreground">相手が価格変更したら自動で追従します</p>
-                </div>
-                <Switch checked={trackingActive} onCheckedChange={setTrackingActive} />
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setTrackingModalOpen(false)}>
-              キャンセル
-            </Button>
-            <Button onClick={saveTrackingSettings} className="gap-2">
-              <CheckCircle2 className="h-4 w-4" />
-              追従設定を保存
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
           </div>
         </main>
       </div>
