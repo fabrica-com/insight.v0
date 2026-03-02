@@ -43,7 +43,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Filter,
-  RotateCcw,
+
   ChevronDown,
   ChevronUp,
   ExternalLink,
@@ -826,16 +826,13 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
   const [trackingMinPrice, setTrackingMinPrice] = useState<string>("")
   const [trackingActive, setTrackingActive] = useState(true)
 
-  const [similarFilters, setSimilarFilters] = useState({
-    sameModelCode: true,
-    sameYear: true,
-    yearRange: 0, // 0 = exact, 1 = ±1year, 2 = ±2years
-    sameRegion: true,
-    regionScope: "prefecture" as "prefecture" | "kanto" | "all",
-    mileageRange: 10000,
-    sameColor: true,
+  const [areaScope, setAreaScope] = useState<"prefecture" | "kanto" | "all">("prefecture")
+  const [compFilterExpanded, setCompFilterExpanded] = useState(false)
+  const [compFilters, setCompFilters] = useState({
+    yearRange: 2 as 0 | 1 | 2, // 0=same, 1=+-1, 2=+-2
+    mileageRange: 30000,
+    sameColor: false,
   })
-  const [filterExpanded, setFilterExpanded] = useState(false)
   const [step, setStep] = useState<1 | "2a" | "2b" | 3>(1)
 
 
@@ -884,84 +881,43 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
 
   const getCompetitorsForModel = (item: InventoryItem) => {
     return mockCompetitorInventory
-      .filter((comp) => comp.manufacturer === item.manufacturer && comp.model === item.model)
-      .sort((a, b) => a.price - b.price)
-  }
-
-  const getSimilarConditionVehicles = (item: InventoryItem) => {
-    return mockCompetitorInventory
       .filter((comp) => {
-        // Same model code
-        if (similarFilters.sameModelCode && comp.modelCode !== item.modelCode) return false
-
+        if (comp.manufacturer !== item.manufacturer || comp.model !== item.model) return false
         // Year filter
-        if (similarFilters.sameYear) {
-          const yearDiff = Math.abs(comp.year - item.year)
-          if (yearDiff > similarFilters.yearRange) return false
-        }
-
-        // Region filter
-        if (similarFilters.sameRegion) {
-          const ownPrefecture = OWN_STORE_AREA
-          const compPrefecture =
-            comp.competitorArea.split(/[都道府県]/)[0] +
-            (comp.competitorArea.includes("都")
-              ? "都"
-              : comp.competitorArea.includes("道")
-                ? "道"
-                : comp.competitorArea.includes("府")
-                  ? "府"
-                  : "県")
-
-          if (similarFilters.regionScope === "prefecture") {
-            if (!compPrefecture.startsWith(ownPrefecture.replace(/[都道府県]$/, ""))) return false
-          } else if (similarFilters.regionScope === "kanto") {
-            const kantoRegions = ["東京", "神奈川", "千葉", "埼玉", "茨城", "栃木", "群馬"]
-            const isKanto = kantoRegions.some((region) => comp.competitorArea.includes(region))
-            if (!isKanto) return false
+        if (Math.abs(comp.year - item.year) > compFilters.yearRange) return false
+        // Mileage filter
+        if (Math.abs(comp.mileage - item.mileage) > compFilters.mileageRange) return false
+        // Color filter
+        if (compFilters.sameColor) {
+          const normalize = (c: string) => {
+            if (c.includes("ホワイト") || c.includes("パール") || c.includes("白")) return "white"
+            if (c.includes("ブラック") || c.includes("黒")) return "black"
+            return c
           }
-          // "all" = no region filter
-        }
-
-        // Mileage within range
-        if (Math.abs(comp.mileage - item.mileage) > similarFilters.mileageRange) return false
-
-        // Same color
-        if (similarFilters.sameColor) {
-          const normalizeColor = (color: string) => {
-            if (color.includes("ホワイト") || color.includes("パール") || color.includes("白")) return "white"
-            if (color.includes("ブラック") || color.includes("黒")) return "black"
-            if (color.includes("レッド") || color.includes("赤")) return "red"
-            if (color.includes("���ル���ー") || color.includes("銀")) return "silver"
-            return color
-          }
-          if (normalizeColor(comp.color) !== normalizeColor(item.color)) return false
+          if (normalize(comp.color) !== normalize(item.color)) return false
         }
         return true
       })
       .sort((a, b) => a.price - b.price)
   }
 
-  const resetFilters = () => {
-    setSimilarFilters({
-      sameModelCode: true,
-      sameYear: true,
-      yearRange: 0,
-      sameRegion: true,
-      regionScope: "prefecture",
-      mileageRange: 10000,
-      sameColor: true,
-    })
-  }
-
-  const getActiveFilterCount = () => {
-    let count = 0
-    if (similarFilters.sameModelCode) count++
-    if (similarFilters.sameYear) count++
-    if (similarFilters.sameRegion) count++
-    if (similarFilters.mileageRange < 999999) count++
-    if (similarFilters.sameColor) count++
-    return count
+  const getAreaVehicles = (item: InventoryItem) => {
+    return mockCompetitorInventory
+      .filter((comp) => {
+        // Must be same model
+        if (comp.manufacturer !== item.manufacturer || comp.model !== item.model) return false
+        // Area filter
+        if (areaScope === "prefecture") {
+          const ownPrefix = OWN_STORE_AREA.replace(/[都道府県]$/, "")
+          if (!comp.competitorArea.includes(ownPrefix)) return false
+        } else if (areaScope === "kanto") {
+          const kantoRegions = ["東京", "神奈川", "千葉", "埼玉", "茨城", "栃木", "群馬"]
+          if (!kantoRegions.some((r) => comp.competitorArea.includes(r))) return false
+        }
+        // "all" = no area filter
+        return true
+      })
+      .sort((a, b) => a.price - b.price)
   }
 
   const openTrackingModal = (vehicle: CompetitorInventoryItem) => {
@@ -1039,9 +995,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
     router.push("/pricing")
   }
 
-  const handleFilterChange = (key: string, value: any) => {
-    setSimilarFilters((prev) => ({ ...prev, [key]: value }))
-  }
+
 
   if (!selectedItem) {
     return (
@@ -1062,7 +1016,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
   }
 
   const competitors = getCompetitorsForModel(selectedItem)
-  const similarVehicles = getSimilarConditionVehicles(selectedItem)
+  const areaVehicles = getAreaVehicles(selectedItem)
   const adjustedPriceNum = Number(adjustedPrice.replace(/,/g, "")) || 0
   const priceDifference = adjustedPriceNum - selectedItem.marketPrice
   const priceDifferencePercent = ((priceDifference / selectedItem.marketPrice) * 100).toFixed(1)
@@ -1316,25 +1270,25 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                   <div className="h-[260px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                         <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                         <YAxis tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} tick={{ fontSize: 11 }} domain={["auto", "auto"]} />
                         <Tooltip formatter={(value: number, name: string) => {
                           const label = name === "own" ? "自社" : name === "avgComp" ? "他社平均" : name === "minComp" ? "他社最安" : "他社最高"
                           return [`¥${value.toLocaleString()}`, label]
                         }} />
-                        <Line type="monotone" dataKey="own" name="own" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }} />
-                        <Line type="monotone" dataKey="avgComp" name="avgComp" stroke="hsl(var(--chart-1))" strokeWidth={2} strokeDasharray="5 5" dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 1, r: 3 }} />
-                        <Line type="monotone" dataKey="minComp" name="minComp" stroke="hsl(var(--chart-2))" strokeWidth={1.5} strokeDasharray="3 3" dot={{ fill: "hsl(var(--chart-2))", r: 2 }} />
-                        <Line type="monotone" dataKey="maxComp" name="maxComp" stroke="hsl(var(--chart-4))" strokeWidth={1.5} strokeDasharray="3 3" dot={{ fill: "hsl(var(--chart-4))", r: 2 }} />
+                        <Line type="monotone" dataKey="own" name="own" stroke="#2563eb" strokeWidth={3} dot={{ fill: "#2563eb", strokeWidth: 2, r: 4 }} />
+                        <Line type="monotone" dataKey="avgComp" name="avgComp" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" dot={{ fill: "#f59e0b", strokeWidth: 1, r: 3 }} />
+                        <Line type="monotone" dataKey="minComp" name="minComp" stroke="#10b981" strokeWidth={1.5} strokeDasharray="3 3" dot={{ fill: "#10b981", r: 2 }} />
+                        <Line type="monotone" dataKey="maxComp" name="maxComp" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="3 3" dot={{ fill: "#ef4444", r: 2 }} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
                   <div className="flex items-center gap-4 mt-2 justify-center text-xs">
-                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 bg-primary" /> 自社</span>
-                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t-2 border-dashed" style={{ borderColor: "hsl(var(--chart-1))" }} /> 他社平均</span>
-                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t border-dashed" style={{ borderColor: "hsl(var(--chart-2))" }} /> 他社最安</span>
-                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t border-dashed" style={{ borderColor: "hsl(var(--chart-4))" }} /> 他社最高</span>
+                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "#2563eb" }} /> 自社</span>
+                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t-2 border-dashed" style={{ borderColor: "#f59e0b" }} /> 他社平均</span>
+                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t border-dashed" style={{ borderColor: "#10b981" }} /> 他社最安</span>
+                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t border-dashed" style={{ borderColor: "#ef4444" }} /> 他社最高</span>
                   </div>
                 </CardContent>
               </Card>
@@ -1342,20 +1296,59 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
           })()}
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {/* Left: All same model */}
+            {/* Left: Competitor store comparison */}
             <Card className="border-indigo-500/20">
               <CardHeader className="pb-3 bg-indigo-500/5 rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="flex items-center gap-2 text-base">
                       <Store className="h-4 w-4 text-indigo-600" />
-                      同型式の他社在庫一覧
+                      競合店比較（全エリア）
                     </CardTitle>
-                    <CardDescription className="mt-1 text-xs">
-                      <span className="font-medium text-indigo-600">{selectedItem.model}</span> の全在庫（{competitors.length}台）
+                    <CardDescription className="mt-1 text-xs flex items-center gap-1 flex-wrap">
+                      <span className="font-medium text-indigo-600">{selectedItem.model}</span>
+                      {compFilters.yearRange > 0 && <Badge variant="outline" className="text-[10px] h-4">{`\u00B1${compFilters.yearRange}年`}</Badge>}
+                      {compFilters.yearRange === 0 && <Badge variant="outline" className="text-[10px] h-4">同年式</Badge>}
+                      <Badge variant="outline" className="text-[10px] h-4">{`\u00B1${(compFilters.mileageRange / 10000).toFixed(0)}万km`}</Badge>
+                      {compFilters.sameColor && <Badge variant="outline" className="text-[10px] h-4">同色</Badge>}
                     </CardDescription>
                   </div>
-                  <Badge className="px-2.5 py-0.5 bg-indigo-100 text-indigo-700 border-indigo-200">{competitors.length}台</Badge>
+                  <div className="flex items-center gap-2">
+                    <Dialog open={compFilterExpanded} onOpenChange={setCompFilterExpanded}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-1 bg-transparent text-xs"><Filter className="h-3.5 w-3.5" />絞り込み</Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>競合店比較 絞り込み条件</DialogTitle>
+                          <DialogDescription>年式・走行距離・色で絞り込みます</DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium">年式</Label>
+                            <div className="flex gap-2">
+                              {([{v:0,l:"同年式"},{v:1,l:"\u00B11年"},{v:2,l:"\u00B12年"}] as const).map(o => (
+                                <Button key={o.v} type="button" variant={compFilters.yearRange === o.v ? "default" : "outline"} size="sm" onClick={() => setCompFilters(p => ({...p, yearRange: o.v}))}>{o.l}</Button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between"><Label className="text-sm font-medium">走行距離</Label><span className="text-sm text-muted-foreground">{`\u00B1${(compFilters.mileageRange / 10000).toFixed(1)}万km`}</span></div>
+                            <Slider value={[compFilters.mileageRange]} onValueChange={([v]) => setCompFilters(p => ({...p, mileageRange: v}))} min={5000} max={50000} step={5000} />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm font-medium">同系色のみ</Label>
+                            <Switch checked={compFilters.sameColor} onCheckedChange={(c) => setCompFilters(p => ({...p, sameColor: c}))} />
+                          </div>
+                        </div>
+                        <DialogFooter className="flex justify-between sm:justify-between">
+                          <Button type="button" variant="outline" onClick={() => setCompFilters({ yearRange: 2, mileageRange: 30000, sameColor: false })}>リセット</Button>
+                          <Button type="button" onClick={() => setCompFilterExpanded(false)}>適用</Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                    <Badge className="px-2.5 py-0.5 bg-indigo-100 text-indigo-700 border-indigo-200">{competitors.length}台</Badge>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -1474,22 +1467,22 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                           return (
                             <ResponsiveContainer width="100%" height="100%">
                               <LineChart data={mergedData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                                 <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                                 <YAxis tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} tick={{ fontSize: 11 }} domain={["auto", "auto"]} />
                                 <Tooltip formatter={(value: number, name: string) => {
                                   return [`¥${value.toLocaleString()}`, name === "own" ? "自社" : "他社"]
                                 }} />
-                                <Line type="monotone" dataKey="own" name="own" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }} />
-                                <Line type="monotone" dataKey="competitor" name="competitor" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 2, r: 3 }} />
+                                <Line type="monotone" dataKey="own" name="own" stroke="#2563eb" strokeWidth={2.5} dot={{ fill: "#2563eb", strokeWidth: 2, r: 4 }} />
+                                <Line type="monotone" dataKey="competitor" name="competitor" stroke="#f59e0b" strokeWidth={2} dot={{ fill: "#f59e0b", strokeWidth: 2, r: 3 }} />
                               </LineChart>
                             </ResponsiveContainer>
                           )
                         })()}
                       </div>
                       <div className="flex items-center gap-4 mt-2 justify-center text-xs">
-                        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 bg-primary" /> 自社</span>
-                        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "hsl(var(--chart-1))" }} /> {selectedCompetitorForChart.competitorName}</span>
+                        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "#2563eb" }} /> 自社</span>
+                        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "#f59e0b" }} /> {selectedCompetitorForChart.competitorName}</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -1497,65 +1490,57 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
               </CardContent>
             </Card>
 
-            {/* Right: Similar condition */}
+            {/* Right: Area comparison */}
             <Card className="border-emerald-500/20">
               <CardHeader className="pb-3 bg-emerald-500/5 rounded-t-lg">
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="flex items-center gap-2 text-base">
-                      <Target className="h-4 w-4 text-emerald-600" />
-                      類似条件の競合在庫
+                      <MapPin className="h-4 w-4 text-emerald-600" />
+                      エリア別比較
                     </CardTitle>
-                    <CardDescription className="flex items-center gap-1 flex-wrap mt-1">
-                      {similarFilters.sameModelCode && <Badge variant="outline" className="text-xs">同型式</Badge>}
-                      {similarFilters.sameYear && <Badge variant="outline" className="text-xs">{similarFilters.yearRange === 0 ? "同年式" : `±${similarFilters.yearRange}年`}</Badge>}
-                      {similarFilters.sameRegion && <Badge variant="outline" className="text-xs">{similarFilters.regionScope === "prefecture" ? "同地域" : similarFilters.regionScope === "kanto" ? "関東圏" : "全国"}</Badge>}
-                      <Badge variant="outline" className="text-xs">±{(similarFilters.mileageRange / 10000).toFixed(0)}万km</Badge>
-                      {similarFilters.sameColor && <Badge variant="outline" className="text-xs">同色</Badge>}
+                    <CardDescription className="mt-1 text-xs">
+                      <span className="font-medium text-emerald-600">{selectedItem.model}</span> の同エリア在庫
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Dialog open={filterExpanded} onOpenChange={setFilterExpanded}>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="gap-1 bg-transparent text-xs"><Filter className="h-3.5 w-3.5" />絞り込み</Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>絞り込み条件</DialogTitle>
-                          <DialogDescription>類似条件の他社在庫の検索条件を変更</DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                          <div className="flex items-center justify-between"><Label>同一型式</Label><Switch checked={similarFilters.sameModelCode} onCheckedChange={(c) => handleFilterChange("sameModelCode", c)} /></div>
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between"><Label>年式</Label><Switch checked={similarFilters.sameYear} onCheckedChange={(c) => handleFilterChange("sameYear", c)} /></div>
-                            {similarFilters.sameYear && <div className="flex gap-2 pl-4">{[{v:0,l:"同年式"},{v:1,l:"±1年"},{v:2,l:"±2年"}].map(o=><Button key={o.v} type="button" variant={similarFilters.yearRange===o.v?"default":"outline"} size="sm" onClick={()=>handleFilterChange("yearRange",o.v)}>{o.l}</Button>)}</div>}
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between"><Label>地域</Label><Switch checked={similarFilters.sameRegion} onCheckedChange={(c) => handleFilterChange("sameRegion", c)} /></div>
-                            {similarFilters.sameRegion && <div className="flex gap-2 pl-4">{[{v:"prefecture",l:"同一都道府県"},{v:"kanto",l:"関東圏"},{v:"all",l:"全国"}].map(o=><Button key={o.v} type="button" variant={similarFilters.regionScope===o.v?"default":"outline"} size="sm" onClick={()=>handleFilterChange("regionScope",o.v)}>{o.l}</Button>)}</div>}
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between"><Label>走行距離</Label><span className="text-sm text-muted-foreground">±{(similarFilters.mileageRange/10000).toFixed(1)}万km</span></div>
-                            <Slider value={[similarFilters.mileageRange]} onValueChange={([v])=>handleFilterChange("mileageRange",v)} min={5000} max={50000} step={5000} />
-                          </div>
-                          <div className="flex items-center justify-between"><Label>同系色のみ</Label><Switch checked={similarFilters.sameColor} onCheckedChange={(c) => handleFilterChange("sameColor", c)} /></div>
-                        </div>
-                        <DialogFooter className="flex justify-between sm:justify-between">
-                          <Button type="button" variant="outline" onClick={resetFilters}><RotateCcw className="h-3 w-3 mr-1" />リセット</Button>
-                          <Button type="button" onClick={()=>setFilterExpanded(false)}>適用</Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                    <Badge className="px-2.5 py-0.5 bg-emerald-100 text-emerald-700 border-emerald-200">{similarVehicles.length}台</Badge>
+                    <Select value={areaScope} onValueChange={(v) => setAreaScope(v as "prefecture" | "kanto" | "all")}>
+                      <SelectTrigger className="w-[140px] h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="prefecture">{OWN_STORE_AREA}</SelectItem>
+                        <SelectItem value="kanto">関東圏</SelectItem>
+                        <SelectItem value="all">全国</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Badge className="px-2.5 py-0.5 bg-emerald-100 text-emerald-700 border-emerald-200">{areaVehicles.length}台</Badge>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="pt-2">
-                <ScrollArea className="h-[500px]">
-                  {similarVehicles.length === 0 ? (
+                {/* Area summary stats */}
+                {areaVehicles.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    <div className="rounded-md bg-muted/40 p-2 text-center">
+                      <div className="text-[10px] text-muted-foreground">最安</div>
+                      <div className="text-sm font-bold">¥{(Math.min(...areaVehicles.map(v => v.price)) / 10000).toFixed(0)}万</div>
+                    </div>
+                    <div className="rounded-md bg-muted/40 p-2 text-center">
+                      <div className="text-[10px] text-muted-foreground">平均</div>
+                      <div className="text-sm font-bold">¥{(Math.round(areaVehicles.reduce((s, v) => s + v.price, 0) / areaVehicles.length) / 10000).toFixed(0)}万</div>
+                    </div>
+                    <div className="rounded-md bg-muted/40 p-2 text-center">
+                      <div className="text-[10px] text-muted-foreground">平均在庫日数</div>
+                      <div className="text-sm font-bold">{Math.round(areaVehicles.reduce((s, v) => s + v.daysOnMarket, 0) / areaVehicles.length)}日</div>
+                    </div>
+                  </div>
+                )}
+                <ScrollArea className="h-[440px]">
+                  {areaVehicles.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                      <Car className="h-12 w-12 mb-2 opacity-30" />
-                      <p className="text-sm">条件に一致する車両がありません</p>
+                      <MapPin className="h-12 w-12 mb-2 opacity-30" />
+                      <p className="text-sm">該当エリアに競合車両がありません</p>
                     </div>
                   ) : (
                     <Table>
@@ -1569,8 +1554,8 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {similarVehicles.map((vehicle) => {
-                          const pd2 = Number(adjustedTotalPrice.replace(/,/g,"")) - calculatePaymentTotal(vehicle.price)
+                        {areaVehicles.map((vehicle) => {
+                          const pd2 = selectedItem.currentPrice - vehicle.price
                           return (
                             <TableRow key={vehicle.id} className="hover:bg-muted/50">
                               <TableCell>
@@ -1611,7 +1596,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                                 </div>
                               </TableCell>
                               <TableCell className="text-right">
-                                {pd2 > 0 ? <span className="text-destructive text-sm font-medium">+{Math.round(pd2/10000).toLocaleString()}万</span> : pd2 < 0 ? <span className="text-green-600 text-sm font-medium">{Math.round(pd2/10000).toLocaleString()}万</span> : <span className="text-muted-foreground text-sm">同額</span>}
+                                {pd2 > 0 ? <span className="text-destructive text-sm font-medium">+{(pd2 / 10000).toFixed(0)}万</span> : pd2 < 0 ? <span className="text-green-600 text-sm font-medium">{(pd2 / 10000).toFixed(0)}万</span> : <span className="text-muted-foreground text-sm">同額</span>}
                               </TableCell>
                             </TableRow>
                           )
@@ -1734,13 +1719,13 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
             </CardHeader>
             <CardContent className="pt-2">
               <ScrollArea className="h-[400px]">
-                {similarVehicles.length === 0 ? (
+                {competitors.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                    <Car className="h-12 w-12 mb-2 opacity-30" /><p className="text-sm">条件に一致する車両がありません</p>
+                    <Car className="h-12 w-12 mb-2 opacity-30" /><p className="text-sm">同型式の競合車両がありません</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {similarVehicles.map((vehicle) => {
+                    {competitors.map((vehicle) => {
                       const isSelected = selectedTrackingTarget?.id === vehicle.id
                       return (
                         <Card key={vehicle.id} className={`cursor-pointer transition-all ${isSelected ? "border-emerald-500 ring-1 ring-emerald-500 bg-emerald-50/50" : "hover:border-emerald-300"}`} onClick={() => {
