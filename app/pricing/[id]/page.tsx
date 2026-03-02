@@ -580,7 +580,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
   },
   {
     id: "COMP007C",
-    competitorName: "マツダ認定中古車東京",
+    competitorName: "��ツダ認定中古車東京",
     competitorArea: "東京都大田区",
     manufacturer: "マツダ",
     model: "CX-5",
@@ -1145,6 +1145,15 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                 <div className="text-[10px] text-muted-foreground">仕入価格</div>
                 <div className="text-base">¥{selectedItem.purchasePrice.toLocaleString()}</div>
                 <div className="text-[10px] text-muted-foreground">粗利 ¥{(selectedItem.currentPrice - selectedItem.purchasePrice).toLocaleString()}</div>
+              </div>
+              <div className="h-12 w-px bg-border flex-shrink-0" />
+              <div className="flex flex-col gap-2 flex-shrink-0">
+                <Button size="sm" className="gap-1.5" onClick={() => setStep("2a")}>
+                  <Calculator className="h-3.5 w-3.5" />価格変更
+                </Button>
+                <Button size="sm" variant="outline" className="gap-1.5 border-emerald-300 text-emerald-700 hover:bg-emerald-50" onClick={() => setStep("2b")}>
+                  <Link2 className="h-3.5 w-3.5" />競合追従
+                </Button>
               </div>
             </div>
           </div>
@@ -1771,33 +1780,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
             </DialogContent>
           </Dialog>
 
-          {/* Action buttons at bottom of Step 1 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Card className="cursor-pointer transition-all hover:border-primary hover:shadow-md group" onClick={() => setStep("2a")}>
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors flex-shrink-0">
-                  <Calculator className="h-6 w-6 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold">手動で価格を変更する</p>
-                  <p className="text-sm text-muted-foreground">比較結果をもとに、自分で価格を決めて入力</p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-              </CardContent>
-            </Card>
-            <Card className="cursor-pointer transition-all hover:border-emerald-500 hover:shadow-md group" onClick={() => setStep("2b")}>
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 group-hover:bg-emerald-200 transition-colors flex-shrink-0">
-                  <Link2 className="h-6 w-6 text-emerald-700" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold">競合に自動追従する</p>
-                  <p className="text-sm text-muted-foreground">特定の競合車両の価格変動に連動して自動調整</p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-emerald-600 transition-colors" />
-              </CardContent>
-            </Card>
-          </div>
+
         </>
       )}
 
