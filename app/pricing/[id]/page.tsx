@@ -1241,27 +1241,47 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
 
           {/* Price Comparison Chart - Own vs Market */}
           {selectedItem.priceHistory.length > 0 && competitors.length > 0 && (() => {
-            const allDates = [...new Set([
+            // Build a unified monthly timeline and carry forward last known values
+            const monthOrder = ["09/01","10/01","11/01","12/01","01/01","02/01","03/01","04/01","05/01","06/01","07/01","08/01"]
+            // Collect all unique months that appear in any history
+            const allMonths = [...new Set([
               ...selectedItem.priceHistory.map(p => p.date),
               ...competitors.flatMap(c => c.priceHistory.map(p => p.date))
-            ])].sort()
-            const chartData = allDates.map(date => {
-              const ownEntry = selectedItem.priceHistory.find(p => p.date === date)
-              const competitorPrices = competitors.map(c => {
-                const entry = c.priceHistory.find(p => p.date === date)
-                return entry ? entry.price : null
-              }).filter((p): p is number => p !== null)
-              const avgComp = competitorPrices.length > 0 ? Math.round(competitorPrices.reduce((a, b) => a + b, 0) / competitorPrices.length) : null
-              const minComp = competitorPrices.length > 0 ? Math.min(...competitorPrices) : null
-              const maxComp = competitorPrices.length > 0 ? Math.max(...competitorPrices) : null
+            ])]
+            // Sort by monthOrder index, falling back to string sort
+            allMonths.sort((a, b) => {
+              const ia = monthOrder.indexOf(a)
+              const ib = monthOrder.indexOf(b)
+              if (ia !== -1 && ib !== -1) return ia - ib
+              return a.localeCompare(b)
+            })
+            // For each competitor, build a map of date -> price, then carry forward
+            const compCarried = competitors.map(c => {
+              const map = new Map(c.priceHistory.map(p => [p.date, p.price]))
+              let last: number | null = null
+              const carried: (number | null)[] = allMonths.map(d => {
+                if (map.has(d)) last = map.get(d)!
+                return last
+              })
+              return carried
+            })
+            // Own carry-forward
+            const ownMap = new Map(selectedItem.priceHistory.map(p => [p.date, p.price]))
+            let lastOwn: number | null = null
+            const ownCarried = allMonths.map(d => {
+              if (ownMap.has(d)) lastOwn = ownMap.get(d)!
+              return lastOwn
+            })
+            const chartData = allMonths.map((date, i) => {
+              const compPrices = compCarried.map(c => c[i]).filter((p): p is number => p !== null)
               return {
                 date,
-                own: ownEntry ? ownEntry.price : null,
-                avgComp,
-                minComp,
-                maxComp,
+                own: ownCarried[i],
+                avgComp: compPrices.length > 0 ? Math.round(compPrices.reduce((a, b) => a + b, 0) / compPrices.length) : null,
+                minComp: compPrices.length > 0 ? Math.min(...compPrices) : null,
+                maxComp: compPrices.length > 0 ? Math.max(...compPrices) : null,
               }
-            })
+            }).filter(d => d.own !== null || d.avgComp !== null)
             return (
               <Card>
                 <CardHeader className="pb-2">
@@ -1283,10 +1303,10 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                           const label = name === "own" ? "自社" : name === "avgComp" ? "他社平均" : name === "minComp" ? "他社最安" : "他社最高"
                           return [`¥${value.toLocaleString()}`, label]
                         }} />
-                        <Line type="stepAfter" dataKey="own" name="own" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }} connectNulls />
-                        <Line type="stepAfter" dataKey="avgComp" name="avgComp" stroke="hsl(var(--chart-1))" strokeWidth={2} strokeDasharray="5 5" dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 1, r: 3 }} connectNulls />
-                        <Line type="stepAfter" dataKey="minComp" name="minComp" stroke="hsl(var(--chart-2))" strokeWidth={1} strokeDasharray="3 3" dot={false} connectNulls />
-                        <Line type="stepAfter" dataKey="maxComp" name="maxComp" stroke="hsl(var(--chart-4))" strokeWidth={1} strokeDasharray="3 3" dot={false} connectNulls />
+                        <Line type="monotone" dataKey="own" name="own" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }} connectNulls />
+                        <Line type="monotone" dataKey="avgComp" name="avgComp" stroke="hsl(var(--chart-1))" strokeWidth={2} strokeDasharray="5 5" dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 1, r: 3 }} connectNulls />
+                        <Line type="monotone" dataKey="minComp" name="minComp" stroke="hsl(var(--chart-2))" strokeWidth={1.5} strokeDasharray="3 3" dot={{ fill: "hsl(var(--chart-2))", r: 2 }} connectNulls />
+                        <Line type="monotone" dataKey="maxComp" name="maxComp" stroke="hsl(var(--chart-4))" strokeWidth={1.5} strokeDasharray="3 3" dot={{ fill: "hsl(var(--chart-4))", r: 2 }} connectNulls />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -1406,11 +1426,16 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                           const compHistory = selectedCompetitorForChart.priceHistory
                           const ownHistory = selectedItem.priceHistory
                           const allDates = [...new Set([...compHistory.map(p => p.date), ...ownHistory.map(p => p.date)])].sort()
-                          const mergedData = allDates.map(date => ({
-                            date,
-                            competitor: compHistory.find(p => p.date === date)?.price ?? null,
-                            own: ownHistory.find(p => p.date === date)?.price ?? null,
-                          }))
+                          // Carry forward values so lines connect
+                          const compMap = new Map(compHistory.map(p => [p.date, p.price]))
+                          const ownMap = new Map(ownHistory.map(p => [p.date, p.price]))
+                          let lastComp: number | null = null
+                          let lastOwn: number | null = null
+                          const mergedData = allDates.map(date => {
+                            if (compMap.has(date)) lastComp = compMap.get(date)!
+                            if (ownMap.has(date)) lastOwn = ownMap.get(date)!
+                            return { date, competitor: lastComp, own: lastOwn }
+                          }).filter(d => d.own !== null || d.competitor !== null)
                           return (
                             <ResponsiveContainer width="100%" height="100%">
                               <LineChart data={mergedData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
@@ -1421,8 +1446,8 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                                   if (value === null) return ["-", name]
                                   return [`¥${value.toLocaleString()}`, name === "own" ? "自社" : "他社"]
                                 }} />
-                                <Line type="stepAfter" dataKey="own" name="own" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }} connectNulls />
-                                <Line type="stepAfter" dataKey="competitor" name="competitor" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 2, r: 3 }} connectNulls />
+                                <Line type="monotone" dataKey="own" name="own" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }} connectNulls />
+                                <Line type="monotone" dataKey="competitor" name="competitor" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 2, r: 3 }} connectNulls />
                               </LineChart>
                             </ResponsiveContainer>
                           )
