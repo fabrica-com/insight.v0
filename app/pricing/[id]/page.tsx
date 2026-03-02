@@ -654,6 +654,12 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
 ]
 
 const OWN_STORE_AREA = "東京都"
+// Current month for chart timeline (March = "03/01")
+const CURRENT_MONTH_KEY = "03/01"
+const FISCAL_TIMELINE = ["09/01","10/01","11/01","12/01","01/01","02/01","03/01","04/01","05/01","06/01","07/01","08/01"]
+const CURRENT_MONTH_IDX = FISCAL_TIMELINE.indexOf(CURRENT_MONTH_KEY)
+// Timeline capped at current month
+const TIMELINE = FISCAL_TIMELINE.slice(0, CURRENT_MONTH_IDX + 1)
 
 const DEFAULT_EXPENSE_RATE = 0.1 // 諸費用率（車両本体価格の10%）
 
@@ -1225,21 +1231,19 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
 
           {/* Price Comparison Chart - Own vs Market */}
           {selectedItem.priceHistory.length > 0 && competitors.length > 0 && (() => {
-            const timeline = ["09/01","10/01","11/01","12/01","01/01","02/01","03/01","04/01","05/01","06/01","07/01","08/01"]
             const ownPrice = selectedItem.currentPrice
             const relevantComps = competitors.filter(c => c.price >= ownPrice * 0.4 && c.price <= ownPrice * 2.0)
             const ownByMonth = new Map<string, number>()
-            selectedItem.priceHistory.forEach(p => { ownByMonth.set(p.date.slice(0, 2) + "/01", p.price) })
+            selectedItem.priceHistory.forEach(p => { const k = p.date.slice(0, 2) + "/01"; if (TIMELINE.includes(k)) ownByMonth.set(k, p.price) })
             const compByMonthArr = relevantComps.map(c => {
               const map = new Map<string, number>()
-              c.priceHistory.forEach(p => { map.set(p.date.slice(0, 2) + "/01", p.price) })
+              c.priceHistory.forEach(p => { const k = p.date.slice(0, 2) + "/01"; if (TIMELINE.includes(k)) map.set(k, p.price) })
               return map
             })
-            const ownMonths = timeline.filter(m => ownByMonth.has(m))
+            const ownMonths = TIMELINE.filter(m => ownByMonth.has(m))
             if (ownMonths.length === 0) return null
-            const si = timeline.indexOf(ownMonths[0])
-            const ei = timeline.indexOf(ownMonths[ownMonths.length - 1])
-            const active = si <= ei ? timeline.slice(si, ei + 1) : [...timeline.slice(si), ...timeline.slice(0, ei + 1)]
+            const si = TIMELINE.indexOf(ownMonths[0])
+            const active = TIMELINE.slice(si)
             let pOwn = ownByMonth.get(active[0]) ?? ownPrice
             const pComp = compByMonthArr.map(m => { for (const t of active) { if (m.has(t)) return m.get(t)! } return null })
             const chartData = active.map((month) => {
@@ -1407,7 +1411,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                                   {comp.priceHistory.length >= 2 && (() => {
                                     const first = comp.priceHistory[0].price
                                     const drop = first - comp.price
-                                    return drop > 0 ? <span className="text-[10px] text-destructive">累計 -{(drop / 10000).toFixed(0)}��値下</span> : null
+                                    return drop > 0 ? <span className="text-[10px] text-destructive">累計 -{(drop / 10000).toFixed(0)}���値下</span> : null
                                   })()}
                                 </div>
                               </TableCell>
@@ -1593,21 +1597,19 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                 <DialogDescription>自社 {selectedItem.model} {selectedItem.grade} と競合店（{competitors.length}台）の価格推移</DialogDescription>
               </DialogHeader>
               {(() => {
-                const timeline = ["09/01","10/01","11/01","12/01","01/01","02/01","03/01","04/01","05/01","06/01","07/01","08/01"]
                 const ownPrice = selectedItem.currentPrice
                 const relevantComps = competitors.filter(c => c.price >= ownPrice * 0.4 && c.price <= ownPrice * 2.0)
                 const ownByMonth = new Map<string, number>()
-                selectedItem.priceHistory.forEach(p => { ownByMonth.set(p.date.slice(0, 2) + "/01", p.price) })
+                selectedItem.priceHistory.forEach(p => { const k = p.date.slice(0, 2) + "/01"; if (TIMELINE.includes(k)) ownByMonth.set(k, p.price) })
                 const compByMonthArr = relevantComps.map(c => {
                   const map = new Map<string, number>()
-                  c.priceHistory.forEach(p => { map.set(p.date.slice(0, 2) + "/01", p.price) })
+                  c.priceHistory.forEach(p => { const k = p.date.slice(0, 2) + "/01"; if (TIMELINE.includes(k)) map.set(k, p.price) })
                   return map
                 })
-                const ownMonths = timeline.filter(m => ownByMonth.has(m))
+                const ownMonths = TIMELINE.filter(m => ownByMonth.has(m))
                 if (ownMonths.length === 0) return <p className="text-sm text-muted-foreground p-4">データがありません</p>
-                const si = timeline.indexOf(ownMonths[0])
-                const ei = timeline.indexOf(ownMonths[ownMonths.length - 1])
-                const active = si <= ei ? timeline.slice(si, ei + 1) : [...timeline.slice(si), ...timeline.slice(0, ei + 1)]
+                const si = TIMELINE.indexOf(ownMonths[0])
+                const active = TIMELINE.slice(si)
                 let pOwn = ownByMonth.get(active[0]) ?? ownPrice
                 const pComp = compByMonthArr.map(m => { for (const t of active) { if (m.has(t)) return m.get(t)! } return null })
                 const chartData = active.map((month) => {
@@ -1660,21 +1662,19 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                 <DialogDescription>自社 {selectedItem.model} {selectedItem.grade} と{areaScope === "prefecture" ? OWN_STORE_AREA : areaScope === "kanto" ? "関東圏" : "全国"}（{areaVehicles.length}台）の価格推移</DialogDescription>
               </DialogHeader>
               {(() => {
-                const timeline = ["09/01","10/01","11/01","12/01","01/01","02/01","03/01","04/01","05/01","06/01","07/01","08/01"]
                 const ownPrice = selectedItem.currentPrice
                 const relevantArea = areaVehicles.filter(c => c.price >= ownPrice * 0.4 && c.price <= ownPrice * 2.0)
                 const ownByMonth = new Map<string, number>()
-                selectedItem.priceHistory.forEach(p => { ownByMonth.set(p.date.slice(0, 2) + "/01", p.price) })
+                selectedItem.priceHistory.forEach(p => { const k = p.date.slice(0, 2) + "/01"; if (TIMELINE.includes(k)) ownByMonth.set(k, p.price) })
                 const areaByMonthArr = relevantArea.map(c => {
                   const map = new Map<string, number>()
-                  c.priceHistory.forEach(p => { map.set(p.date.slice(0, 2) + "/01", p.price) })
+                  c.priceHistory.forEach(p => { const k = p.date.slice(0, 2) + "/01"; if (TIMELINE.includes(k)) map.set(k, p.price) })
                   return map
                 })
-                const ownMonths = timeline.filter(m => ownByMonth.has(m))
+                const ownMonths = TIMELINE.filter(m => ownByMonth.has(m))
                 if (ownMonths.length === 0) return <p className="text-sm text-muted-foreground p-4">データがありません</p>
-                const si = timeline.indexOf(ownMonths[0])
-                const ei = timeline.indexOf(ownMonths[ownMonths.length - 1])
-                const active = si <= ei ? timeline.slice(si, ei + 1) : [...timeline.slice(si), ...timeline.slice(0, ei + 1)]
+                const si = TIMELINE.indexOf(ownMonths[0])
+                const active = TIMELINE.slice(si)
                 let pOwn = ownByMonth.get(active[0]) ?? ownPrice
                 const pArea = areaByMonthArr.map(m => { for (const t of active) { if (m.has(t)) return m.get(t)! } return null })
                 const chartData = active.map((month) => {
@@ -1724,38 +1724,23 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
             <DialogContent className="sm:max-w-3xl">
               {individualChartVehicle && (() => {
                 const v = individualChartVehicle
-                const timeline = ["09/01","10/01","11/01","12/01","01/01","02/01","03/01","04/01","05/01","06/01","07/01","08/01"]
-
-                // Determine how many months to show based on the competitor's daysOnMarket
+                // Determine how many months to show based on daysOnMarket
                 const compMonthsOnMarket = Math.max(1, Math.ceil(v.daysOnMarket / 30))
-                // Also consider own vehicle's listing period
                 const ownMonthsOnMarket = Math.max(1, Math.ceil(selectedItem.daysOnMarket / 30))
-                // Show the longer of the two, but cap at available timeline
-                const monthsToShow = Math.min(Math.max(compMonthsOnMarket, ownMonthsOnMarket) + 1, timeline.length)
+                const monthsToShow = Math.min(Math.max(compMonthsOnMarket, ownMonthsOnMarket) + 1, TIMELINE.length)
 
-                // Build price maps
+                // Build price maps (only within TIMELINE range)
                 const ownByMonth = new Map<string, number>()
-                selectedItem.priceHistory.forEach(p => { ownByMonth.set(p.date.slice(0, 2) + "/01", p.price) })
+                selectedItem.priceHistory.forEach(p => { const k = p.date.slice(0, 2) + "/01"; if (TIMELINE.includes(k)) ownByMonth.set(k, p.price) })
                 const compByMonth = new Map<string, number>()
-                v.priceHistory.forEach(p => { compByMonth.set(p.date.slice(0, 2) + "/01", p.price) })
+                v.priceHistory.forEach(p => { const k = p.date.slice(0, 2) + "/01"; if (TIMELINE.includes(k)) compByMonth.set(k, p.price) })
 
-                // Find the last month with any data as "current month"
                 const allKeys = new Set([...ownByMonth.keys(), ...compByMonth.keys()])
-                const activeMonths = timeline.filter(m => allKeys.has(m))
-                if (activeMonths.length === 0) return <p className="text-sm text-muted-foreground p-4">データがありません</p>
+                if (allKeys.size === 0) return <p className="text-sm text-muted-foreground p-4">データがありません</p>
 
-                const lastMonth = activeMonths[activeMonths.length - 1]
-                const lastIdx = timeline.indexOf(lastMonth)
-
-                // Calculate the start index going back monthsToShow from the last month
-                let startIdx = lastIdx - monthsToShow + 1
-                let range: string[]
-                if (startIdx >= 0) {
-                  range = timeline.slice(startIdx, lastIdx + 1)
-                } else {
-                  // Wrap around fiscal year
-                  range = [...timeline.slice(timeline.length + startIdx), ...timeline.slice(0, lastIdx + 1)]
-                }
+                // End at current month, go back monthsToShow
+                const startIdx = Math.max(0, CURRENT_MONTH_IDX - monthsToShow + 1)
+                const range = TIMELINE.slice(startIdx, CURRENT_MONTH_IDX + 1)
 
                 let pOwn = ownByMonth.get(range[0]) ?? selectedItem.currentPrice
                 let pComp = compByMonth.get(range[0]) ?? v.price
@@ -1881,7 +1866,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
           {/* Left: Select tracking target */}
           <Card className="border-emerald-500/20">
             <CardHeader className="pb-3 bg-emerald-500/5 rounded-t-lg">
-              <CardTitle className="flex items-center gap-2 text-base"><Target className="h-4 w-4 text-emerald-600" />追従対象を選択</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-base"><Target className="h-4 w-4 text-emerald-600" />追従��象を選択</CardTitle>
               <CardDescription className="text-xs">価格変動に追従したい競合車両を選んでください</CardDescription>
             </CardHeader>
             <CardContent className="pt-2">
@@ -1980,7 +1965,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                   <Label className="flex items-center gap-2">下限支払総額<span className="text-xs text-muted-foreground font-normal">（これ以下には設定されません）</span></Label>
                   <div className="flex items-center gap-2"><span className="text-lg">¥</span><Input type="text" value={trackingMinPrice} onChange={(e) => setTrackingMinPrice(e.target.value.replace(/[^0-9]/g, ""))} placeholder="例: 4500000" className="text-lg" /></div>
                   {Number(trackingMinPrice) > 0 && calculateTrackingPrice() < Number(trackingMinPrice) && (
-                    <Alert className="bg-amber-50 border-amber-300"><AlertTriangle className="h-4 w-4 text-amber-600" /><AlertDescription className="text-sm">追従価格が下限を下回るため、下限総額 ¥{Number(trackingMinPrice).toLocaleString()} が適用されます</AlertDescription></Alert>
+                    <Alert className="bg-amber-50 border-amber-300"><AlertTriangle className="h-4 w-4 text-amber-600" /><AlertDescription className="text-sm">追従価格が下限を下回るため、下限総額 ¥{Number(trackingMinPrice).toLocaleString()} が適用��れます</AlertDescription></Alert>
                   )}
                 </div>
 
