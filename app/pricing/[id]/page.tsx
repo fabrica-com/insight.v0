@@ -644,7 +644,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     newCarPrice: 10500000,
     transmission: "CVT", drivetrain: "4WD", fuelType: "ハイブリッド",
     inspection: "2027年1月", repairHistory: "なし",
-    equipment: ["エグゼクティブラウンジシート", "JBLサウンド", "デジ���ルキー", "パノラミックビュー"],
+    equipment: ["エグゼクティブラウンジシート", "JBLサウンド", "デ������ルキー", "パノラミックビュー"],
     daysOnMarket: 15,
     priceHistory: [
       { date: "02/01", price: 9200000 }, { date: "02/15", price: 8800000 },
@@ -1264,7 +1264,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                     <TrendingUp className="h-4 w-4" />
                     価格推移比較
                   </CardTitle>
-                  <CardDescription className="text-xs">自社 {selectedItem.model} {selectedItem.grade} と競合（{relevantComps.length}台）の全体平均推移</CardDescription>
+                  <CardDescription className="text-xs">自社 {selectedItem.model} {selectedItem.grade} と���合（{relevantComps.length}台）の全体平均推移</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[260px] w-full">
@@ -1724,8 +1724,19 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
             <DialogContent className="sm:max-w-3xl">
               {individualChartVehicle && (() => {
                 const v = individualChartVehicle
-                // Show months based on the clicked vehicle's listing period only
-                const monthsToShow = Math.min(Math.max(1, Math.ceil(v.daysOnMarket / 30)), TIMELINE.length)
+                // Use the longer period of the two vehicles
+                const compMonths = Math.max(1, Math.ceil(v.daysOnMarket / 30))
+                const ownMonths = Math.max(1, Math.ceil(selectedItem.daysOnMarket / 30))
+                const monthsToShow = Math.min(Math.max(compMonths, ownMonths), TIMELINE.length)
+
+                // Each vehicle's listing start index (counting back from current month)
+                const compStartIdx = Math.max(0, CURRENT_MONTH_IDX - compMonths + 1)
+                const ownStartIdx = Math.max(0, CURRENT_MONTH_IDX - ownMonths + 1)
+
+                // Full range covers the longer period
+                const rangeStartIdx = Math.max(0, CURRENT_MONTH_IDX - monthsToShow + 1)
+                const range = TIMELINE.slice(rangeStartIdx, CURRENT_MONTH_IDX + 1)
+                if (range.length === 0) return <p className="text-sm text-muted-foreground p-4">データがありません</p>
 
                 // Build price maps (only within TIMELINE range)
                 const ownByMonth = new Map<string, number>()
@@ -1733,19 +1744,26 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                 const compByMonth = new Map<string, number>()
                 v.priceHistory.forEach(p => { const k = p.date.slice(0, 2) + "/01"; if (TIMELINE.includes(k)) compByMonth.set(k, p.price) })
 
-                const allKeys = new Set([...ownByMonth.keys(), ...compByMonth.keys()])
-                if (allKeys.size === 0) return <p className="text-sm text-muted-foreground p-4">データがありません</p>
-
-                // End at current month, go back monthsToShow
-                const startIdx = Math.max(0, CURRENT_MONTH_IDX - monthsToShow + 1)
-                const range = TIMELINE.slice(startIdx, CURRENT_MONTH_IDX + 1)
-
-                let pOwn = ownByMonth.get(range[0]) ?? selectedItem.currentPrice
-                let pComp = compByMonth.get(range[0]) ?? v.price
-                const mergedData = range.map(month => {
-                  if (ownByMonth.has(month)) pOwn = ownByMonth.get(month)!
-                  if (compByMonth.has(month)) pComp = compByMonth.get(month)!
-                  return { date: month.replace("/01", "月"), own: pOwn, competitor: pComp }
+                // Build chart data: null before each vehicle's listing start
+                let pOwn: number | null = null
+                let pComp: number | null = null
+                const mergedData = range.map((month, i) => {
+                  const absIdx = rangeStartIdx + i
+                  // Own line: only draw from ownStartIdx onwards
+                  let ownVal: number | null = null
+                  if (absIdx >= ownStartIdx) {
+                    if (pOwn === null) pOwn = ownByMonth.get(month) ?? selectedItem.currentPrice
+                    if (ownByMonth.has(month)) pOwn = ownByMonth.get(month)!
+                    ownVal = pOwn
+                  }
+                  // Competitor line: only draw from compStartIdx onwards
+                  let compVal: number | null = null
+                  if (absIdx >= compStartIdx) {
+                    if (pComp === null) pComp = compByMonth.get(month) ?? v.price
+                    if (compByMonth.has(month)) pComp = compByMonth.get(month)!
+                    compVal = pComp
+                  }
+                  return { date: month.replace("/01", "月"), own: ownVal, competitor: compVal }
                 })
                 const ownLabel = `自社 ${selectedItem.model} ${selectedItem.grade}`
                 const compLabel = `${v.competitorName} ${v.model} ${v.grade}`
@@ -1770,8 +1788,8 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                             `\u00A5${value.toLocaleString()}`,
                             name === "own" ? ownLabel : compLabel
                           ]} />
-                          <Line type="monotone" dataKey="own" name="own" stroke="#2563eb" strokeWidth={2.5} dot={{ fill: "#2563eb", strokeWidth: 2, r: 4 }} />
-                          <Line type="monotone" dataKey="competitor" name="competitor" stroke="#f59e0b" strokeWidth={2} dot={{ fill: "#f59e0b", strokeWidth: 2, r: 3 }} />
+                          <Line type="monotone" dataKey="own" name="own" stroke="#2563eb" strokeWidth={2.5} dot={{ fill: "#2563eb", strokeWidth: 2, r: 4 }} connectNulls={false} />
+                          <Line type="monotone" dataKey="competitor" name="competitor" stroke="#f59e0b" strokeWidth={2} dot={{ fill: "#f59e0b", strokeWidth: 2, r: 3 }} connectNulls={false} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
