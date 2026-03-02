@@ -1153,13 +1153,14 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                 <div className="text-[10px] text-muted-foreground">粗利 ¥{(selectedItem.currentPrice - selectedItem.purchasePrice).toLocaleString()}</div>
               </div>
               <div className="h-12 w-px bg-border flex-shrink-0" />
-              <div className="flex flex-col gap-2 flex-shrink-0">
-                <Button size="sm" className="gap-1.5" onClick={() => setStep("2a")}>
+              <div className="flex flex-col gap-1.5 flex-shrink-0 items-center">
+                <Button size="sm" className="gap-1.5 w-full" onClick={() => setStep("2a")}>
                   <Calculator className="h-3.5 w-3.5" />価格変更
                 </Button>
-                <Button size="sm" variant="outline" className="gap-1.5 border-emerald-300 text-emerald-700 hover:bg-emerald-50" onClick={() => setStep("2b")}>
+                <Button size="sm" variant="outline" className="gap-1.5 w-full border-emerald-300 text-emerald-700 hover:bg-emerald-50" onClick={() => setStep("2b")}>
                   <Link2 className="h-3.5 w-3.5" />競合追従
                 </Button>
+                <p className="text-[9px] text-muted-foreground leading-tight text-center">※シンフォニー連携済みの場合のみ有効</p>
               </div>
             </div>
           </div>
@@ -2050,7 +2051,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                 </div>
 
                 <div className="flex items-center justify-between p-3 rounded-lg border">
-                  <div className="space-y-0.5"><Label>自動追��を有効化</Label><p className="text-xs text-muted-foreground">相手���価格変更したら自動で追従</p></div>
+                  <div className="space-y-0.5"><Label>自動追��を有���化</Label><p className="text-xs text-muted-foreground">相手���価格変更したら自動で追従</p></div>
                   <Switch checked={trackingActive} onCheckedChange={setTrackingActive} />
                 </div>
 
