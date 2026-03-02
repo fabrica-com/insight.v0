@@ -25,6 +25,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   ArrowLeft,
   TrendingUp,
@@ -655,6 +656,9 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
     sameColor: true,
   })
   const [filterExpanded, setFilterExpanded] = useState(false) // Replaced filterPopoverOpen
+  const [pricingMode, setPricingMode] = useState<"manual" | "tracking">(
+    trackingSettings?.isActive ? "tracking" : "manual"
+  )
 
 
 
@@ -823,6 +827,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
     setTrackingSettings(newSettings)
     setAdjustedTotalPrice(Math.round(finalTotalPrice).toString())
     setAdjustedPrice(Math.max(0, Math.round(finalTotalPrice) - expenses).toString())
+    setPricingMode("tracking")
     setTrackingModalOpen(false)
   }
 
@@ -1617,7 +1622,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                                   onClick={() => openTrackingModal(vehicle)}
                                 >
                                   <Link2 className="h-3 w-3" />
-                                  追従設定
+                                  追従��定
                                 </Button>
                               )}
                             </TableCell>
@@ -1632,177 +1637,233 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
           </CardContent>
         </Card>
 
-        {/* Price adjustment panel */}
+        {/* Right column - Tab: Manual adjust / Auto tracking */}
         <div className="space-y-4">
-          {trackingSettings?.isActive && (
-            <Card className="border-emerald-500 bg-emerald-50/50">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Link2 className="h-4 w-4 text-emerald-600" />
-                  自動価格追従設定
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">追従対象</span>
-                  <span className="font-medium">{trackingSettings.targetCompetitorName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">対象車両価格</span>
-                  <span className="font-medium">¥{trackingSettings.targetPrice.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">価格差設定</span>
-                  <span className="font-medium">
-                    {trackingSettings.offsetType === "fixed"
-                      ? `${trackingSettings.priceOffset >= 0 ? "+" : ""}¥${trackingSettings.priceOffset.toLocaleString()}`
-                      : `${trackingSettings.offsetType === "percentage" ? "+" : ""}${trackingSettings.priceOffset}%`}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">下限価格</span>
-                  <span className="font-medium">¥{trackingSettings.minPrice.toLocaleString()}</span>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full mt-2 bg-transparent"
-                  onClick={() => setTrackingSettings({ ...trackingSettings, isActive: false })}
-                >
-                  追従を解除
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+          <Tabs value={pricingMode} onValueChange={(v) => setPricingMode(v as "manual" | "tracking")} className="w-full">
+            <TabsList className="w-full grid grid-cols-2">
+              <TabsTrigger value="manual" className="gap-1.5 text-xs">
+                <Calculator className="h-3.5 w-3.5" />
+                手動で価格調整
+              </TabsTrigger>
+              <TabsTrigger value="tracking" className="gap-1.5 text-xs">
+                <Link2 className="h-3.5 w-3.5" />
+                競合に自動追従
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Price Adjustment Panel */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Calculator className="h-4 w-4" />
-                価格調整
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">支払総額（税込）</Label>
-                <div className="flex items-center gap-2 max-w-[260px]">
-                  <span className="text-xl font-bold flex-shrink-0">¥</span>
-                  <Input
-                    type="text"
-                    value={Number(adjustedTotalPrice).toLocaleString()}
-                    onChange={(e) => handleTotalPriceChange(e.target.value)}
-                    className="text-xl font-bold text-right h-12"
-                  />
-                </div>
-              </div>
+            {/* Manual Price Adjustment Tab */}
+            <TabsContent value="manual" className="space-y-4 mt-4">
+              {trackingSettings?.isActive && (
+                <Alert className="border-amber-300 bg-amber-50/50">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-xs text-amber-800">
+                    現在「自動追従」が有効です。手動で価格を変更すると追従が解除されます。
+                  </AlertDescription>
+                </Alert>
+              )}
+              <Card>
+                <CardContent className="pt-4 space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">支払総額（税込）</Label>
+                    <div className="flex items-center gap-2 max-w-[260px]">
+                      <span className="text-xl font-bold flex-shrink-0">¥</span>
+                      <Input
+                        type="text"
+                        value={Number(adjustedTotalPrice).toLocaleString()}
+                        onChange={(e) => {
+                          handleTotalPriceChange(e.target.value)
+                          if (trackingSettings?.isActive) setTrackingSettings({ ...trackingSettings, isActive: false })
+                        }}
+                        className="text-xl font-bold text-right h-12"
+                      />
+                    </div>
+                  </div>
 
-              <div className="space-y-2">
-                <Label className="text-sm text-muted-foreground">車両本体価格</Label>
-                <div className="flex items-center gap-2 max-w-[260px]">
-                  <span className="text-base text-muted-foreground flex-shrink-0">¥</span>
-                  <Input
-                    type="text"
-                    value={Number(adjustedPrice).toLocaleString()}
-                    onChange={(e) => handleVehiclePriceChange(e.target.value)}
-                    className="text-base text-right h-10 text-muted-foreground"
-                  />
-                </div>
-              </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm text-muted-foreground">車両本体価格</Label>
+                    <div className="flex items-center gap-2 max-w-[260px]">
+                      <span className="text-base text-muted-foreground flex-shrink-0">¥</span>
+                      <Input
+                        type="text"
+                        value={Number(adjustedPrice).toLocaleString()}
+                        onChange={(e) => {
+                          handleVehiclePriceChange(e.target.value)
+                          if (trackingSettings?.isActive) setTrackingSettings({ ...trackingSettings, isActive: false })
+                        }}
+                        className="text-base text-right h-10 text-muted-foreground"
+                      />
+                    </div>
+                  </div>
 
-              <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">諸費用（登録費用・税金・保険等）</Label>
-                <div className="flex items-center gap-2 max-w-[260px]">
-                  <span className="text-sm text-muted-foreground flex-shrink-0">¥</span>
-                  <Input
-                    type="text"
-                    value={expenses.toLocaleString()}
-                    onChange={(e) => handleExpensesChange(e.target.value)}
-                    className="text-sm text-right h-9 text-muted-foreground"
-                  />
-                </div>
-              </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">諸費用（登録費用・税金・保険等）</Label>
+                    <div className="flex items-center gap-2 max-w-[260px]">
+                      <span className="text-sm text-muted-foreground flex-shrink-0">¥</span>
+                      <Input
+                        type="text"
+                        value={expenses.toLocaleString()}
+                        onChange={(e) => handleExpensesChange(e.target.value)}
+                        className="text-sm text-right h-9 text-muted-foreground"
+                      />
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const marketTotal = calculatePaymentTotal(selectedItem.marketPrice)
-                    setQuickTotalPrice(marketTotal)
-                  }}
-                >
-                  相場総額
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const marketTotal = calculatePaymentTotal(selectedItem.marketPrice)
-                    setQuickTotalPrice(marketTotal - 100000)
-                  }}
-                >
-                  相場-10万
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const marketTotal = calculatePaymentTotal(selectedItem.marketPrice)
-                    setQuickTotalPrice(marketTotal - 200000)
-                  }}
-                >
-                  相場-20万
-                </Button>
-                {competitors.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const marketTotal = calculatePaymentTotal(selectedItem.marketPrice)
+                        setQuickTotalPrice(marketTotal)
+                        if (trackingSettings?.isActive) setTrackingSettings({ ...trackingSettings, isActive: false })
+                      }}
+                    >
+                      相場総額
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const marketTotal = calculatePaymentTotal(selectedItem.marketPrice)
+                        setQuickTotalPrice(marketTotal - 100000)
+                        if (trackingSettings?.isActive) setTrackingSettings({ ...trackingSettings, isActive: false })
+                      }}
+                    >
+                      相場-10万
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const marketTotal = calculatePaymentTotal(selectedItem.marketPrice)
+                        setQuickTotalPrice(marketTotal - 200000)
+                        if (trackingSettings?.isActive) setTrackingSettings({ ...trackingSettings, isActive: false })
+                      }}
+                    >
+                      相場-20万
+                    </Button>
+                    {competitors.length > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const minPrice = Math.min(...competitors.map((c) => c.price))
+                          const minTotal = calculatePaymentTotal(minPrice)
+                          setQuickTotalPrice(minTotal - 50000)
+                          if (trackingSettings?.isActive) setTrackingSettings({ ...trackingSettings, isActive: false })
+                        }}
+                      >
+                        最安-5万
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Price position info */}
+              {competitors.length > 0 && (
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>
+                    調整支払総額 ¥{Number(adjustedTotalPrice).toLocaleString()}（本体 ¥
+                    {Number(adjustedPrice).toLocaleString()}）は、競合{competitors.length}台中で
+                    <strong className="mx-1">
+                      {(() => {
+                        const allTotalPrices = [
+                          ...competitors.map((c) => calculatePaymentTotal(c.price)),
+                          Number(adjustedTotalPrice),
+                        ].sort((a, b) => a - b)
+                        return allTotalPrices.indexOf(Number(adjustedTotalPrice)) + 1
+                      })()}位
+                    </strong>
+                    の価格です
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <Button onClick={handleSavePrice} className="gap-2 w-full" size="lg">
+                <Save className="h-4 w-4" />
+                この価格で更新
+              </Button>
+            </TabsContent>
+
+            {/* Auto Tracking Tab */}
+            <TabsContent value="tracking" className="space-y-4 mt-4">
+              {trackingSettings?.isActive ? (
+                <>
+                  <Card className="border-emerald-500 bg-emerald-50/50">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Link2 className="h-4 w-4 text-emerald-600" />
+                          追従中
+                        </CardTitle>
+                        <Badge className="bg-emerald-600 text-white text-xs">有効</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">追従対象</span>
+                        <span className="font-medium">{trackingSettings.targetCompetitorName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">対象車両価格</span>
+                        <span className="font-medium">¥{trackingSettings.targetPrice.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">価格差設定</span>
+                        <span className="font-medium">
+                          {trackingSettings.offsetType === "fixed"
+                            ? `${trackingSettings.priceOffset >= 0 ? "+" : ""}¥${trackingSettings.priceOffset.toLocaleString()}`
+                            : `${trackingSettings.offsetType === "percentage" ? "+" : ""}${trackingSettings.priceOffset}%`}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">下限価格</span>
+                        <span className="font-medium">¥{trackingSettings.minPrice.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between pt-1 border-t">
+                        <span className="text-muted-foreground font-medium">現在の追従価格</span>
+                        <span className="font-bold text-emerald-700">¥{Number(adjustedTotalPrice).toLocaleString()}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Button onClick={handleSavePrice} className="gap-2 w-full" size="lg">
+                    <Save className="h-4 w-4" />
+                    追従設定で更新
+                  </Button>
                   <Button
                     variant="outline"
-                    size="sm"
+                    className="w-full border-destructive/30 text-destructive hover:bg-destructive/5"
                     onClick={() => {
-                      // Use the price of the competitor, not their total price for comparison when calculating min price from competitors
-                      const minPrice = Math.min(...competitors.map((c) => c.price))
-                      const minTotal = calculatePaymentTotal(minPrice)
-                      setQuickTotalPrice(minTotal - 50000)
+                      setTrackingSettings({ ...trackingSettings, isActive: false })
+                      setPricingMode("manual")
                     }}
                   >
-                    最安-5万
+                    追従を解除して手動に戻す
                   </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Price position info */}
-          {competitors.length > 0 && (
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                調整支払総額 ¥{Number(adjustedTotalPrice).toLocaleString()}（本体 ¥
-                {Number(adjustedPrice).toLocaleString()}）は、競合{competitors.length}台中で
-                <strong className="mx-1">
-                  {(() => {
-                    const allTotalPrices = [
-                      ...competitors.map((c) => calculatePaymentTotal(c.price)),
-                      Number(adjustedTotalPrice),
-                    ].sort((a, b) => a - b)
-                    return allTotalPrices.indexOf(Number(adjustedTotalPrice)) + 1
-                  })()}位
-                </strong>
-                の価格です
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Action buttons */}
-          <div className="flex items-center gap-2 pt-2 max-w-[320px]">
-            <Button onClick={handleSavePrice} className="gap-2 flex-1" size="lg">
-              <Save className="h-4 w-4" />
-              価格を更新
-            </Button>
-            <Button variant="outline" onClick={() => router.push("/pricing")} className="flex-shrink-0">
-              キャンセル
-            </Button>
-          </div>
+                </>
+              ) : (
+                <Card className="border-dashed">
+                  <CardContent className="pt-6 pb-6 flex flex-col items-center text-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
+                      <Link2 className="h-6 w-6 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">自動追従が未設定です</p>
+                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                        左の「類似条件の競合在庫」リストから、追従したい車両の
+                        <strong>追従設定</strong>ボタンを押してください。
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
+          <Button variant="ghost" size="sm" onClick={() => router.push("/pricing")} className="w-full text-muted-foreground">
+            キャンセルして戻る
+          </Button>
         </div>
       </div>
 
@@ -1848,36 +1909,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
             </span>
           </div>
 
-          {trackingSettings && (
-            <div className="p-3 rounded-lg border border-chart-1/30 bg-chart-1/5 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Link2 className="h-3 w-3" />
-                  追従中
-                </span>
-                <Badge variant={trackingSettings.isActive ? "default" : "secondary"} className="text-xs">
-                  {trackingSettings.isActive ? "有効" : "停止中"}
-                </Badge>
-              </div>
-              <p className="text-xs font-medium">{trackingSettings.targetCompetitorName}</p>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">相手総額</span>
-                <span>¥{trackingSettings.targetPrice.toLocaleString()}</span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">価格差</span>
-                <span>
-                  {trackingSettings.offsetType === "fixed"
-                    ? `${trackingSettings.priceOffset >= 0 ? "+" : ""}${(trackingSettings.priceOffset / 10000).toFixed(0)}万円`
-                    : `${trackingSettings.offsetType === "percentage" ? "+" : ""}${trackingSettings.priceOffset}%`}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">下限総額</span>
-                <span>¥{trackingSettings.minPrice.toLocaleString()}</span>
-              </div>
-            </div>
-          )}
+
         </CardContent>
       </Card>
 
