@@ -16,15 +16,32 @@ import {
   ArrowLeft,
   Bot,
   Flame,
+  Paperclip,
+  X,
+  FileText,
+  ImageIcon,
+  Copy,
+  Check,
+  ThumbsUp,
+  ThumbsDown,
   type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+export interface FileAttachment {
+  id: string
+  name: string
+  type: string
+  size: number
+  dataUrl: string
+}
 
 export interface Message {
   id: string
   role: "user" | "assistant"
   content: string
   timestamp: Date
+  attachments?: FileAttachment[]
 }
 
 export interface ChatHistory {
@@ -51,6 +68,7 @@ export interface SharedChatLayoutProps {
   theme: "data-analysis" | "consultant" | "ceo" | "cfo" | "cmo" | "grant" | "chro" | "cpo"
   inputPlaceholder?: string
   typingDelay?: number
+  enableFileUpload?: boolean
 }
 
 const loadChatHistory = (storageKey: string): ChatHistory[] => {
@@ -98,6 +116,7 @@ export function SharedChatLayout({
   theme,
   inputPlaceholder = "質問を入力...",
   typingDelay = 1500,
+  enableFileUpload = false,
 }: SharedChatLayoutProps) {
   const [chatHistories, setChatHistories] = useState<ChatHistory[]>([])
   const [currentChatId, setCurrentChatId] = useState<string | null>(null)
@@ -117,6 +136,10 @@ export function SharedChatLayout({
   const [displayedContent, setDisplayedContent] = useState("")
   const [isRevealing, setIsRevealing] = useState(false)
   const [fullResponseContent, setFullResponseContent] = useState("")
+  const [pendingFiles, setPendingFiles] = useState<FileAttachment[]>([])
+  const [ratings, setRatings] = useState<Record<string, "up" | "down">>({})
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -210,20 +233,71 @@ export function SharedChatLayout({
     saveChatHistory(storageKey, updatedHistories)
   }
 
+  const handleCopy = useCallback((messageId: string, content: string) => {
+    navigator.clipboard.writeText(content).then(() => {
+      setCopiedId(messageId)
+      setTimeout(() => setCopiedId(null), 2000)
+    })
+  }, [])
+
+  const handleRate = useCallback((messageId: string, rating: "up" | "down") => {
+    setRatings((prev) => {
+      if (prev[messageId] === rating) {
+        const next = { ...prev }
+        delete next[messageId]
+        return next
+      }
+      return { ...prev, [messageId]: rating }
+    })
+  }, [])
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files) return
+    const allowed = ["image/jpeg", "image/png", "image/gif", "image/webp", "application/pdf"]
+    const maxSize = 10 * 1024 * 1024 // 10MB
+
+    Array.from(files).forEach((file) => {
+      if (!allowed.includes(file.type)) return
+      if (file.size > maxSize) return
+
+      const reader = new FileReader()
+      reader.onload = () => {
+        const attachment: FileAttachment = {
+          id: Date.now().toString() + Math.random().toString(36).slice(2),
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          dataUrl: reader.result as string,
+        }
+        setPendingFiles((prev) => [...prev, attachment])
+      }
+      reader.readAsDataURL(file)
+    })
+    // Reset input so the same file can be re-selected
+    e.target.value = ""
+  }, [])
+
+  const removePendingFile = useCallback((id: string) => {
+    setPendingFiles((prev) => prev.filter((f) => f.id !== id))
+  }, [])
+
   const handleSend = async (message?: string) => {
     const messageText = message || input
-    if (!messageText.trim()) return
+    if (!messageText.trim() && pendingFiles.length === 0) return
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
       content: messageText,
       timestamp: new Date(),
+      attachments: pendingFiles.length > 0 ? [...pendingFiles] : undefined,
     }
 
     const updatedMessages = [...messages, userMessage]
     setMessages(updatedMessages)
     setInput("")
+    setPendingFiles([])
     setIsTyping(true)
 
     const userMessageCount = updatedMessages.filter((m) => m.role === "user").length
@@ -282,7 +356,7 @@ export function SharedChatLayout({
 
   const isConsultant = theme === "consultant"
 
-  const themeConfig: Record<string, { avatarIcon: typeof Bot; avatarClass: string; borderClass: string; buttonClass: string; suggestBorderClass: string }> = {
+  const themeConfig: Record<string, { avatarIcon: typeof Bot; avatarSrc?: string; avatarClass: string; borderClass: string; buttonClass: string; suggestBorderClass: string }> = {
     "data-analysis": {
       avatarIcon: Bot,
       avatarClass: "rounded-lg bg-gradient-to-br from-chart-4 to-primary text-white",
@@ -292,7 +366,8 @@ export function SharedChatLayout({
     },
     consultant: {
       avatarIcon: Flame,
-      avatarClass: "rounded-full bg-gradient-to-br from-red-500 to-orange-600",
+      avatarSrc: "/images/consultant-avatar.jpg",
+      avatarClass: "rounded-full bg-gradient-to-br from-red-500 to-orange-600 overflow-hidden",
       borderClass: "border-red-500/20",
       buttonClass: "bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 text-white",
       suggestBorderClass: "border-red-500/30 hover:bg-red-500/10 hover:text-red-600",
@@ -388,7 +463,7 @@ export function SharedChatLayout({
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto p-2 space-y-1">
               {chatHistories.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-8">履歴がありません</p>
+                <p className="text-xs text-muted-foreground text-center py-8">履歴���ありません</p>
               ) : (
                 chatHistories.map((chat) => (
                   <button
@@ -440,7 +515,7 @@ export function SharedChatLayout({
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={cn("flex gap-3", message.role === "user" ? "justify-end" : "justify-start")}
+                className={cn("flex gap-3 group", message.role === "user" ? "justify-end" : "justify-start")}
               >
                 {message.role === "assistant" && (
                   <div
@@ -449,24 +524,103 @@ export function SharedChatLayout({
                       tc.avatarClass,
                     )}
                   >
-                    <AvatarIcon className="h-4 w-4 text-white" />
+                    {tc.avatarSrc ? (
+                      <img src={tc.avatarSrc} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <AvatarIcon className="h-4 w-4 text-white" />
+                    )}
                   </div>
                 )}
-                <div
-                  className={cn(
-                    "max-w-[600px] rounded-xl px-4 py-3 whitespace-pre-wrap text-sm leading-relaxed",
-                    message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted/70",
+                <div className="flex flex-col">
+                  <div
+                    className={cn(
+                      "max-w-[600px] rounded-xl px-4 py-3 text-sm leading-relaxed",
+                      message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted/70",
+                    )}
+                  >
+                    {/* File attachments */}
+                    {message.attachments && message.attachments.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {message.attachments.map((file) => (
+                          <div key={file.id} className={cn(
+                            "rounded-lg overflow-hidden border",
+                            message.role === "user" ? "border-primary-foreground/20" : "border-border",
+                          )}>
+                            {file.type.startsWith("image/") ? (
+                              <img
+                                src={file.dataUrl}
+                                alt={file.name}
+                                className="max-w-[200px] max-h-[150px] object-cover"
+                              />
+                            ) : (
+                              <div className={cn(
+                                "flex items-center gap-2 px-3 py-2 text-xs",
+                                message.role === "user" ? "bg-primary-foreground/10" : "bg-muted",
+                              )}>
+                                <FileText className="h-4 w-4 flex-shrink-0" />
+                                <span className="truncate max-w-[150px]">{file.name}</span>
+                                <span className="text-[10px] opacity-70">{(file.size / 1024).toFixed(0)}KB</span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {/* Message content */}
+                    <div className="whitespace-pre-wrap">
+                      {message.role === "assistant" &&
+                       isRevealing &&
+                       message.id === messages[messages.length - 1]?.id
+                        ? <>
+                            {displayedContent}
+                            <span className="inline-block w-0.5 h-4 bg-foreground/70 animate-pulse ml-0.5 align-text-bottom" />
+                          </>
+                        : message.content}
+                    </div>
+                  </div>
+                  {/* Rating & Copy below the bubble */}
+                  {message.role === "assistant" && message.id !== "1" && !(isRevealing && message.id === messages[messages.length - 1]?.id) && (
+                    <div className="flex items-center gap-0.5 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(message.id, message.content)}
+                        className="rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                        title="コピー"
+                      >
+                        {copiedId === message.id ? (
+                          <Check className="h-3.5 w-3.5 text-green-500" />
+                        ) : (
+                          <Copy className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRate(message.id, "up")}
+                        className={cn(
+                          "rounded-md p-1 transition-colors",
+                          ratings[message.id] === "up"
+                            ? "text-primary bg-primary/10"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                        )}
+                        title="参考になった"
+                      >
+                        <ThumbsUp className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRate(message.id, "down")}
+                        className={cn(
+                          "rounded-md p-1 transition-colors",
+                          ratings[message.id] === "down"
+                            ? "text-destructive bg-destructive/10"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                        )}
+                        title="参考にならなかった"
+                      >
+                        <ThumbsDown className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   )}
-                >
-                  {/* Show typing reveal for the last assistant message */}
-                  {message.role === "assistant" &&
-                   isRevealing &&
-                   message.id === messages[messages.length - 1]?.id
-                    ? <>
-                        {displayedContent}
-                        <span className="inline-block w-0.5 h-4 bg-foreground/70 animate-pulse ml-0.5 align-text-bottom" />
-                      </>
-                    : message.content}
                 </div>
                 {message.role === "user" && (
                   <div className="flex h-8 w-8 items-center justify-center flex-shrink-0 rounded-lg bg-muted">
@@ -484,7 +638,11 @@ export function SharedChatLayout({
                     tc.avatarClass,
                   )}
                 >
-                  <AvatarIcon className="h-4 w-4 text-white animate-pulse" />
+                  {tc.avatarSrc ? (
+                    <img src={tc.avatarSrc} alt="" className="h-full w-full object-cover animate-pulse" />
+                  ) : (
+                    <AvatarIcon className="h-4 w-4 text-white animate-pulse" />
+                  )}
                 </div>
                 <div className="rounded-xl bg-muted/70 px-4 py-3">
                   <div className="flex items-center gap-2.5">
@@ -514,25 +672,25 @@ export function SharedChatLayout({
           </div>
 
           {messages.length === 1 && (
-            <div className="shrink-0 border-t border-border/50 bg-muted/30 p-4">
-              <p className="text-xs font-medium mb-3 text-muted-foreground">{suggestedLabel}</p>
-              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {suggestedItems.map((item, index) => (
+            <div className="shrink-0 border-t border-border/50 bg-muted/30 p-3">
+              <p className="text-xs font-medium mb-2 text-muted-foreground">{suggestedLabel}</p>
+              <div className="grid gap-2 sm:grid-cols-3">
+                {suggestedItems.slice(0, 3).map((item, index) => (
                   <button
                     key={index}
                     onClick={() => handleSend(item.text)}
                     className={cn(
-                      "flex items-center gap-3 p-3 rounded-lg border border-border/50 bg-card hover:bg-muted/50 transition-colors text-left group",
+                      "flex items-center gap-2 p-2 rounded-lg border border-border/50 bg-card hover:bg-muted/50 transition-colors text-left group",
                       tc.suggestBorderClass,
                     )}
                   >
                     <div
                       className={cn(
-                        "flex h-8 w-8 items-center justify-center rounded-lg flex-shrink-0",
+                        "flex h-7 w-7 items-center justify-center rounded-md flex-shrink-0",
                         item.color ? `bg-gradient-to-br ${item.color} text-white` : "bg-muted",
                       )}
                     >
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="h-3.5 w-3.5" />
                     </div>
                     <span className="text-xs font-medium flex-1">{item.text}</span>
                     <ArrowRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -542,8 +700,54 @@ export function SharedChatLayout({
             </div>
           )}
 
-          <div className="shrink-0 border-t border-border/50 p-3">
+          <div className="shrink-0 border-t border-border/50 p-3 space-y-2">
+            {/* Pending files preview */}
+            {pendingFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {pendingFiles.map((file) => (
+                  <div key={file.id} className="relative group flex items-center gap-1.5 rounded-md border border-border bg-muted/50 px-2 py-1.5 text-xs">
+                    {file.type.startsWith("image/") ? (
+                      <ImageIcon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                    ) : (
+                      <FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                    )}
+                    <span className="truncate max-w-[120px]">{file.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => removePendingFile(file.id)}
+                      className="ml-1 rounded-full p-0.5 hover:bg-destructive/10 hover:text-destructive transition-colors"
+                    >
+                      <X className="h-3 w-3" />
+                      <span className="sr-only">削除</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="flex gap-2">
+              {enableFileUpload && (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-10 w-10 flex-shrink-0"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="画像・PDFをアップロード"
+                  >
+                    <Paperclip className="h-4 w-4" />
+                    <span className="sr-only">ファイルを添付</span>
+                  </Button>
+                </>
+              )}
               <Input
                 placeholder={inputPlaceholder}
                 value={input}
@@ -558,7 +762,7 @@ export function SharedChatLayout({
               />
               <Button
                 onClick={() => handleSend()}
-                disabled={!input.trim() || isTyping || isRevealing}
+                disabled={(!input.trim() && pendingFiles.length === 0) || isTyping || isRevealing}
                 size="icon"
                 className={cn(
                   "h-10 w-10",

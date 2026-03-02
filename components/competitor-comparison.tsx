@@ -67,13 +67,9 @@ const INITIAL_COMPETITORS: Competitor[] = [
 ]
 
 const SAMPLE_FETCHED_DATA: Record<string, Partial<Competitor>> = {
-  "carsensor.net": {
+  "kurumaerabi.com": {
     name: "カーセレクト東京",
     region: "東京都渋谷区",
-  },
-  "goo-net.com": {
-    name: "オートプラザ横浜",
-    region: "神奈川県横浜市",
   },
   default: {
     name: "不明な店舗",
@@ -170,7 +166,7 @@ export function CompetitorComparison() {
     try {
       const urlObj = new URL(url)
       const domain = urlObj.hostname.replace("www.", "")
-      const supportedDomains = ["carsensor.net", "goo-net.com", "carview.co.jp", "autoc-one.jp"]
+      const supportedDomains = ["kurumaerabi.com"]
       const isSupported = supportedDomains.some((d) => domain.includes(d))
       const pathParts = urlObj.pathname.split("/").filter(Boolean)
       const storeId = pathParts[pathParts.length - 1] || `store-${Date.now()}`
@@ -223,7 +219,7 @@ export function CompetitorComparison() {
   }
 
   const handleAddFetchedCompetitor = () => {
-    if (fetchedCompetitor && competitors.length < 6) {
+    if (fetchedCompetitor && competitors.length < 5) {
       const newCompetitorEntry: Competitor = {
         id: `comp-${Date.now()}`,
         name: fetchedCompetitor.name,
@@ -1154,9 +1150,9 @@ export function CompetitorComparison() {
         <div>
           <h2 className="text-lg font-semibold flex items-center gap-2">
             登録済み競合店
-            <Badge variant="secondary">{competitors.length}/6</Badge>
-          </h2>
-          <p className="text-sm text-muted-foreground mt-0.5">比較したい競合店を選択してください（最大6店舗）</p>
+<Badge variant="secondary">{competitors.length}/5</Badge>
+  </h2>
+  <p className="text-sm text-muted-foreground mt-0.5">比較したい競合店を選択してください（最大5店舗）</p>
         </div>
         <div className="flex items-center gap-2">
           <Dialog
@@ -1169,7 +1165,7 @@ export function CompetitorComparison() {
             }}
           >
             <DialogTrigger asChild>
-              <Button disabled={competitors.length >= 6} className="gap-2">
+              <Button disabled={competitors.length >= 5} className="gap-2">
                 <Plus className="h-4 w-4" />
                 競合店を追加
               </Button>
@@ -1310,7 +1306,7 @@ export function CompetitorComparison() {
                         <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="store-url"
-                          placeholder="https://www.carsensor.net/shop/..."
+                          placeholder="https://kurumaerabi.com/shop/..."
                           value={competitorUrl}
                           onChange={(e) => {
                             setCompetitorUrl(e.target.value)
@@ -1329,7 +1325,7 @@ export function CompetitorComparison() {
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    カーセンサー、グーネット等の店舗ページURLに対応しています
+                    車選びドットコム等の店舗ページURLに対応しています
                   </p>
                 </TabsContent>
               </Tabs>
@@ -1447,7 +1443,7 @@ export function CompetitorComparison() {
           </div>
         ))}
 
-        {competitors.length < 6 && competitors.length > 0 && (
+        {competitors.length < 5 && competitors.length > 0 && (
           <button
             onClick={() => setIsAddDialogOpen(true)}
             className="flex items-center justify-center gap-2 p-3 rounded-lg border border-dashed border-border/50 text-muted-foreground hover:text-foreground hover:border-border hover:bg-muted/30 transition-all"

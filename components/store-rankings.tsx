@@ -10,6 +10,15 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { allStores, allPrefectures, allStoresWithMine, myStore, MY_STORE_ID } from "@/lib/store-data"
 
+function maskStoreName(name: string, index: number): string {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0
+  }
+  const code = (Math.abs(hash) + index * 7919) % 1000000
+  return `KE-${String(code).padStart(6, "0")}`
+}
+
 export function StoreRankings() {
   const [prefecture, setPrefecture] = useState("すべて")
   const [inventorySize, setInventorySize] = useState("すべて")
@@ -233,8 +242,8 @@ export function StoreRankings() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-base truncate blur-sm hover:blur-none transition-all duration-300">
-                      {store.name}
+                    <h3 className="font-semibold text-base truncate font-mono tracking-wide">
+                      {store.id === MY_STORE_ID ? store.name : maskStoreName(store.name, idx)}
                     </h3>
                     <Badge variant="outline" className="text-xs">
                       {store.prefecture}

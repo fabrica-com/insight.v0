@@ -4,8 +4,8 @@ import { SharedChatLayout } from "@/components/shared-chat-layout"
 import { BarChart3, Calculator, TrendingUp, FileSpreadsheet, PieChart, CalendarRange } from "lucide-react"
 
 const suggestedTopics = [
+  { icon: FileSpreadsheet, text: "月次KPIを作りたい" },
   { icon: Calculator, text: "うちは月何台売れば赤字にならない？" },
-  { icon: FileSpreadsheet, text: "年間の予算を作りたい" },
   { icon: TrendingUp, text: "先月の実績を振り返りたい" },
   { icon: PieChart, text: "車種別にどれが儲かっているか知りたい" },
   { icon: BarChart3, text: "決算書の読み方を教えて" },
@@ -32,6 +32,73 @@ const INITIAL_MESSAGE = `こんにちは、「AI経営企画室」です。
 
 const generateCpoResponse = (question: string, messageCount: number): string => {
   const q = question.toLowerCase()
+
+  // 月次KPI作成フロー
+  if (q.includes("kpi") || q.includes("月次kpi") || q.includes("kpiを作")) {
+    // Check if this is an answer with numbers (second step)
+    if (messageCount && messageCount > 2 && (q.match(/\d+/) || q.includes("台") || q.includes("万"))) {
+      return `ありがとうございます。入力いただいた数字をもとに、KPI目標シートを作成しました。
+
+「月次KPI管理」タブに切り替えると、以下の13項目の目標・実績管理シートが使えます：
+
+━━ 販売系 ━━
+1. 販売台数（小売）
+2. 業販台数
+3. 売上高
+4. 平均単価
+
+━━ 収益系 ━━
+5. 粗利合計
+6. 粗利率
+7. 台あたり粗利
+
+━━ 在庫系 ━━
+8. 在庫台数
+9. 在庫回転率
+10. 平均在庫日数
+
+━━ 集客系 ━━
+11. 問い合わせ数
+12. CPA（顧客獲得単価）
+13. 広告宣伝費
+
+使い方：
+1. まず「月次KPI管理」タブを開く
+2. 月を選んで「目標」列に数字を入力
+3. 月末に「実績」列に結果を入力
+4. 達成率・差異は自動計算されます
+5. 途中でも「保存」ボタンで保存できます
+
+まずは今月の目標から入れてみましょう。
+数字で迷ったら、いつでも聞いてください。`
+    }
+
+    return `月次KPIを作りましょう。いい判断です。
+
+「毎月の数字を決めて、振り返る」——これだけで経営は劇的に変わります。
+
+KPIは13項目用意していますが、最初に決めるべきは3つだけです。
+
+【最重要KPI】
+1. 販売台数（月に何台売るか）
+2. 粗利合計（月にいくら儲けるか）
+3. 在庫台数（何台持つか）
+
+この3つが決まれば、他は自動的に決まります。
+
+教えてください：
+1. 先月は何台売れましたか？（小売 + 業販それぞれ）
+2. 先月の粗利合計はいくらでしたか？
+3. 今の在庫は何台ですか？
+
+「去年の平均」でも大丈夫です。
+実績がわかれば、そこから現実的な目標を一緒に設定します。
+
+目標設定のコツ：
+- 現状の110〜120%を目標にする（いきなり2倍は続かない）
+- 季節変動を加味する（1〜3月はピーク、8月は閑散）
+- 毎月振り返って、必要なら翌月の目標を修正する`
+  }
 
   // 損益分岐点・トントンのライン
   if (q.includes("赤字") || q.includes("トントン") || q.includes("損益分岐") || q.includes("何台売れば")) {
@@ -202,7 +269,7 @@ Symphonyなどの販売管理データがあれば、さらに詳しく分析で
 
 数字の裏付けは私が作り、AI社長（Co-CEO）が最終判断を下す——この流れで進めましょう。
 
-まず今の状態を教えてください。`
+まず今の状態を教えて���ださい。`
   }
 
   // 在庫分析
@@ -304,7 +371,7 @@ B) 人が余っている → AI CHRO（人事参謀）で適正人員の検討
 2. 毎月の固定費の内訳をざっくり教えてください：
   - 人件費（パート含む）：○万円
   - 家賃・地代：○万円
-  - 広告費（カーセンサー等）：○万円
+  - 広告費（車選びドットコム等）：○万円
   - リース・借入返済：○万円
   - その他（光熱費・通信費等）：○万円
 
@@ -347,6 +414,7 @@ export function CpoChat() {
       theme="cpo"
       inputPlaceholder="数字や予算について相談してください..."
       typingDelay={1600}
+      enableFileUpload={true}
     />
   )
 }
