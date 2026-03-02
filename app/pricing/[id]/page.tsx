@@ -841,6 +841,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
   })
   const [compChartModalOpen, setCompChartModalOpen] = useState(false)
   const [areaChartModalOpen, setAreaChartModalOpen] = useState(false)
+  const [individualChartVehicle, setIndividualChartVehicle] = useState<CompetitorInventoryItem | null>(null)
 
   const [step, setStep] = useState<1 | "2a" | "2b" | 3>(1)
 
@@ -1360,7 +1361,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                         {competitors.map((comp) => {
                           const pd = selectedItem.currentPrice - comp.price
                           return (
-                            <TableRow key={comp.id} className="hover:bg-muted/50">
+                            <TableRow key={comp.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => setIndividualChartVehicle(comp)}>
                               <TableCell>
                                 <div className="flex flex-col gap-0.5">
                                   <span className="font-medium text-sm flex items-center gap-1"><Building2 className="h-3 w-3" />{comp.competitorName}</span>
@@ -1517,7 +1518,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                         {areaVehicles.map((vehicle) => {
                           const pd2 = selectedItem.currentPrice - vehicle.price
                           return (
-                            <TableRow key={vehicle.id} className="hover:bg-muted/50">
+                            <TableRow key={vehicle.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => setIndividualChartVehicle(vehicle)}>
                               <TableCell>
                                 <div className="flex flex-col gap-0.5">
                                   <span className="font-medium text-sm flex items-center gap-1"><Building2 className="h-3 w-3" />{vehicle.competitorName}</span>
@@ -1698,6 +1699,67 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                       <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t border-dashed" style={{ borderColor: "#ef4444" }} /> エリア最高</span>
                     </div>
                   </div>
+                )
+              })()}
+            </DialogContent>
+          </Dialog>
+
+          {/* Individual Vehicle Chart Modal */}
+          <Dialog open={individualChartVehicle !== null} onOpenChange={(open) => { if (!open) setIndividualChartVehicle(null) }}>
+            <DialogContent className="sm:max-w-3xl">
+              {individualChartVehicle && (() => {
+                const v = individualChartVehicle
+                const timeline = ["09/01","10/01","11/01","12/01","01/01","02/01","03/01","04/01","05/01","06/01","07/01","08/01"]
+                const ownByMonth = new Map<string, number>()
+                selectedItem.priceHistory.forEach(p => { ownByMonth.set(p.date.slice(0, 2) + "/01", p.price) })
+                const compByMonth = new Map<string, number>()
+                v.priceHistory.forEach(p => { compByMonth.set(p.date.slice(0, 2) + "/01", p.price) })
+                const allKeys = new Set([...ownByMonth.keys(), ...compByMonth.keys()])
+                const activeMonths = timeline.filter(m => allKeys.has(m))
+                if (activeMonths.length === 0) return <p className="text-sm text-muted-foreground p-4">データがありません</p>
+                const si = timeline.indexOf(activeMonths[0])
+                const ei = timeline.indexOf(activeMonths[activeMonths.length - 1])
+                const range = si <= ei ? timeline.slice(si, ei + 1) : [...timeline.slice(si), ...timeline.slice(0, ei + 1)]
+                let pOwn = ownByMonth.get(range[0]) ?? selectedItem.currentPrice
+                let pComp = compByMonth.get(range[0]) ?? v.price
+                const mergedData = range.map(month => {
+                  if (ownByMonth.has(month)) pOwn = ownByMonth.get(month)!
+                  if (compByMonth.has(month)) pComp = compByMonth.get(month)!
+                  return { date: month.replace("/01", "月"), own: pOwn, competitor: pComp }
+                })
+                const ownLabel = `自社 ${selectedItem.model} ${selectedItem.grade}`
+                const compLabel = `${v.competitorName} ${v.model} ${v.grade}`
+                return (
+                  <>
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2 text-base">
+                        <TrendingUp className="h-4 w-4" />
+                        価格推移比較
+                      </DialogTitle>
+                      <DialogDescription className="text-xs">
+                        {v.competitorName} / {v.model} {v.grade} / {v.year}年{v.month}月 / {v.mileage.toLocaleString()}km / {v.inspection}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="h-[340px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={mergedData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                          <YAxis tickFormatter={(val) => `${(val / 10000).toFixed(0)}万`} tick={{ fontSize: 12 }} domain={["auto", "auto"]} />
+                          <Tooltip formatter={(value: number, name: string) => [
+                            `\u00A5${value.toLocaleString()}`,
+                            name === "own" ? ownLabel : compLabel
+                          ]} />
+                          <Line type="monotone" dataKey="own" name="own" stroke="#2563eb" strokeWidth={2.5} dot={{ fill: "#2563eb", strokeWidth: 2, r: 4 }} />
+                          <Line type="monotone" dataKey="competitor" name="competitor" stroke="#f59e0b" strokeWidth={2} dot={{ fill: "#f59e0b", strokeWidth: 2, r: 3 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="flex items-center gap-4 justify-center text-xs flex-wrap">
+                      <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "#2563eb" }} /> {ownLabel}</span>
+                      <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "#f59e0b" }} /> {compLabel}</span>
+                    </div>
+                  </>
                 )
               })()}
             </DialogContent>
@@ -1912,7 +1974,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                 </div>
 
                 <div className="flex items-center justify-between p-3 rounded-lg border">
-                  <div className="space-y-0.5"><Label>自動追従を有効化</Label><p className="text-xs text-muted-foreground">相手が価格変更したら自動で追従</p></div>
+                  <div className="space-y-0.5"><Label>自動追従を有効化</Label><p className="text-xs text-muted-foreground">相手���価格変更したら自動で追従</p></div>
                   <Switch checked={trackingActive} onCheckedChange={setTrackingActive} />
                 </div>
 
