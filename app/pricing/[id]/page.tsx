@@ -1229,58 +1229,101 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
             </div>
           )}
 
-          {/* Price Comparison Chart - Own vs Market */}
+          {/* Price Comparison Chart - Own vs Market (weekly) */}
           {selectedItem.priceHistory.length > 0 && competitors.length > 0 && (() => {
+            const today = new Date(2026, 2, 2)
             const ownPrice = selectedItem.currentPrice
             const relevantComps = competitors.filter(c => c.price >= ownPrice * 0.4 && c.price <= ownPrice * 2.0)
-            const ownByMonth = new Map<string, number>()
-            selectedItem.priceHistory.forEach(p => { const k = p.date.slice(0, 2) + "/01"; if (TIMELINE.includes(k)) ownByMonth.set(k, p.price) })
-            const compByMonthArr = relevantComps.map(c => {
-              const map = new Map<string, number>()
-              c.priceHistory.forEach(p => { const k = p.date.slice(0, 2) + "/01"; if (TIMELINE.includes(k)) map.set(k, p.price) })
-              return map
-            })
-            const ownMonths = TIMELINE.filter(m => ownByMonth.has(m))
-            if (ownMonths.length === 0) return null
-            const si = TIMELINE.indexOf(ownMonths[0])
-            const active = TIMELINE.slice(si)
-            let pOwn = ownByMonth.get(active[0]) ?? ownPrice
-            const pComp = compByMonthArr.map(m => { for (const t of active) { if (m.has(t)) return m.get(t)! } return null })
-            const chartData = active.map((month) => {
-              if (ownByMonth.has(month)) pOwn = ownByMonth.get(month)!
+            if (relevantComps.length === 0) return null
+
+            // Chart range: longest competitor daysOnMarket, capped at 180 days (6 months)
+            const maxCompDays = Math.max(...relevantComps.map(c => c.daysOnMarket))
+            const chartDays = Math.min(maxCompDays, 180)
+            const chartStart = new Date(today.getTime() - chartDays * 86400000)
+
+            // Own vehicle listing start
+            const ownStart = new Date(today.getTime() - selectedItem.daysOnMarket * 86400000)
+
+            // Build weekly buckets aligned to Monday
+            const startDay = chartStart.getDay()
+            const mondayOffset = startDay === 0 ? -6 : 1 - startDay
+            const firstMonday = new Date(chartStart.getTime() + mondayOffset * 86400000)
+            const weeks: { start: Date; end: Date; label: string }[] = []
+            let cur = new Date(firstMonday)
+            while (cur.getTime() <= today.getTime()) {
+              const wEnd = new Date(cur.getTime() + 6 * 86400000)
+              const m = cur.getMonth() + 1
+              const d = cur.getDate()
+              weeks.push({ start: new Date(cur), end: wEnd, label: `${m}/${d}` })
+              cur = new Date(cur.getTime() + 7 * 86400000)
+            }
+            if (weeks.length === 0) return null
+
+            // Helper: parse "MM/DD" to Date (fiscal: 09-12=2025, 01-08=2026)
+            const parsePD = (d: string) => { const [mm, dd] = d.split("/").map(Number); return new Date(mm >= 9 ? 2025 : 2026, mm - 1, dd) }
+            const getWeekPrice = (entries: { dt: Date; price: number }[], weekEnd: Date): number | null => {
+              let last: number | null = null
+              for (const e of entries) { if (e.dt.getTime() <= weekEnd.getTime()) last = e.price }
+              return last
+            }
+
+            // Own entries sorted
+            const ownEntries = selectedItem.priceHistory.map(p => ({ dt: parsePD(p.date), price: p.price })).sort((a, b) => a.dt.getTime() - b.dt.getTime())
+            // Comp entries per vehicle
+            const compEntriesArr = relevantComps.map(c => ({
+              start: new Date(today.getTime() - c.daysOnMarket * 86400000),
+              entries: c.priceHistory.map(p => ({ dt: parsePD(p.date), price: p.price })).sort((a, b) => a.dt.getTime() - b.dt.getTime()),
+              fallback: c.price,
+            }))
+
+            const chartData = weeks.map(w => {
+              // Own: null before listing
+              let ownVal: number | null = null
+              if (w.end.getTime() >= ownStart.getTime()) {
+                ownVal = getWeekPrice(ownEntries, w.end) ?? ownPrice
+              }
+              // Competitors: collect prices from vehicles whose listing has started
               const prices: number[] = []
-              compByMonthArr.forEach((m, ci) => { if (m.has(month)) pComp[ci] = m.get(month)!; if (pComp[ci] !== null) prices.push(pComp[ci]!) })
+              compEntriesArr.forEach(ce => {
+                if (w.end.getTime() >= ce.start.getTime()) {
+                  const p = getWeekPrice(ce.entries, w.end) ?? ce.fallback
+                  prices.push(p)
+                }
+              })
               return {
-                date: month.replace("/01", "月"), own: pOwn,
-                avgComp: prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : pOwn,
-                minComp: prices.length > 0 ? Math.min(...prices) : pOwn,
-                maxComp: prices.length > 0 ? Math.max(...prices) : pOwn,
+                date: w.label,
+                own: ownVal,
+                avgComp: prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : null,
+                minComp: prices.length > 0 ? Math.min(...prices) : null,
+                maxComp: prices.length > 0 ? Math.max(...prices) : null,
               }
             })
+
             return (
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
                     <TrendingUp className="h-4 w-4" />
-                    価格推移比較
+                    価格推移比較（週次）
                   </CardTitle>
-                  <CardDescription className="text-xs">自社 {selectedItem.model} {selectedItem.grade} と���合（{relevantComps.length}台）の全体平均推移</CardDescription>
+                  <CardDescription className="text-xs">自社 {selectedItem.model} {selectedItem.grade}（在庫{selectedItem.daysOnMarket}日）と競合（{relevantComps.length}台・最長{maxCompDays}日）の推移</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[260px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
+                      <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 20 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                        <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                        <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={Math.max(0, Math.floor(weeks.length / 8))} angle={-30} textAnchor="end" height={45} />
                         <YAxis tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} tick={{ fontSize: 11 }} domain={["auto", "auto"]} />
-                        <Tooltip formatter={(value: number, name: string) => {
+                        <Tooltip formatter={(value: number | null, name: string) => {
+                          if (value === null) return ["-", ""]
                           const label = name === "own" ? `自社 ${selectedItem.model} ${selectedItem.grade}` : name === "avgComp" ? "他社平均" : name === "minComp" ? "他社最安" : "他社最高"
                           return [`\u00A5${value.toLocaleString()}`, label]
                         }} />
-                        <Line type="monotone" dataKey="own" name="own" stroke="#2563eb" strokeWidth={3} dot={{ fill: "#2563eb", strokeWidth: 2, r: 4 }} />
-                        <Line type="monotone" dataKey="avgComp" name="avgComp" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" dot={{ fill: "#f59e0b", strokeWidth: 1, r: 3 }} />
-                        <Line type="monotone" dataKey="minComp" name="minComp" stroke="#10b981" strokeWidth={1.5} strokeDasharray="3 3" dot={{ fill: "#10b981", r: 2 }} />
-                        <Line type="monotone" dataKey="maxComp" name="maxComp" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="3 3" dot={{ fill: "#ef4444", r: 2 }} />
+                        <Line type="monotone" dataKey="own" name="own" stroke="#2563eb" strokeWidth={3} dot={{ fill: "#2563eb", strokeWidth: 2, r: 3 }} connectNulls={false} />
+                        <Line type="monotone" dataKey="avgComp" name="avgComp" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" dot={{ fill: "#f59e0b", strokeWidth: 1, r: 2 }} connectNulls={false} />
+                        <Line type="monotone" dataKey="minComp" name="minComp" stroke="#10b981" strokeWidth={1.5} strokeDasharray="3 3" dot={{ fill: "#10b981", r: 2 }} connectNulls={false} />
+                        <Line type="monotone" dataKey="maxComp" name="maxComp" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="3 3" dot={{ fill: "#ef4444", r: 2 }} connectNulls={false} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
