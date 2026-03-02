@@ -1407,7 +1407,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                                   {comp.priceHistory.length >= 2 && (() => {
                                     const first = comp.priceHistory[0].price
                                     const drop = first - comp.price
-                                    return drop > 0 ? <span className="text-[10px] text-destructive">累計 -{(drop / 10000).toFixed(0)}万値下</span> : null
+                                    return drop > 0 ? <span className="text-[10px] text-destructive">累計 -{(drop / 10000).toFixed(0)}��値下</span> : null
                                   })()}
                                 </div>
                               </TableCell>
@@ -1725,16 +1725,38 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
               {individualChartVehicle && (() => {
                 const v = individualChartVehicle
                 const timeline = ["09/01","10/01","11/01","12/01","01/01","02/01","03/01","04/01","05/01","06/01","07/01","08/01"]
+
+                // Determine how many months to show based on the competitor's daysOnMarket
+                const compMonthsOnMarket = Math.max(1, Math.ceil(v.daysOnMarket / 30))
+                // Also consider own vehicle's listing period
+                const ownMonthsOnMarket = Math.max(1, Math.ceil(selectedItem.daysOnMarket / 30))
+                // Show the longer of the two, but cap at available timeline
+                const monthsToShow = Math.min(Math.max(compMonthsOnMarket, ownMonthsOnMarket) + 1, timeline.length)
+
+                // Build price maps
                 const ownByMonth = new Map<string, number>()
                 selectedItem.priceHistory.forEach(p => { ownByMonth.set(p.date.slice(0, 2) + "/01", p.price) })
                 const compByMonth = new Map<string, number>()
                 v.priceHistory.forEach(p => { compByMonth.set(p.date.slice(0, 2) + "/01", p.price) })
+
+                // Find the last month with any data as "current month"
                 const allKeys = new Set([...ownByMonth.keys(), ...compByMonth.keys()])
                 const activeMonths = timeline.filter(m => allKeys.has(m))
                 if (activeMonths.length === 0) return <p className="text-sm text-muted-foreground p-4">データがありません</p>
-                const si = timeline.indexOf(activeMonths[0])
-                const ei = timeline.indexOf(activeMonths[activeMonths.length - 1])
-                const range = si <= ei ? timeline.slice(si, ei + 1) : [...timeline.slice(si), ...timeline.slice(0, ei + 1)]
+
+                const lastMonth = activeMonths[activeMonths.length - 1]
+                const lastIdx = timeline.indexOf(lastMonth)
+
+                // Calculate the start index going back monthsToShow from the last month
+                let startIdx = lastIdx - monthsToShow + 1
+                let range: string[]
+                if (startIdx >= 0) {
+                  range = timeline.slice(startIdx, lastIdx + 1)
+                } else {
+                  // Wrap around fiscal year
+                  range = [...timeline.slice(timeline.length + startIdx), ...timeline.slice(0, lastIdx + 1)]
+                }
+
                 let pOwn = ownByMonth.get(range[0]) ?? selectedItem.currentPrice
                 let pComp = compByMonth.get(range[0]) ?? v.price
                 const mergedData = range.map(month => {
@@ -1752,7 +1774,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                         価格推移比較
                       </DialogTitle>
                       <DialogDescription className="text-xs">
-                        {v.competitorName} / {v.model} {v.grade} / {v.year}年{v.month}月 / {v.mileage.toLocaleString()}km / {v.inspection}
+                        {v.competitorName} / {v.model} {v.grade} / {v.year}年{v.month}月 / {v.mileage.toLocaleString()}km / {v.inspection} / 在庫{v.daysOnMarket}日
                       </DialogDescription>
                     </DialogHeader>
                     <div className="h-[340px] w-full">
