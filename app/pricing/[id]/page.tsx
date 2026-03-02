@@ -51,6 +51,12 @@ import {
   ArrowRight,
   Check,
   Pencil,
+  Eye,
+  Heart,
+  MessageSquare,
+  Clock,
+  Wrench,
+  Shield,
 } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts"
 
@@ -62,6 +68,7 @@ type InventoryItem = {
   modelCode: string
   grade: string
   year: number
+  month: number // registration month
   mileage: number
   color: string
   currentPrice: number
@@ -72,6 +79,16 @@ type InventoryItem = {
   salesProbability: number
   daysOnMarket: number
   status: "overpriced" | "underpriced" | "optimal"
+  transmission: string
+  drivetrain: string
+  fuelType: string
+  inspection: string // e.g. "2026年3月" or "車検なし"
+  repairHistory: string // e.g. "なし" or "あり（軽微）"
+  equipment: string[] // key features
+  priceHistory: { date: string; price: number }[]
+  viewCount: number // PV count on listing
+  inquiryCount: number // number of inquiries
+  favoriteCount: number // number of favorites
 }
 
 type CompetitorInventoryItem = {
@@ -83,6 +100,7 @@ type CompetitorInventoryItem = {
   modelCode: string
   grade: string
   year: number
+  month: number
   mileage: number
   color: string
   price: number
@@ -90,6 +108,13 @@ type CompetitorInventoryItem = {
   url: string
   newCarPrice: number
   priceHistory: { date: string; price: number }[]
+  transmission: string
+  drivetrain: string
+  fuelType: string
+  inspection: string
+  repairHistory: string
+  equipment: string[]
+  daysOnMarket: number
 }
 
 type PriceTrackingSetting = {
@@ -112,22 +137,23 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     model: "アルファード",
     modelCode: "AGH30W",
     grade: "2.5S Cパッケージ",
-    year: 2020,
+    year: 2020, month: 3,
     mileage: 32000,
     color: "ホワイトパール",
     price: 4180000,
     listingDate: "2024-01-15",
     url: "https://kurumaerabi.com/usedcar/detail/AU1234567890/",
     newCarPrice: 5200000,
+    transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
+    inspection: "2026年5月", repairHistory: "なし",
+    equipment: ["両側パワスラ", "純正ナビ", "BSM", "パノラミックビュー"],
+    daysOnMarket: 45,
     priceHistory: [
-      { date: "01/15", price: 4580000 },
-      { date: "02/01", price: 4580000 },
-      { date: "03/01", price: 4480000 },
-      { date: "04/01", price: 4380000 },
-      { date: "05/01", price: 4380000 },
-      { date: "06/01", price: 4280000 },
-      { date: "07/01", price: 4280000 },
-      { date: "08/01", price: 4180000 },
+      { date: "11/01", price: 4680000 }, { date: "12/01", price: 4580000 },
+      { date: "01/15", price: 4580000 }, { date: "02/01", price: 4480000 },
+      { date: "03/01", price: 4380000 }, { date: "04/01", price: 4380000 },
+      { date: "05/01", price: 4280000 }, { date: "06/01", price: 4280000 },
+      { date: "07/01", price: 4180000 }, { date: "08/01", price: 4180000 },
     ],
   },
   {
@@ -138,19 +164,22 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     model: "アルファード",
     modelCode: "AGH30W",
     grade: "2.5S",
-    year: 2020,
+    year: 2020, month: 7,
     mileage: 38000,
     color: "ブラック",
     price: 3950000,
     listingDate: "2024-01-18",
     url: "https://kurumaerabi.com/usedcar/detail/AU2345678901/",
     newCarPrice: 4800000,
+    transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
+    inspection: "2025年12月", repairHistory: "なし",
+    equipment: ["両側パワスラ", "社外ナビ", "ETC2.0"],
+    daysOnMarket: 62,
     priceHistory: [
-      { date: "01/18", price: 4250000 },
-      { date: "02/01", price: 4250000 },
-      { date: "03/01", price: 4150000 },
-      { date: "04/01", price: 4050000 },
-      { date: "05/01", price: 3950000 },
+      { date: "10/01", price: 4350000 }, { date: "11/01", price: 4250000 },
+      { date: "12/01", price: 4250000 }, { date: "01/18", price: 4250000 },
+      { date: "02/01", price: 4150000 }, { date: "03/01", price: 4050000 },
+      { date: "04/01", price: 3950000 }, { date: "05/01", price: 3950000 },
     ],
   },
   {
@@ -161,18 +190,21 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     model: "アルファード",
     modelCode: "AGH30W",
     grade: "2.5S Cパッケージ",
-    year: 2019,
+    year: 2019, month: 11,
     mileage: 45000,
     color: "ブラック",
     price: 3780000,
     listingDate: "2024-02-10",
     url: "https://kurumaerabi.com/usedcar/detail/AU2345678999/",
     newCarPrice: 5100000,
+    transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
+    inspection: "車検なし", repairHistory: "あり（軽微）",
+    equipment: ["両側パワスラ", "純正ナビ", "JBLサウンド"],
+    daysOnMarket: 88,
     priceHistory: [
-      { date: "02/10", price: 4100000 },
-      { date: "03/01", price: 3980000 },
-      { date: "04/01", price: 3880000 },
-      { date: "05/01", price: 3780000 },
+      { date: "11/01", price: 4200000 }, { date: "12/01", price: 4100000 },
+      { date: "01/01", price: 4100000 }, { date: "02/10", price: 3980000 },
+      { date: "03/01", price: 3880000 }, { date: "04/01", price: 3780000 },
     ],
   },
   {
@@ -183,18 +215,21 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     model: "アルファード",
     modelCode: "AGH30W",
     grade: "2.5S Aパッケージ",
-    year: 2020,
+    year: 2020, month: 1,
     mileage: 28000,
     color: "ホワイトパール",
     price: 4350000,
     listingDate: "2024-01-20",
     url: "https://kurumaerabi.com/usedcar/detail/AU2345679001/",
     newCarPrice: 5000000,
+    transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
+    inspection: "2026年1月", repairHistory: "なし",
+    equipment: ["両側パワスラ", "純正ナビ", "セーフティセンス"],
+    daysOnMarket: 30,
     priceHistory: [
-      { date: "01/20", price: 4600000 },
-      { date: "02/01", price: 4500000 },
-      { date: "03/01", price: 4450000 },
-      { date: "04/01", price: 4350000 },
+      { date: "12/01", price: 4700000 }, { date: "01/01", price: 4600000 },
+      { date: "01/20", price: 4500000 }, { date: "02/01", price: 4450000 },
+      { date: "03/01", price: 4400000 }, { date: "04/01", price: 4350000 },
     ],
   },
   {
@@ -205,16 +240,20 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     model: "アルファード",
     modelCode: "AGH30W",
     grade: "2.5S Cパッケージ",
-    year: 2020,
+    year: 2020, month: 6,
     mileage: 33000,
     color: "ホワイトパール",
     price: 4250000,
     listingDate: "2024-02-20",
     url: "https://kurumaerabi.com/usedcar/detail/AU1234567891/",
     newCarPrice: 5200000,
+    transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
+    inspection: "2026年6月", repairHistory: "なし",
+    equipment: ["両側パワスラ", "純正ナビ", "デジタルインナーミラー", "BSM"],
+    daysOnMarket: 21,
     priceHistory: [
-      { date: "02/20", price: 4450000 },
-      { date: "03/01", price: 4350000 },
+      { date: "01/01", price: 4550000 }, { date: "02/01", price: 4450000 },
+      { date: "02/20", price: 4450000 }, { date: "03/01", price: 4350000 },
       { date: "04/01", price: 4250000 },
     ],
   },
@@ -226,17 +265,69 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     model: "アルファード",
     modelCode: "AGH30W",
     grade: "2.5S Cパッケージ",
-    year: 2020,
+    year: 2020, month: 9,
     mileage: 38000,
     color: "ホワイトパール",
     price: 4080000,
     listingDate: "2024-03-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU1234567892/",
     newCarPrice: 5200000,
+    transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
+    inspection: "2025年9月", repairHistory: "なし",
+    equipment: ["両側パワスラ", "社外ナビ", "ETC"],
+    daysOnMarket: 55,
     priceHistory: [
-      { date: "03/01", price: 4280000 },
-      { date: "04/01", price: 4180000 },
+      { date: "01/01", price: 4380000 }, { date: "02/01", price: 4280000 },
+      { date: "03/01", price: 4280000 }, { date: "04/01", price: 4180000 },
       { date: "05/01", price: 4080000 },
+    ],
+  },
+  {
+    id: "COMP001D",
+    competitorName: "ガリバー練馬",
+    competitorArea: "東京都練馬区",
+    manufacturer: "トヨタ",
+    model: "アルファード",
+    modelCode: "AGH30W",
+    grade: "2.5S Cパッケージ",
+    year: 2020, month: 5,
+    mileage: 41000,
+    color: "ホワイトパール",
+    price: 3980000,
+    listingDate: "2024-04-10",
+    url: "https://kurumaerabi.com/usedcar/detail/AU1234567893/",
+    newCarPrice: 5200000,
+    transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
+    inspection: "車検なし", repairHistory: "あり（軽微）",
+    equipment: ["両側パワスラ", "純正ナビ"],
+    daysOnMarket: 72,
+    priceHistory: [
+      { date: "02/01", price: 4280000 }, { date: "03/01", price: 4180000 },
+      { date: "04/01", price: 4080000 }, { date: "04/10", price: 4080000 },
+      { date: "05/01", price: 3980000 },
+    ],
+  },
+  {
+    id: "COMP001E",
+    competitorName: "ネクステージ川崎",
+    competitorArea: "神奈川県川崎市",
+    manufacturer: "トヨタ",
+    model: "アルファード",
+    modelCode: "AGH30W",
+    grade: "2.5S Cパッケージ",
+    year: 2021, month: 2,
+    mileage: 22000,
+    color: "ホワイトパール",
+    price: 4580000,
+    listingDate: "2024-03-15",
+    url: "https://kurumaerabi.com/usedcar/detail/AU1234567894/",
+    newCarPrice: 5400000,
+    transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
+    inspection: "2027年2月", repairHistory: "なし",
+    equipment: ["両側パワスラ", "純正ナビ", "BSM", "パノラミックビュー", "JBLサウンド"],
+    daysOnMarket: 14,
+    priceHistory: [
+      { date: "03/15", price: 4680000 }, { date: "04/01", price: 4580000 },
     ],
   },
   {
@@ -247,37 +338,45 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     model: "ヴェゼル",
     modelCode: "RV5",
     grade: "e:HEV Z",
-    year: 2022,
+    year: 2022, month: 4,
     mileage: 15000,
     color: "プラチナホワイト",
     price: 3280000,
     listingDate: "2024-01-20",
     url: "https://kurumaerabi.com/usedcar/detail/AU3456789012/",
     newCarPrice: 3500000,
+    transmission: "CVT", drivetrain: "FF", fuelType: "ハイブリッド",
+    inspection: "2026年4月", repairHistory: "なし",
+    equipment: ["ホンダセンシング", "純正ナビ", "ETC2.0", "LEDヘッド"],
+    daysOnMarket: 35,
     priceHistory: [
-      { date: "01/20", price: 3380000 },
-      { date: "02/01", price: 3380000 },
+      { date: "11/01", price: 3480000 }, { date: "12/01", price: 3380000 },
+      { date: "01/20", price: 3380000 }, { date: "02/01", price: 3380000 },
       { date: "03/01", price: 3280000 },
     ],
   },
   {
     id: "COMP003B",
     competitorName: "オートギャラリー品川",
-    competitorArea: "東京都品���������区",
+    competitorArea: "東京都品川区",
     manufacturer: "ホンダ",
     model: "ヴェゼル",
     modelCode: "RV5",
     grade: "e:HEV Z",
-    year: 2021,
+    year: 2021, month: 10,
     mileage: 22000,
     color: "クリスタルブラック",
     price: 2980000,
     listingDate: "2024-02-05",
     url: "https://kurumaerabi.com/usedcar/detail/AU3456789099/",
     newCarPrice: 3400000,
+    transmission: "CVT", drivetrain: "FF", fuelType: "ハイブリッド",
+    inspection: "2025年10月", repairHistory: "なし",
+    equipment: ["ホンダセンシング", "社外ナビ", "ETC"],
+    daysOnMarket: 48,
     priceHistory: [
-      { date: "02/05", price: 3180000 },
-      { date: "03/01", price: 3080000 },
+      { date: "12/01", price: 3280000 }, { date: "01/01", price: 3180000 },
+      { date: "02/05", price: 3180000 }, { date: "03/01", price: 3080000 },
       { date: "04/01", price: 2980000 },
     ],
   },
@@ -289,17 +388,44 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     model: "ヴェゼル",
     modelCode: "RV5",
     grade: "e:HEV Z",
-    year: 2021,
+    year: 2021, month: 6,
     mileage: 20000,
     color: "プラチナホワイト",
     price: 2920000,
     listingDate: "2024-03-10",
     url: "https://kurumaerabi.com/usedcar/detail/AU3456789100/",
     newCarPrice: 3400000,
+    transmission: "CVT", drivetrain: "FF", fuelType: "ハイブリッド",
+    inspection: "2025年6月", repairHistory: "なし",
+    equipment: ["ホンダセンシング", "純正ナビ", "ETC", "LEDヘッド"],
+    daysOnMarket: 25,
     priceHistory: [
-      { date: "03/10", price: 3100000 },
-      { date: "04/01", price: 3000000 },
+      { date: "01/01", price: 3200000 }, { date: "02/01", price: 3100000 },
+      { date: "03/10", price: 3100000 }, { date: "04/01", price: 3000000 },
       { date: "05/01", price: 2920000 },
+    ],
+  },
+  {
+    id: "COMP003D",
+    competitorName: "ネクステージ府中",
+    competitorArea: "東京都府中市",
+    manufacturer: "ホンダ",
+    model: "ヴェゼル",
+    modelCode: "RV5",
+    grade: "e:HEV PLaY",
+    year: 2022, month: 8,
+    mileage: 12000,
+    color: "サンドカーキ",
+    price: 3150000,
+    listingDate: "2024-04-01",
+    url: "https://kurumaerabi.com/usedcar/detail/AU3456789101/",
+    newCarPrice: 3600000,
+    transmission: "CVT", drivetrain: "FF", fuelType: "ハイブリッド",
+    inspection: "2026年8月", repairHistory: "なし",
+    equipment: ["ホンダセンシング", "純正ナビ", "パノラマルーフ", "LEDヘッド", "ワイヤレス充電"],
+    daysOnMarket: 18,
+    priceHistory: [
+      { date: "04/01", price: 3250000 }, { date: "05/01", price: 3150000 },
     ],
   },
   {
@@ -310,16 +436,20 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     model: "エクストレイル",
     modelCode: "T33",
     grade: "X e-4ORCE",
-    year: 2023,
+    year: 2023, month: 3,
     mileage: 8000,
     color: "ダイヤモンドブラック",
     price: 4250000,
     listingDate: "2024-01-22",
     url: "https://kurumaerabi.com/usedcar/detail/AU4567890123/",
     newCarPrice: 4700000,
+    transmission: "CVT", drivetrain: "4WD", fuelType: "e-POWER",
+    inspection: "2028年3月", repairHistory: "なし",
+    equipment: ["プロパイロット2.0", "純正ナビ", "アラウンドビュー", "LEDヘッド"],
+    daysOnMarket: 40,
     priceHistory: [
-      { date: "01/22", price: 4450000 },
-      { date: "02/01", price: 4350000 },
+      { date: "11/01", price: 4550000 }, { date: "12/01", price: 4450000 },
+      { date: "01/22", price: 4450000 }, { date: "02/01", price: 4350000 },
       { date: "03/01", price: 4250000 },
     ],
   },
@@ -331,18 +461,21 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     model: "ハリアー",
     modelCode: "MXUA80",
     grade: "Z レザーパッケージ",
-    year: 2021,
+    year: 2021, month: 5,
     mileage: 25000,
     color: "プレシャスブラック",
     price: 3980000,
     listingDate: "2024-01-25",
     url: "https://kurumaerabi.com/usedcar/detail/AU5678901234/",
     newCarPrice: 4500000,
+    transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
+    inspection: "2026年5月", repairHistory: "なし",
+    equipment: ["本革シート", "パノラミックビュー", "JBLサウンド", "BSM", "パワーバックドア"],
+    daysOnMarket: 38,
     priceHistory: [
-      { date: "01/25", price: 4280000 },
-      { date: "02/01", price: 4180000 },
-      { date: "03/01", price: 4080000 },
-      { date: "04/01", price: 3980000 },
+      { date: "11/01", price: 4380000 }, { date: "12/01", price: 4280000 },
+      { date: "01/25", price: 4280000 }, { date: "02/01", price: 4180000 },
+      { date: "03/01", price: 4080000 }, { date: "04/01", price: 3980000 },
     ],
   },
   {
@@ -353,16 +486,20 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     model: "ハリアー",
     modelCode: "MXUA80",
     grade: "G",
-    year: 2021,
+    year: 2021, month: 9,
     mileage: 18000,
     color: "ホワイトパール",
     price: 3650000,
     listingDate: "2024-02-15",
     url: "https://kurumaerabi.com/usedcar/detail/AU5678901299/",
     newCarPrice: 4200000,
+    transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
+    inspection: "2025年9月", repairHistory: "なし",
+    equipment: ["セーフティセンス", "社外ナビ", "パワーバックドア", "ETC2.0"],
+    daysOnMarket: 52,
     priceHistory: [
-      { date: "02/15", price: 3850000 },
-      { date: "03/01", price: 3750000 },
+      { date: "12/01", price: 3950000 }, { date: "01/01", price: 3850000 },
+      { date: "02/15", price: 3850000 }, { date: "03/01", price: 3750000 },
       { date: "04/01", price: 3650000 },
     ],
   },
@@ -374,16 +511,20 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     model: "プリウス",
     modelCode: "ZVW60",
     grade: "Z",
-    year: 2023,
+    year: 2023, month: 2,
     mileage: 5000,
     color: "アッシュ",
     price: 3650000,
     listingDate: "2024-01-28",
     url: "https://kurumaerabi.com/usedcar/detail/AU6789012345/",
     newCarPrice: 3900000,
+    transmission: "CVT", drivetrain: "FF", fuelType: "ハイブリッド",
+    inspection: "2028年2月", repairHistory: "なし",
+    equipment: ["セーフティセンス3.0", "純正ナビ", "ヘッドアップディスプレイ"],
+    daysOnMarket: 22,
     priceHistory: [
-      { date: "01/28", price: 3750000 },
-      { date: "02/01", price: 3700000 },
+      { date: "12/01", price: 3850000 }, { date: "01/01", price: 3750000 },
+      { date: "01/28", price: 3750000 }, { date: "02/01", price: 3700000 },
       { date: "03/01", price: 3650000 },
     ],
   },
@@ -395,16 +536,20 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     model: "CX-5",
     modelCode: "KF5P",
     grade: "XD エクスクルーシブモード",
-    year: 2022,
+    year: 2022, month: 6,
     mileage: 18000,
     color: "ソウルレッド",
     price: 3480000,
     listingDate: "2024-01-30",
     url: "https://kurumaerabi.com/usedcar/detail/AU7890123456/",
     newCarPrice: 4000000,
+    transmission: "6AT", drivetrain: "AWD", fuelType: "ディーゼル",
+    inspection: "2026年6月", repairHistory: "なし",
+    equipment: ["360度ビュー", "BOSE", "本革シート", "パワーリフトゲート"],
+    daysOnMarket: 33,
     priceHistory: [
-      { date: "01/30", price: 3680000 },
-      { date: "02/15", price: 3580000 },
+      { date: "11/01", price: 3780000 }, { date: "12/01", price: 3680000 },
+      { date: "01/30", price: 3680000 }, { date: "02/15", price: 3580000 },
       { date: "03/01", price: 3480000 },
     ],
   },
@@ -416,16 +561,20 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     model: "CX-5",
     modelCode: "KF5P",
     grade: "XD Lパッケージ",
-    year: 2020,
+    year: 2020, month: 4,
     mileage: 35000,
     color: "ジェットブラック",
     price: 2680000,
     listingDate: "2024-02-20",
     url: "https://kurumaerabi.com/usedcar/detail/AU7890123499/",
     newCarPrice: 3800000,
+    transmission: "6AT", drivetrain: "AWD", fuelType: "ディーゼル",
+    inspection: "2026年4月", repairHistory: "なし",
+    equipment: ["BOSE", "本革シート", "i-ACTIVSENSE"],
+    daysOnMarket: 58,
     priceHistory: [
-      { date: "02/20", price: 2880000 },
-      { date: "03/01", price: 2780000 },
+      { date: "12/01", price: 2980000 }, { date: "01/01", price: 2880000 },
+      { date: "02/20", price: 2880000 }, { date: "03/01", price: 2780000 },
       { date: "04/01", price: 2680000 },
     ],
   },
@@ -437,17 +586,45 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     model: "CX-5",
     modelCode: "KF5P",
     grade: "XD Lパッケージ",
-    year: 2020,
+    year: 2020, month: 8,
     mileage: 42000,
     color: "ソウルレッドクリスタル",
     price: 2750000,
     listingDate: "2024-03-05",
     url: "https://kurumaerabi.com/usedcar/detail/AU7890123500/",
     newCarPrice: 3800000,
+    transmission: "6AT", drivetrain: "AWD", fuelType: "ディーゼル",
+    inspection: "2026年8月", repairHistory: "あり（板金）",
+    equipment: ["BOSE", "本革シート", "i-ACTIVSENSE", "パワーリフトゲート"],
+    daysOnMarket: 42,
     priceHistory: [
-      { date: "03/05", price: 2950000 },
-      { date: "04/01", price: 2850000 },
+      { date: "01/01", price: 3050000 }, { date: "02/01", price: 2950000 },
+      { date: "03/05", price: 2950000 }, { date: "04/01", price: 2850000 },
       { date: "05/01", price: 2750000 },
+    ],
+  },
+  {
+    id: "COMP007D",
+    competitorName: "オートプラザ横浜",
+    competitorArea: "神奈川県横浜市",
+    manufacturer: "マツダ",
+    model: "CX-5",
+    modelCode: "KF5P",
+    grade: "XD Lパッケージ",
+    year: 2020, month: 11,
+    mileage: 38000,
+    color: "マシーングレー",
+    price: 2820000,
+    listingDate: "2024-03-20",
+    url: "https://kurumaerabi.com/usedcar/detail/AU7890123501/",
+    newCarPrice: 3800000,
+    transmission: "6AT", drivetrain: "AWD", fuelType: "ディーゼル",
+    inspection: "2026年11月", repairHistory: "なし",
+    equipment: ["BOSE", "本革シート", "i-ACTIVSENSE"],
+    daysOnMarket: 28,
+    priceHistory: [
+      { date: "02/01", price: 3020000 }, { date: "03/01", price: 2920000 },
+      { date: "03/20", price: 2920000 }, { date: "04/01", price: 2820000 },
     ],
   },
   {
@@ -458,16 +635,19 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     model: "アルファード",
     modelCode: "AAHH40W",
     grade: "エグゼクティブラウンジ",
-    year: 2024,
+    year: 2024, month: 1,
     mileage: 3000,
     color: "ホワイトパール",
     price: 8500000,
     listingDate: "2024-02-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU8901234567/",
     newCarPrice: 10500000,
+    transmission: "CVT", drivetrain: "4WD", fuelType: "ハイブリッド",
+    inspection: "2027年1月", repairHistory: "なし",
+    equipment: ["エグゼクティブラウンジシート", "JBLサウンド", "デジタルキー", "パノラミックビュー"],
+    daysOnMarket: 15,
     priceHistory: [
-      { date: "02/01", price: 9200000 },
-      { date: "02/15", price: 8800000 },
+      { date: "02/01", price: 9200000 }, { date: "02/15", price: 8800000 },
       { date: "03/01", price: 8500000 },
     ],
   },
@@ -480,147 +660,144 @@ const DEFAULT_EXPENSE_RATE = 0.1 // 諸費用率（車両本体価格の10%）
 const mockInventory: InventoryItem[] = [
   {
     id: "INV001",
-    manufacturer: "トヨタ",
-    model: "アルファード",
-    modelCode: "AGH30W",
-    grade: "2.5S Cパッケージ",
-    year: 2020,
-    mileage: 35000,
+    manufacturer: "トヨタ", model: "アルファード", modelCode: "AGH30W",
+    grade: "2.5S Cパッケージ", year: 2020, month: 4, mileage: 35000,
     color: "ホワイトパール",
-    currentPrice: 4280000,
-    purchasePrice: 3800000,
-    marketPrice: 3950000,
-    pricingScore: 65,
-    listingRank: 12,
-    salesProbability: 72.5,
-    daysOnMarket: 67,
+    currentPrice: 4280000, purchasePrice: 3800000, marketPrice: 3950000,
+    pricingScore: 65, listingRank: 12, salesProbability: 72.5, daysOnMarket: 67,
     status: "overpriced",
+    transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
+    inspection: "2026年4月", repairHistory: "なし",
+    equipment: ["両側パワスラ", "純正ナビ", "BSM", "パノラミックビュー", "JBLサウンド"],
+    viewCount: 342, inquiryCount: 5, favoriteCount: 18,
+    priceHistory: [
+      { date: "11/01", price: 4580000 }, { date: "12/01", price: 4480000 },
+      { date: "01/01", price: 4480000 }, { date: "02/01", price: 4380000 },
+      { date: "03/01", price: 4280000 }, { date: "04/01", price: 4280000 },
+      { date: "05/01", price: 4280000 },
+    ],
   },
   {
     id: "INV002",
-    manufacturer: "ホンダ",
-    model: "ヴェゼル",
-    modelCode: "RV5",
-    grade: "e:HEV Z",
-    year: 2021,
-    mileage: 22000,
+    manufacturer: "ホンダ", model: "ヴェゼル", modelCode: "RV5",
+    grade: "e:HEV Z", year: 2021, month: 8, mileage: 22000,
     color: "プラチナホワイト",
-    currentPrice: 2890000,
-    purchasePrice: 2600000,
-    marketPrice: 2920000,
-    pricingScore: 88,
-    listingRank: 5,
-    salesProbability: 91.2,
-    daysOnMarket: 23,
+    currentPrice: 2890000, purchasePrice: 2600000, marketPrice: 2920000,
+    pricingScore: 88, listingRank: 5, salesProbability: 91.2, daysOnMarket: 23,
     status: "optimal",
+    transmission: "CVT", drivetrain: "FF", fuelType: "ハイブリッド",
+    inspection: "2025年8月", repairHistory: "なし",
+    equipment: ["ホンダセンシング", "純正ナビ", "ETC2.0", "LEDヘッド"],
+    viewCount: 580, inquiryCount: 12, favoriteCount: 35,
+    priceHistory: [
+      { date: "01/01", price: 3080000 }, { date: "02/01", price: 2980000 },
+      { date: "03/01", price: 2890000 }, { date: "04/01", price: 2890000 },
+    ],
   },
   {
     id: "INV003",
-    manufacturer: "日産",
-    model: "セレナ",
-    modelCode: "C28",
-    grade: "e:POWER ハイウェイスター",
-    year: 2019,
-    mileage: 48000,
+    manufacturer: "日産", model: "セレナ", modelCode: "C28",
+    grade: "e:POWER ハイウェイスター", year: 2019, month: 12, mileage: 48000,
     color: "ブリリアントシルバー",
-    currentPrice: 2450000,
-    purchasePrice: 2150000,
-    marketPrice: 2680000,
-    pricingScore: 78,
-    listingRank: 2,
-    salesProbability: 94.8,
-    daysOnMarket: 8,
+    currentPrice: 2450000, purchasePrice: 2150000, marketPrice: 2680000,
+    pricingScore: 78, listingRank: 2, salesProbability: 94.8, daysOnMarket: 8,
     status: "underpriced",
+    transmission: "CVT", drivetrain: "FF", fuelType: "e-POWER",
+    inspection: "2025年12月", repairHistory: "なし",
+    equipment: ["プロパイロット", "アラウンドビュー", "両側パワスラ", "純正ナビ"],
+    viewCount: 890, inquiryCount: 22, favoriteCount: 55,
+    priceHistory: [
+      { date: "03/15", price: 2550000 }, { date: "04/01", price: 2450000 },
+    ],
   },
   {
     id: "INV004",
-    manufacturer: "マツダ",
-    model: "CX-5",
-    modelCode: "KF5P",
-    grade: "XD Lパッケージ",
-    year: 2020,
-    mileage: 41000,
+    manufacturer: "マツダ", model: "CX-5", modelCode: "KF5P",
+    grade: "XD Lパッケージ", year: 2020, month: 7, mileage: 41000,
     color: "ソウルレッドクリスタル",
-    currentPrice: 2750000,
-    purchasePrice: 2400000,
-    marketPrice: 2580000,
-    pricingScore: 70,
-    listingRank: 9,
-    salesProbability: 78.3,
-    daysOnMarket: 45,
+    currentPrice: 2750000, purchasePrice: 2400000, marketPrice: 2580000,
+    pricingScore: 70, listingRank: 9, salesProbability: 78.3, daysOnMarket: 45,
     status: "overpriced",
+    transmission: "6AT", drivetrain: "AWD", fuelType: "ディーゼル",
+    inspection: "2026年7月", repairHistory: "なし",
+    equipment: ["BOSE", "本革シート", "i-ACTIVSENSE", "パワーリフトゲート"],
+    viewCount: 210, inquiryCount: 3, favoriteCount: 11,
+    priceHistory: [
+      { date: "11/01", price: 2980000 }, { date: "12/01", price: 2880000 },
+      { date: "01/01", price: 2880000 }, { date: "02/01", price: 2800000 },
+      { date: "03/01", price: 2750000 }, { date: "04/01", price: 2750000 },
+    ],
   },
   {
     id: "INV005",
-    manufacturer: "トヨタ",
-    model: "ハリアー",
-    modelCode: "MXUA80",
-    grade: "ハイブリッド G",
-    year: 2021,
-    mileage: 18000,
-    color: "ブラッ��",
-    currentPrice: 3980000,
-    purchasePrice: 3500000,
-    marketPrice: 4050000,
-    pricingScore: 85,
-    listingRank: 6,
-    salesProbability: 89.7,
-    daysOnMarket: 31,
+    manufacturer: "トヨタ", model: "ハリアー", modelCode: "MXUA80",
+    grade: "ハイブリッド G", year: 2021, month: 3, mileage: 18000,
+    color: "ブラック",
+    currentPrice: 3980000, purchasePrice: 3500000, marketPrice: 4050000,
+    pricingScore: 85, listingRank: 6, salesProbability: 89.7, daysOnMarket: 31,
     status: "optimal",
+    transmission: "CVT", drivetrain: "FF", fuelType: "ハイブリッド",
+    inspection: "2027年3月", repairHistory: "なし",
+    equipment: ["セーフティセンス", "純正ナビ", "パワーバックドア", "BSM", "LEDヘッド"],
+    viewCount: 460, inquiryCount: 8, favoriteCount: 28,
+    priceHistory: [
+      { date: "12/01", price: 4180000 }, { date: "01/01", price: 4080000 },
+      { date: "02/01", price: 3980000 }, { date: "03/01", price: 3980000 },
+    ],
   },
   {
     id: "INV006",
-    manufacturer: "日産",
-    model: "エクストレイル",
-    modelCode: "T33",
-    grade: "20Xi",
-    year: 2019,
-    mileage: 52000,
+    manufacturer: "日産", model: "エクストレイル", modelCode: "T33",
+    grade: "20Xi", year: 2019, month: 6, mileage: 52000,
     color: "ダークメタルグレー",
-    currentPrice: 2380000,
-    purchasePrice: 2000000,
-    marketPrice: 2250000,
-    pricingScore: 68,
-    listingRank: 11,
-    salesProbability: 74.6,
-    daysOnMarket: 58,
+    currentPrice: 2380000, purchasePrice: 2000000, marketPrice: 2250000,
+    pricingScore: 68, listingRank: 11, salesProbability: 74.6, daysOnMarket: 58,
     status: "overpriced",
+    transmission: "CVT", drivetrain: "4WD", fuelType: "ガソリン",
+    inspection: "2025年6月", repairHistory: "あり（軽微）",
+    equipment: ["プロパイロット", "社外ナビ", "アラウンドビュー", "ETC"],
+    viewCount: 185, inquiryCount: 2, favoriteCount: 7,
+    priceHistory: [
+      { date: "11/01", price: 2580000 }, { date: "12/01", price: 2480000 },
+      { date: "01/01", price: 2480000 }, { date: "02/01", price: 2380000 },
+      { date: "03/01", price: 2380000 },
+    ],
   },
   {
     id: "INV007",
-    manufacturer: "ホンダ",
-    model: "ステップワゴン",
-    modelCode: "RP8",
-    grade: "スパーダ ハイブリッド",
-    year: 2020,
-    mileage: 38000,
+    manufacturer: "ホンダ", model: "ステップワゴン", modelCode: "RP8",
+    grade: "スパーダ ハイブリッド", year: 2020, month: 10, mileage: 38000,
     color: "プレミアムスパークルブラック",
-    currentPrice: 3150000,
-    purchasePrice: 2800000,
-    marketPrice: 3180000,
-    pricingScore: 90,
-    listingRank: 4,
-    salesProbability: 92.4,
-    daysOnMarket: 19,
+    currentPrice: 3150000, purchasePrice: 2800000, marketPrice: 3180000,
+    pricingScore: 90, listingRank: 4, salesProbability: 92.4, daysOnMarket: 19,
     status: "optimal",
+    transmission: "CVT", drivetrain: "FF", fuelType: "ハイブリッド",
+    inspection: "2026年10月", repairHistory: "なし",
+    equipment: ["ホンダセンシング", "両側パワスラ", "純正ナビ", "ETC2.0", "LEDヘッド"],
+    viewCount: 620, inquiryCount: 15, favoriteCount: 42,
+    priceHistory: [
+      { date: "02/01", price: 3280000 }, { date: "03/01", price: 3150000 },
+      { date: "04/01", price: 3150000 },
+    ],
   },
   {
     id: "INV008",
-    manufacturer: "トヨタ",
-    model: "ランドクルーザープラド",
-    modelCode: "TRJ150W",
-    grade: "TX Lパッケージ",
-    year: 2018,
-    mileage: 65000,
+    manufacturer: "トヨタ", model: "ランドクルーザープラド", modelCode: "TRJ150W",
+    grade: "TX Lパッケージ", year: 2018, month: 5, mileage: 65000,
     color: "ホワイトパール",
-    currentPrice: 4250000,
-    purchasePrice: 3700000,
-    marketPrice: 3980000,
-    pricingScore: 62,
-    listingRank: 15,
-    salesProbability: 69.8,
-    daysOnMarket: 89,
+    currentPrice: 4250000, purchasePrice: 3700000, marketPrice: 3980000,
+    pricingScore: 62, listingRank: 15, salesProbability: 69.8, daysOnMarket: 89,
     status: "overpriced",
+    transmission: "6AT", drivetrain: "4WD", fuelType: "ガソリン",
+    inspection: "2024年5月", repairHistory: "なし",
+    equipment: ["本革シート", "純正ナビ", "セーフティセンスP", "LEDヘッド", "ルーフレール"],
+    viewCount: 145, inquiryCount: 1, favoriteCount: 5,
+    priceHistory: [
+      { date: "09/01", price: 4580000 }, { date: "10/01", price: 4480000 },
+      { date: "11/01", price: 4380000 }, { date: "12/01", price: 4280000 },
+      { date: "01/01", price: 4280000 }, { date: "02/01", price: 4250000 },
+      { date: "03/01", price: 4250000 },
+    ],
   },
 ]
 
@@ -947,29 +1124,69 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
         })}
       </div>
 
-      {/* Compact vehicle info bar */}
+      {/* Vehicle info bar */}
       <Card className="border-primary/20">
-        <CardContent className="py-3">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-3 flex-wrap">
-              <Badge className="bg-primary text-primary-foreground">自社在庫</Badge>
-              <Badge variant="outline" className="font-mono">{selectedItem.modelCode}</Badge>
-              <span className="text-sm text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" />{selectedItem.year}年</span>
-              <span className="text-sm text-muted-foreground flex items-center gap-1"><Gauge className="h-3 w-3" />{selectedItem.mileage.toLocaleString()}km</span>
-              <span className="text-sm text-muted-foreground">{selectedItem.color}</span>
-              <Badge variant="outline" className={selectedItem.daysOnMarket > 60 ? "border-destructive text-destructive" : selectedItem.daysOnMarket > 30 ? "border-amber-500 text-amber-600" : ""}>
-                在庫{selectedItem.daysOnMarket}日
-              </Badge>
+        <CardContent className="py-4 space-y-3">
+          {/* Row 1: Basic specs + price */}
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge className="bg-primary text-primary-foreground">自社在庫</Badge>
+                <Badge variant="outline" className="font-mono">{selectedItem.modelCode}</Badge>
+                <Badge variant="outline" className={selectedItem.status === "overpriced" ? "border-destructive text-destructive" : selectedItem.status === "underpriced" ? "border-blue-500 text-blue-600" : "border-green-500 text-green-600"}>
+                  {selectedItem.status === "overpriced" ? "高価格" : selectedItem.status === "underpriced" ? "低価格" : "適正"}
+                </Badge>
+                <Badge variant="outline" className={selectedItem.daysOnMarket > 60 ? "border-destructive text-destructive" : selectedItem.daysOnMarket > 30 ? "border-amber-500 text-amber-600" : "border-green-500 text-green-600"}>
+                  <Clock className="h-3 w-3 mr-1" />在庫{selectedItem.daysOnMarket}日
+                </Badge>
+              </div>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{selectedItem.year}年{selectedItem.month}月</span>
+                <span className="flex items-center gap-1"><Gauge className="h-3 w-3" />{selectedItem.mileage.toLocaleString()}km</span>
+                <span>{selectedItem.color}</span>
+                <span>{selectedItem.transmission} / {selectedItem.drivetrain}</span>
+                <span>{selectedItem.fuelType}</span>
+                <span className="flex items-center gap-1"><Shield className="h-3 w-3" />{selectedItem.inspection}</span>
+                <span className="flex items-center gap-1"><Wrench className="h-3 w-3" />修復歴: {selectedItem.repairHistory}</span>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {selectedItem.equipment.map((eq) => (
+                  <Badge key={eq} variant="secondary" className="text-[10px] h-5">{eq}</Badge>
+                ))}
+              </div>
             </div>
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-6 flex-shrink-0">
               <div className="text-right">
                 <div className="text-[10px] text-muted-foreground">現在支払総額</div>
-                <div className="text-lg font-bold text-primary">¥{calculatePaymentTotal(selectedItem.currentPrice).toLocaleString()}</div>
+                <div className="text-xl font-bold text-primary">¥{calculatePaymentTotal(selectedItem.currentPrice).toLocaleString()}</div>
+                <div className="text-[10px] text-muted-foreground">本体 ¥{selectedItem.currentPrice.toLocaleString()}</div>
               </div>
               <div className="text-right">
                 <div className="text-[10px] text-muted-foreground">市場相場</div>
                 <div className="text-base">¥{calculatePaymentTotal(selectedItem.marketPrice).toLocaleString()}</div>
+                <div className="text-[10px] text-muted-foreground">本体 ¥{selectedItem.marketPrice.toLocaleString()}</div>
               </div>
+              <div className="text-right">
+                <div className="text-[10px] text-muted-foreground">仕入価格</div>
+                <div className="text-base">¥{selectedItem.purchasePrice.toLocaleString()}</div>
+                <div className="text-[10px] text-muted-foreground">粗利 ¥{(selectedItem.currentPrice - selectedItem.purchasePrice).toLocaleString()}</div>
+              </div>
+            </div>
+          </div>
+          {/* Row 2: Performance metrics */}
+          <div className="flex items-center gap-4 pt-2 border-t">
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Eye className="h-3.5 w-3.5" /><span className="font-medium text-foreground">{selectedItem.viewCount}</span> PV
+            </div>
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <MessageSquare className="h-3.5 w-3.5" /><span className="font-medium text-foreground">{selectedItem.inquiryCount}</span> 問合せ
+            </div>
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Heart className="h-3.5 w-3.5" /><span className="font-medium text-foreground">{selectedItem.favoriteCount}</span> お気に入り
+            </div>
+            <div className="h-4 w-px bg-border" />
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              問合せ率 <span className="font-medium text-foreground">{selectedItem.viewCount > 0 ? ((selectedItem.inquiryCount / selectedItem.viewCount) * 100).toFixed(1) : 0}%</span>
             </div>
           </div>
         </CardContent>
@@ -978,6 +1195,112 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
       {/* ===== STEP 1: 競合比較 ===== */}
       {step === 1 && (
         <>
+          {/* Market Summary Cards */}
+          {competitors.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3">
+              <Card className="bg-primary/5 border-primary/20">
+                <CardContent className="py-3 text-center">
+                  <div className="text-[10px] text-muted-foreground">自社価格</div>
+                  <div className="text-lg font-bold text-primary">¥{(selectedItem.currentPrice / 10000).toFixed(0)}万</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-muted/30">
+                <CardContent className="py-3 text-center">
+                  <div className="text-[10px] text-muted-foreground">他社最安</div>
+                  <div className="text-lg font-bold">¥{(Math.min(...competitors.map(c => c.price)) / 10000).toFixed(0)}万</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-muted/30">
+                <CardContent className="py-3 text-center">
+                  <div className="text-[10px] text-muted-foreground">他社平均</div>
+                  <div className="text-lg font-bold">¥{(Math.round(competitors.reduce((s, c) => s + c.price, 0) / competitors.length) / 10000).toFixed(0)}万</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-muted/30">
+                <CardContent className="py-3 text-center">
+                  <div className="text-[10px] text-muted-foreground">他社最高</div>
+                  <div className="text-lg font-bold">¥{(Math.max(...competitors.map(c => c.price)) / 10000).toFixed(0)}万</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-muted/30">
+                <CardContent className="py-3 text-center">
+                  <div className="text-[10px] text-muted-foreground">他社台数</div>
+                  <div className="text-lg font-bold">{competitors.length}台</div>
+                </CardContent>
+              </Card>
+              <Card className={selectedItem.currentPrice > Math.round(competitors.reduce((s, c) => s + c.price, 0) / competitors.length) ? "bg-destructive/5 border-destructive/20" : "bg-green-50 border-green-200"}>
+                <CardContent className="py-3 text-center">
+                  <div className="text-[10px] text-muted-foreground">平均との差額</div>
+                  <div className={`text-lg font-bold ${selectedItem.currentPrice > Math.round(competitors.reduce((s, c) => s + c.price, 0) / competitors.length) ? "text-destructive" : "text-green-600"}`}>
+                    {selectedItem.currentPrice > Math.round(competitors.reduce((s, c) => s + c.price, 0) / competitors.length) ? "+" : ""}{((selectedItem.currentPrice - Math.round(competitors.reduce((s, c) => s + c.price, 0) / competitors.length)) / 10000).toFixed(0)}万
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Price Comparison Chart - Own vs Market */}
+          {selectedItem.priceHistory.length > 0 && competitors.length > 0 && (() => {
+            const allDates = [...new Set([
+              ...selectedItem.priceHistory.map(p => p.date),
+              ...competitors.flatMap(c => c.priceHistory.map(p => p.date))
+            ])].sort()
+            const chartData = allDates.map(date => {
+              const ownEntry = selectedItem.priceHistory.find(p => p.date === date)
+              const competitorPrices = competitors.map(c => {
+                const entry = c.priceHistory.find(p => p.date === date)
+                return entry ? entry.price : null
+              }).filter((p): p is number => p !== null)
+              const avgComp = competitorPrices.length > 0 ? Math.round(competitorPrices.reduce((a, b) => a + b, 0) / competitorPrices.length) : null
+              const minComp = competitorPrices.length > 0 ? Math.min(...competitorPrices) : null
+              const maxComp = competitorPrices.length > 0 ? Math.max(...competitorPrices) : null
+              return {
+                date,
+                own: ownEntry ? ownEntry.price : null,
+                avgComp,
+                minComp,
+                maxComp,
+              }
+            })
+            return (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    自社 vs 他社 価格推移比較
+                  </CardTitle>
+                  <CardDescription className="text-xs">自社価格と他社平均/最安/最高の推移を比較</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[220px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                        <YAxis tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} tick={{ fontSize: 11 }} domain={["dataMin - 100000", "dataMax + 100000"]} />
+                        <Tooltip formatter={(value: number | null, name: string) => {
+                          if (value === null) return ["-", name]
+                          const label = name === "own" ? "自社" : name === "avgComp" ? "他社平均" : name === "minComp" ? "他社最安" : "他社最高"
+                          return [`¥${value.toLocaleString()}`, label]
+                        }} />
+                        <Line type="stepAfter" dataKey="own" name="own" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }} connectNulls />
+                        <Line type="stepAfter" dataKey="avgComp" name="avgComp" stroke="hsl(var(--chart-1))" strokeWidth={2} strokeDasharray="5 5" dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 1, r: 3 }} connectNulls />
+                        <Line type="stepAfter" dataKey="minComp" name="minComp" stroke="hsl(var(--chart-2))" strokeWidth={1} strokeDasharray="3 3" dot={false} connectNulls />
+                        <Line type="stepAfter" dataKey="maxComp" name="maxComp" stroke="hsl(var(--chart-4))" strokeWidth={1} strokeDasharray="3 3" dot={false} connectNulls />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex items-center gap-4 mt-2 justify-center text-xs">
+                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 bg-primary" /> 自社</span>
+                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t-2 border-dashed" style={{ borderColor: "hsl(var(--chart-1))" }} /> 他社平均</span>
+                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t border-dashed" style={{ borderColor: "hsl(var(--chart-2))" }} /> 他社最安</span>
+                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t border-dashed" style={{ borderColor: "hsl(var(--chart-4))" }} /> 他社最高</span>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })()}
+
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* Left: All same model */}
             <Card className="border-indigo-500/20">
@@ -989,7 +1312,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                       同型式の他社在庫一覧
                     </CardTitle>
                     <CardDescription className="mt-1 text-xs">
-                      <span className="font-medium text-indigo-600">{selectedItem.model}</span> の全在庫
+                      <span className="font-medium text-indigo-600">{selectedItem.model}</span> の全在庫（{competitors.length}台）
                     </CardDescription>
                   </div>
                   <Badge className="px-2.5 py-0.5 bg-indigo-100 text-indigo-700 border-indigo-200">{competitors.length}台</Badge>
@@ -1002,14 +1325,15 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                     <p>同型式の競合車両はありません</p>
                   </div>
                 ) : (
-                  <ScrollArea className="h-[400px]">
+                  <ScrollArea className="h-[500px]">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-[180px]">競合店</TableHead>
+                          <TableHead className="w-[160px]">競合店</TableHead>
                           <TableHead>仕様</TableHead>
+                          <TableHead className="text-center w-[60px]">在庫日数</TableHead>
                           <TableHead className="text-right">価格</TableHead>
-                          <TableHead className="text-right">差額</TableHead>
+                          <TableHead className="text-right w-[80px]">差額</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1026,20 +1350,37 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                               </TableCell>
                               <TableCell>
                                 <div className="flex flex-col gap-0.5">
-                                  <span className="text-sm">{comp.grade}</span>
+                                  <span className="text-sm font-medium">{comp.grade}</span>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                                    <span>{comp.year}年{comp.month}月</span>
+                                    <span>{comp.mileage.toLocaleString()}km</span>
+                                    <span>{comp.color}</span>
+                                  </div>
                                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <span>{comp.year}年</span><span>{comp.mileage.toLocaleString()}km</span>
+                                    <span>{comp.transmission}/{comp.drivetrain}</span>
+                                    <span>{comp.inspection}</span>
+                                    {comp.repairHistory !== "なし" && <Badge variant="outline" className="text-[9px] h-4 border-amber-300 text-amber-600">修復歴{comp.repairHistory}</Badge>}
                                   </div>
                                 </div>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Badge variant="outline" className={`text-xs ${comp.daysOnMarket > 60 ? "border-destructive text-destructive" : comp.daysOnMarket > 30 ? "border-amber-400 text-amber-600" : "border-green-400 text-green-600"}`}>
+                                  {comp.daysOnMarket}日
+                                </Badge>
                               </TableCell>
                               <TableCell className="text-right">
                                 <div className="flex flex-col">
                                   <span className="font-bold">¥{calculatePaymentTotal(comp.price).toLocaleString()}</span>
                                   <span className="text-xs text-muted-foreground">本体 ¥{comp.price.toLocaleString()}</span>
+                                  {comp.priceHistory.length >= 2 && (() => {
+                                    const first = comp.priceHistory[0].price
+                                    const drop = first - comp.price
+                                    return drop > 0 ? <span className="text-[10px] text-destructive">累計 -{(drop / 10000).toFixed(0)}万値下</span> : null
+                                  })()}
                                 </div>
                               </TableCell>
                               <TableCell className="text-right">
-                                {pd > 0 ? <span className="text-destructive text-sm">+¥{pd.toLocaleString()}</span> : pd < 0 ? <span className="text-chart-2 text-sm">-¥{Math.abs(pd).toLocaleString()}</span> : <span className="text-muted-foreground text-sm">同額</span>}
+                                {pd > 0 ? <span className="text-destructive text-sm font-medium">+{(pd / 10000).toFixed(0)}万</span> : pd < 0 ? <span className="text-green-600 text-sm font-medium">{(pd / 10000).toFixed(0)}万</span> : <span className="text-muted-foreground text-sm">同額</span>}
                               </TableCell>
                             </TableRow>
                           )
@@ -1052,22 +1393,44 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                   <Card className="bg-muted/30 mt-4">
                     <CardHeader className="pb-2 pt-3">
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-sm">価格推移: {selectedCompetitorForChart.competitorName}</CardTitle>
+                        <div>
+                          <CardTitle className="text-sm">価格推移比較: {selectedCompetitorForChart.competitorName}</CardTitle>
+                          <CardDescription className="text-xs">{selectedCompetitorForChart.grade} / {selectedCompetitorForChart.year}年{selectedCompetitorForChart.month}月 / {selectedCompetitorForChart.mileage.toLocaleString()}km / {selectedCompetitorForChart.inspection}</CardDescription>
+                        </div>
                         <Button variant="ghost" size="sm" onClick={() => setSelectedCompetitorForChart(null)}>閉じる</Button>
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="h-[180px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={selectedCompetitorForChart.priceHistory} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                            <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-                            <YAxis tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} tick={{ fontSize: 11 }} domain={["dataMin - 200000", "dataMax + 200000"]} />
-                            <Tooltip formatter={(value: number) => [`¥${value.toLocaleString()}`, "価格"]} />
-                            <ReferenceLine y={selectedItem.currentPrice} stroke="hsl(var(--primary))" strokeDasharray="5 5" label={{ value: "自社", position: "right", fontSize: 10, fill: "hsl(var(--primary))" }} />
-                            <Line type="stepAfter" dataKey="price" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 2, r: 3 }} />
-                          </LineChart>
-                        </ResponsiveContainer>
+                      <div className="h-[200px] w-full">
+                        {(() => {
+                          const compHistory = selectedCompetitorForChart.priceHistory
+                          const ownHistory = selectedItem.priceHistory
+                          const allDates = [...new Set([...compHistory.map(p => p.date), ...ownHistory.map(p => p.date)])].sort()
+                          const mergedData = allDates.map(date => ({
+                            date,
+                            competitor: compHistory.find(p => p.date === date)?.price ?? null,
+                            own: ownHistory.find(p => p.date === date)?.price ?? null,
+                          }))
+                          return (
+                            <ResponsiveContainer width="100%" height="100%">
+                              <LineChart data={mergedData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                                <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                                <YAxis tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} tick={{ fontSize: 11 }} domain={["dataMin - 200000", "dataMax + 200000"]} />
+                                <Tooltip formatter={(value: number | null, name: string) => {
+                                  if (value === null) return ["-", name]
+                                  return [`¥${value.toLocaleString()}`, name === "own" ? "自社" : "他社"]
+                                }} />
+                                <Line type="stepAfter" dataKey="own" name="own" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }} connectNulls />
+                                <Line type="stepAfter" dataKey="competitor" name="competitor" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 2, r: 3 }} connectNulls />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          )
+                        })()}
+                      </div>
+                      <div className="flex items-center gap-4 mt-2 justify-center text-xs">
+                        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 bg-primary" /> 自社</span>
+                        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "hsl(var(--chart-1))" }} /> {selectedCompetitorForChart.competitorName}</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -1129,7 +1492,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                 </div>
               </CardHeader>
               <CardContent className="pt-2">
-                <ScrollArea className="h-[400px]">
+                <ScrollArea className="h-[500px]">
                   {similarVehicles.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                       <Car className="h-12 w-12 mb-2 opacity-30" />
@@ -1141,6 +1504,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                         <TableRow>
                           <TableHead className="w-[160px]">競合店</TableHead>
                           <TableHead>仕様</TableHead>
+                          <TableHead className="text-center w-[60px]">在庫日数</TableHead>
                           <TableHead className="text-right">価格</TableHead>
                           <TableHead className="text-right w-[80px]">差額</TableHead>
                         </TableRow>
@@ -1158,20 +1522,37 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                               </TableCell>
                               <TableCell>
                                 <div className="flex flex-col gap-0.5">
-                                  <span className="text-sm">{vehicle.grade}</span>
+                                  <span className="text-sm font-medium">{vehicle.grade}</span>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                                    <span>{vehicle.year}年{vehicle.month}月</span>
+                                    <span>{vehicle.mileage.toLocaleString()}km</span>
+                                    <span>{vehicle.color}</span>
+                                  </div>
                                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <span>{vehicle.year}年</span><span>{vehicle.mileage.toLocaleString()}km</span><span>{vehicle.color}</span>
+                                    <span>{vehicle.transmission}/{vehicle.drivetrain}</span>
+                                    <span>{vehicle.inspection}</span>
+                                    {vehicle.repairHistory !== "なし" && <Badge variant="outline" className="text-[9px] h-4 border-amber-300 text-amber-600">修復歴{vehicle.repairHistory}</Badge>}
                                   </div>
                                 </div>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Badge variant="outline" className={`text-xs ${vehicle.daysOnMarket > 60 ? "border-destructive text-destructive" : vehicle.daysOnMarket > 30 ? "border-amber-400 text-amber-600" : "border-green-400 text-green-600"}`}>
+                                  {vehicle.daysOnMarket}日
+                                </Badge>
                               </TableCell>
                               <TableCell className="text-right">
                                 <div className="flex flex-col">
                                   <span className="font-bold">¥{calculatePaymentTotal(vehicle.price).toLocaleString()}</span>
                                   <span className="text-xs text-muted-foreground">本体 ¥{vehicle.price.toLocaleString()}</span>
+                                  {vehicle.priceHistory.length >= 2 && (() => {
+                                    const first = vehicle.priceHistory[0].price
+                                    const drop = first - vehicle.price
+                                    return drop > 0 ? <span className="text-[10px] text-destructive">累計 -{(drop / 10000).toFixed(0)}万値下</span> : null
+                                  })()}
                                 </div>
                               </TableCell>
                               <TableCell className="text-right">
-                                {pd2 > 0 ? <span className="text-destructive text-sm">+{Math.round(pd2/10000).toLocaleString()}万</span> : pd2 < 0 ? <span className="text-chart-2 text-sm">{Math.round(pd2/10000).toLocaleString()}万</span> : <span className="text-muted-foreground text-sm">同額</span>}
+                                {pd2 > 0 ? <span className="text-destructive text-sm font-medium">+{Math.round(pd2/10000).toLocaleString()}万</span> : pd2 < 0 ? <span className="text-green-600 text-sm font-medium">{Math.round(pd2/10000).toLocaleString()}万</span> : <span className="text-muted-foreground text-sm">同額</span>}
                               </TableCell>
                             </TableRow>
                           )
@@ -1313,7 +1694,11 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                           <CardContent className="p-3 flex items-center justify-between">
                             <div>
                               <p className="font-medium text-sm">{vehicle.competitorName}</p>
-                              <p className="text-xs text-muted-foreground">{vehicle.grade} / {vehicle.year}年 / {vehicle.mileage.toLocaleString()}km</p>
+                              <p className="text-xs text-muted-foreground">{vehicle.grade} / {vehicle.year}年{vehicle.month}月 / {vehicle.mileage.toLocaleString()}km</p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <Badge variant="outline" className={`text-[9px] h-4 ${vehicle.daysOnMarket > 60 ? "border-destructive text-destructive" : vehicle.daysOnMarket > 30 ? "border-amber-400 text-amber-600" : "border-green-400 text-green-600"}`}>在庫{vehicle.daysOnMarket}日</Badge>
+                                <span className="text-[10px] text-muted-foreground">{vehicle.inspection}</span>
+                              </div>
                             </div>
                             <div className="text-right">
                               <p className="font-bold">¥{calculatePaymentTotal(vehicle.price).toLocaleString()}</p>
@@ -1334,16 +1719,22 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
             {selectedTrackingTarget ? (
               <>
                 <Card className="bg-muted/30">
-                  <CardContent className="pt-4">
+                  <CardContent className="pt-4 space-y-2">
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="font-medium">{selectedTrackingTarget.competitorName}</p>
                         <p className="text-sm text-muted-foreground">{selectedTrackingTarget.manufacturer} {selectedTrackingTarget.model} {selectedTrackingTarget.grade}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{selectedTrackingTarget.year}年 / {selectedTrackingTarget.mileage.toLocaleString()}km / {selectedTrackingTarget.color}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{selectedTrackingTarget.year}年{selectedTrackingTarget.month}月 / {selectedTrackingTarget.mileage.toLocaleString()}km / {selectedTrackingTarget.color}</p>
+                        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                          <span>{selectedTrackingTarget.transmission}/{selectedTrackingTarget.drivetrain}</span>
+                          <span>{selectedTrackingTarget.inspection}</span>
+                          <Badge variant="outline" className={`text-[9px] h-4 ${selectedTrackingTarget.daysOnMarket > 60 ? "border-destructive text-destructive" : selectedTrackingTarget.daysOnMarket > 30 ? "border-amber-400 text-amber-600" : "border-green-400 text-green-600"}`}>在庫{selectedTrackingTarget.daysOnMarket}日</Badge>
+                        </div>
                       </div>
                       <div className="text-right">
                         <p className="text-xs text-muted-foreground">支払総額</p>
                         <p className="text-xl font-bold text-emerald-700">¥{calculatePaymentTotal(selectedTrackingTarget.price).toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground">本体 ¥{selectedTrackingTarget.price.toLocaleString()}</p>
                       </div>
                     </div>
                   </CardContent>
