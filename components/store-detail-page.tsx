@@ -184,7 +184,7 @@ function generateCeoCommentary(store: StoreData): string {
   if (overallScore === "優良" || overallScore === "良好") {
     sections.push(`この店舗のオペレーションは${scaleLabel}として${overallScore}な水準にあります。特に${strengths[0] || "経営の安定性"}は、同規模の販売店が学ぶべきポイントです。さらなる成長には、仕入れの精度向上と集客チャネルの多角化が鍵になるでしょう。`)
   } else {
-    sections.push(`この店舗は${improvements[0] || "経営改善"}に取り���むことで、大きく改善する余地があります。まず上記のアクション1番を今週中に実行してください。「考えた」で���わらせず「やった」に変えることが、数字を動かす唯一の方法です。`)
+    sections.push(`この店舗は${improvements[0] || "経営改善"}に取り���むことで、大きく改善する余地があります。まず上記のアクション1��を今週中に実行してください。「考えた」で���わらせず「やった」に変えることが、数字を動かす唯一の方法です。`)
   }
 
   return sections.join("\n")
@@ -400,7 +400,7 @@ export function StoreDetailPageContent({ store }: { store: StoreData }) {
             </div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2 flex-wrap">
-                <span className="blur-sm hover:blur-none transition-all duration-300">{store.name}</span>
+                <span>{store.name}</span>
                 <Badge variant="outline">{store.prefecture}</Badge>
               </h1>
               <p className="text-sm text-muted-foreground mt-0.5">店舗分析レポート</p>
