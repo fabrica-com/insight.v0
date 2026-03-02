@@ -1724,46 +1724,67 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
             <DialogContent className="sm:max-w-3xl">
               {individualChartVehicle && (() => {
                 const v = individualChartVehicle
-                // Use the longer period of the two vehicles
-                const compMonths = Math.max(1, Math.ceil(v.daysOnMarket / 30))
-                const ownMonths = Math.max(1, Math.ceil(selectedItem.daysOnMarket / 30))
-                const monthsToShow = Math.min(Math.max(compMonths, ownMonths), TIMELINE.length)
+                // "Today" reference: 2026-03-02
+                const today = new Date(2026, 2, 2) // March 2, 2026
 
-                // Each vehicle's listing start index (counting back from current month)
-                const compStartIdx = Math.max(0, CURRENT_MONTH_IDX - compMonths + 1)
-                const ownStartIdx = Math.max(0, CURRENT_MONTH_IDX - ownMonths + 1)
+                // Calculate listing start dates from daysOnMarket
+                const ownStart = new Date(today.getTime() - selectedItem.daysOnMarket * 86400000)
+                const compStart = new Date(today.getTime() - v.daysOnMarket * 86400000)
 
-                // Full range covers the longer period
-                const rangeStartIdx = Math.max(0, CURRENT_MONTH_IDX - monthsToShow + 1)
-                const range = TIMELINE.slice(rangeStartIdx, CURRENT_MONTH_IDX + 1)
-                if (range.length === 0) return <p className="text-sm text-muted-foreground p-4">データがありません</p>
+                // Chart starts from the older listing date, capped at 6 months back
+                const sixMonthsAgo = new Date(today.getTime() - 180 * 86400000)
+                const chartStart = new Date(Math.max(Math.min(ownStart.getTime(), compStart.getTime()), sixMonthsAgo.getTime()))
 
-                // Build price maps (only within TIMELINE range)
-                const ownByMonth = new Map<string, number>()
-                selectedItem.priceHistory.forEach(p => { const k = p.date.slice(0, 2) + "/01"; if (TIMELINE.includes(k)) ownByMonth.set(k, p.price) })
-                const compByMonth = new Map<string, number>()
-                v.priceHistory.forEach(p => { const k = p.date.slice(0, 2) + "/01"; if (TIMELINE.includes(k)) compByMonth.set(k, p.price) })
+                // Build weekly buckets from chartStart to today
+                // Align to Monday of the chart start week
+                const startDay = chartStart.getDay()
+                const mondayOffset = startDay === 0 ? -6 : 1 - startDay
+                const firstMonday = new Date(chartStart.getTime() + mondayOffset * 86400000)
 
-                // Build chart data: null before each vehicle's listing start
-                let pOwn: number | null = null
-                let pComp: number | null = null
-                const mergedData = range.map((month, i) => {
-                  const absIdx = rangeStartIdx + i
-                  // Own line: only draw from ownStartIdx onwards
+                const weeks: { start: Date; end: Date; label: string }[] = []
+                let cur = new Date(firstMonday)
+                while (cur.getTime() <= today.getTime()) {
+                  const wEnd = new Date(cur.getTime() + 6 * 86400000)
+                  const m = cur.getMonth() + 1
+                  const d = cur.getDate()
+                  weeks.push({ start: new Date(cur), end: wEnd, label: `${m}/${d}` })
+                  cur = new Date(cur.getTime() + 7 * 86400000)
+                }
+                if (weeks.length === 0) return <p className="text-sm text-muted-foreground p-4">データがありません</p>
+
+                // Helper: parse "MM/DD" price history date to a Date in the fiscal year context
+                // Fiscal year: 09=Sep2025, ..., 08=Aug2026
+                const parsePriceDate = (d: string) => {
+                  const [mm, dd] = d.split("/").map(Number)
+                  const yr = mm >= 9 ? 2025 : 2026
+                  return new Date(yr, mm - 1, dd)
+                }
+
+                // Build sorted price entries as Date/price pairs
+                const ownEntries = selectedItem.priceHistory.map(p => ({ dt: parsePriceDate(p.date), price: p.price })).sort((a, b) => a.dt.getTime() - b.dt.getTime())
+                const compEntries = v.priceHistory.map(p => ({ dt: parsePriceDate(p.date), price: p.price })).sort((a, b) => a.dt.getTime() - b.dt.getTime())
+
+                // For each week, find the latest price on or before that week's end (carry-forward)
+                const getWeekPrice = (entries: { dt: Date; price: number }[], weekEnd: Date): number | null => {
+                  let last: number | null = null
+                  for (const e of entries) {
+                    if (e.dt.getTime() <= weekEnd.getTime()) last = e.price
+                  }
+                  return last
+                }
+
+                const mergedData = weeks.map(w => {
+                  // Own: null before own listing start
                   let ownVal: number | null = null
-                  if (absIdx >= ownStartIdx) {
-                    if (pOwn === null) pOwn = ownByMonth.get(month) ?? selectedItem.currentPrice
-                    if (ownByMonth.has(month)) pOwn = ownByMonth.get(month)!
-                    ownVal = pOwn
+                  if (w.end.getTime() >= ownStart.getTime()) {
+                    ownVal = getWeekPrice(ownEntries, w.end) ?? selectedItem.currentPrice
                   }
-                  // Competitor line: only draw from compStartIdx onwards
+                  // Comp: null before comp listing start
                   let compVal: number | null = null
-                  if (absIdx >= compStartIdx) {
-                    if (pComp === null) pComp = compByMonth.get(month) ?? v.price
-                    if (compByMonth.has(month)) pComp = compByMonth.get(month)!
-                    compVal = pComp
+                  if (w.end.getTime() >= compStart.getTime()) {
+                    compVal = getWeekPrice(compEntries, w.end) ?? v.price
                   }
-                  return { date: month.replace("/01", "月"), own: ownVal, competitor: compVal }
+                  return { date: w.label, own: ownVal, competitor: compVal }
                 })
                 const ownLabel = `自社 ${selectedItem.model} ${selectedItem.grade}`
                 const compLabel = `${v.competitorName} ${v.model} ${v.grade}`
@@ -1775,14 +1796,14 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                         価格推移比較
                       </DialogTitle>
                       <DialogDescription className="text-xs">
-                        {v.competitorName} / {v.model} {v.grade} / {v.year}年{v.month}月 / {v.mileage.toLocaleString()}km / {v.inspection} / 在庫{v.daysOnMarket}日
+                        {v.competitorName} / {v.model} {v.grade} / {v.year}年{v.month}月 / {v.mileage.toLocaleString()}km / {v.inspection} / 在庫{v.daysOnMarket}日（{compStart.getMonth()+1}/{compStart.getDate()}~）
                       </DialogDescription>
                     </DialogHeader>
                     <div className="h-[340px] w-full">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={mergedData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                          <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                          <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={Math.max(0, Math.floor(mergedData.length / 8))} angle={-30} textAnchor="end" height={50} />
                           <YAxis tickFormatter={(val) => `${(val / 10000).toFixed(0)}万`} tick={{ fontSize: 12 }} domain={["auto", "auto"]} />
                           <Tooltip formatter={(value: number, name: string) => [
                             `\u00A5${value.toLocaleString()}`,
