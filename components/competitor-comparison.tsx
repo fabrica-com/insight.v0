@@ -219,7 +219,7 @@ export function CompetitorComparison() {
   }
 
   const handleAddFetchedCompetitor = () => {
-    if (fetchedCompetitor && competitors.length < 6) {
+    if (fetchedCompetitor && competitors.length < 5) {
       const newCompetitorEntry: Competitor = {
         id: `comp-${Date.now()}`,
         name: fetchedCompetitor.name,
@@ -1150,9 +1150,9 @@ export function CompetitorComparison() {
         <div>
           <h2 className="text-lg font-semibold flex items-center gap-2">
             登録済み競合店
-            <Badge variant="secondary">{competitors.length}/6</Badge>
-          </h2>
-          <p className="text-sm text-muted-foreground mt-0.5">比較したい競合店を選択してください（最大6店舗）</p>
+<Badge variant="secondary">{competitors.length}/5</Badge>
+  </h2>
+  <p className="text-sm text-muted-foreground mt-0.5">比較したい競合店を選択してください（最大5店舗）</p>
         </div>
         <div className="flex items-center gap-2">
           <Dialog
@@ -1165,7 +1165,7 @@ export function CompetitorComparison() {
             }}
           >
             <DialogTrigger asChild>
-              <Button disabled={competitors.length >= 6} className="gap-2">
+              <Button disabled={competitors.length >= 5} className="gap-2">
                 <Plus className="h-4 w-4" />
                 競合店を追加
               </Button>
@@ -1443,7 +1443,7 @@ export function CompetitorComparison() {
           </div>
         ))}
 
-        {competitors.length < 6 && competitors.length > 0 && (
+        {competitors.length < 5 && competitors.length > 0 && (
           <button
             onClick={() => setIsAddDialogOpen(true)}
             className="flex items-center justify-center gap-2 p-3 rounded-lg border border-dashed border-border/50 text-muted-foreground hover:text-foreground hover:border-border hover:bg-muted/30 transition-all"
