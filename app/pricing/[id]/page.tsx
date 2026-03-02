@@ -1262,9 +1262,9 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
                     <TrendingUp className="h-4 w-4" />
-                    自社 vs 他社 価格推移比較
+                    価格推移比較
                   </CardTitle>
-                  <CardDescription className="text-xs">自社価格と他社平均/最安/最高の推移（同型式 {relevantComps.length}台）</CardDescription>
+                  <CardDescription className="text-xs">自社 {selectedItem.model} {selectedItem.grade} と他社（{relevantComps.length}台）の推移</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[260px] w-full">
@@ -1274,7 +1274,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                         <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                         <YAxis tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} tick={{ fontSize: 11 }} domain={["auto", "auto"]} />
                         <Tooltip formatter={(value: number, name: string) => {
-                          const label = name === "own" ? "自社" : name === "avgComp" ? "他社平均" : name === "minComp" ? "他社最安" : "他社最高"
+                          const label = name === "own" ? `自社 ${selectedItem.model} ${selectedItem.grade}` : name === "avgComp" ? "他社平均" : name === "minComp" ? "他社最安" : "他社最高"
                           return [`¥${value.toLocaleString()}`, label]
                         }} />
                         <Line type="monotone" dataKey="own" name="own" stroke="#2563eb" strokeWidth={3} dot={{ fill: "#2563eb", strokeWidth: 2, r: 4 }} />
@@ -1284,8 +1284,8 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
-                  <div className="flex items-center gap-4 mt-2 justify-center text-xs">
-                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "#2563eb" }} /> 自社</span>
+                  <div className="flex items-center gap-4 mt-2 justify-center text-xs flex-wrap">
+                    <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "#2563eb" }} /> 自社 {selectedItem.model} {selectedItem.grade}</span>
                     <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t-2 border-dashed" style={{ borderColor: "#f59e0b" }} /> 他社平均</span>
                     <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t border-dashed" style={{ borderColor: "#10b981" }} /> 他社最安</span>
                     <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5 border-t border-dashed" style={{ borderColor: "#ef4444" }} /> 他社最高</span>
@@ -1427,8 +1427,8 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                     <CardHeader className="pb-2 pt-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <CardTitle className="text-sm">価格推移比較: {selectedCompetitorForChart.competitorName}</CardTitle>
-                          <CardDescription className="text-xs">{selectedCompetitorForChart.grade} / {selectedCompetitorForChart.year}年{selectedCompetitorForChart.month}月 / {selectedCompetitorForChart.mileage.toLocaleString()}km / {selectedCompetitorForChart.inspection}</CardDescription>
+                          <CardTitle className="text-sm">価格推移比較: {selectedCompetitorForChart.competitorName} / {selectedCompetitorForChart.model} {selectedCompetitorForChart.grade}</CardTitle>
+                          <CardDescription className="text-xs">{selectedCompetitorForChart.year}年{selectedCompetitorForChart.month}月 / {selectedCompetitorForChart.mileage.toLocaleString()}km / {selectedCompetitorForChart.inspection}</CardDescription>
                         </div>
                         <Button variant="ghost" size="sm" onClick={() => setSelectedCompetitorForChart(null)}>閉じる</Button>
                       </div>
@@ -1471,7 +1471,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                                 <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                                 <YAxis tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} tick={{ fontSize: 11 }} domain={["auto", "auto"]} />
                                 <Tooltip formatter={(value: number, name: string) => {
-                                  return [`¥${value.toLocaleString()}`, name === "own" ? "自社" : "他社"]
+                                  return [`¥${value.toLocaleString()}`, name === "own" ? `自社 ${selectedItem.model} ${selectedItem.grade}` : `${selectedCompetitorForChart.competitorName} ${selectedCompetitorForChart.model} ${selectedCompetitorForChart.grade}`]
                                 }} />
                                 <Line type="monotone" dataKey="own" name="own" stroke="#2563eb" strokeWidth={2.5} dot={{ fill: "#2563eb", strokeWidth: 2, r: 4 }} />
                                 <Line type="monotone" dataKey="competitor" name="competitor" stroke="#f59e0b" strokeWidth={2} dot={{ fill: "#f59e0b", strokeWidth: 2, r: 3 }} />
@@ -1480,9 +1480,9 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                           )
                         })()}
                       </div>
-                      <div className="flex items-center gap-4 mt-2 justify-center text-xs">
-                        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "#2563eb" }} /> 自社</span>
-                        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "#f59e0b" }} /> {selectedCompetitorForChart.competitorName}</span>
+                      <div className="flex items-center gap-4 mt-2 justify-center text-xs flex-wrap">
+                        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "#2563eb" }} /> 自社 {selectedItem.model} {selectedItem.grade}</span>
+                        <span className="flex items-center gap-1"><span className="inline-block w-4 h-0.5" style={{ backgroundColor: "#f59e0b" }} /> {selectedCompetitorForChart.competitorName} {selectedCompetitorForChart.model} {selectedCompetitorForChart.grade}</span>
                       </div>
                     </CardContent>
                   </Card>
