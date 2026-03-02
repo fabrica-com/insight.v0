@@ -1724,10 +1724,8 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
             <DialogContent className="sm:max-w-3xl">
               {individualChartVehicle && (() => {
                 const v = individualChartVehicle
-                // Determine how many months to show based on daysOnMarket
-                const compMonthsOnMarket = Math.max(1, Math.ceil(v.daysOnMarket / 30))
-                const ownMonthsOnMarket = Math.max(1, Math.ceil(selectedItem.daysOnMarket / 30))
-                const monthsToShow = Math.min(Math.max(compMonthsOnMarket, ownMonthsOnMarket) + 1, TIMELINE.length)
+                // Show months based on the clicked vehicle's listing period only
+                const monthsToShow = Math.min(Math.max(1, Math.ceil(v.daysOnMarket / 30)), TIMELINE.length)
 
                 // Build price maps (only within TIMELINE range)
                 const ownByMonth = new Map<string, number>()
@@ -1948,7 +1946,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                 </div>
 
                 <div className="space-y-3">
-                  <Label>{trackingOffsetType === "fixed" ? "価格差（円）" : "価格差（%）"}</Label>
+                  <Label>{trackingOffsetType === "fixed" ? "���格差（円）" : "価格差（%）"}</Label>
                   <Slider value={[trackingOffset]} onValueChange={([v]) => setTrackingOffset(v)} min={trackingOffsetType === "fixed" ? -200000 : -20} max={trackingOffsetType === "fixed" ? 100000 : 10} step={trackingOffsetType === "fixed" ? 10000 : 1} />
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">{trackingOffsetType === "fixed" ? "-20万円" : "-20%"}</span>
