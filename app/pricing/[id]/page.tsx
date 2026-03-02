@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation"
 import { useState, useMemo, use } from "react"
 import React from "react"
+import { DashboardHeader } from "@/components/dashboard-header"
+import { DashboardSidebar } from "@/components/dashboard-sidebar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -864,12 +866,18 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
 
   if (!selectedItem) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-        <p className="text-muted-foreground">車両が見つかりません</p>
-        <Button onClick={() => router.push("/pricing")}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          価格最適化に戻る
-        </Button>
+      <div className="flex h-screen overflow-hidden bg-background">
+        <DashboardSidebar />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <DashboardHeader />
+          <main className="flex-1 flex flex-col items-center justify-center gap-4">
+            <p className="text-muted-foreground">車両が見つかりません</p>
+            <Button onClick={() => router.push("/pricing")}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              価格最適化に戻る
+            </Button>
+          </main>
+        </div>
       </div>
     )
   }
@@ -881,7 +889,13 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
   const priceDifferencePercent = ((priceDifference / selectedItem.marketPrice) * 100).toFixed(1)
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-screen overflow-hidden bg-background">
+      <DashboardSidebar />
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <DashboardHeader />
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="mx-auto max-w-[1800px] space-y-6">
+
       {/* Header with back button */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" onClick={() => router.push("/pricing")}>
@@ -923,7 +937,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                       : "適正"}
                 </Badge>
                 {trackingSettings?.isActive && (
-                  <Badge className="bg-chart-1 text-white gap-1">
+                  <Badge className="bg-emerald-600 text-white gap-1">
                     <Link2 className="h-3 w-3" />
                     価格追従中
                   </Badge>
@@ -1006,17 +1020,19 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
       {/* Main content - 3 column layout */}
       <div className="grid grid-cols-1 xl:grid-cols-[1fr,1fr,380px] gap-6">
         {/* Competitor list (all same model) */}
-        <Card>
-          <CardHeader className="pb-3">
+        <Card className="border-indigo-500/20">
+          <CardHeader className="pb-3 bg-indigo-500/5 rounded-t-lg">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2">
-                  <Store className="h-5 w-5" />
-                  競合店の同型式車両
+                  <Store className="h-5 w-5 text-indigo-600" />
+                  同型式の他社在庫一覧
                 </CardTitle>
-                <CardDescription>価格の安い順に表示</CardDescription>
+                <CardDescription className="mt-1">
+                  <span className="font-medium text-indigo-600">{selectedItem.model}</span> の全在庫 -- 型式・年式・色・距離を問わず同じ車種名の競合車両すべて
+                </CardDescription>
               </div>
-              <Badge variant="secondary" className="text-base px-3 py-1">
+              <Badge className="text-base px-3 py-1 bg-indigo-100 text-indigo-700 border-indigo-200">
                 {competitors.length}台
               </Badge>
             </div>
@@ -1292,15 +1308,16 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
         </Card>
 
         {/* Center Column - Similar Condition Inventory with Price Tracking */}
-        <Card className="border-chart-1/30">
-          <CardHeader className="pb-3">
+        <Card className="border-emerald-500/30">
+          <CardHeader className="pb-3 bg-emerald-500/5 rounded-t-lg">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-chart-1" />
-                  類似条件の他社在庫
+                  <Target className="h-5 w-5 text-emerald-600" />
+                  類似条件の競合在庫
                 </CardTitle>
-                <CardDescription className="flex items-center gap-1 flex-wrap mt-1">
+                <p className="text-xs text-muted-foreground mt-0.5 mb-1.5">自社車両と近い条件に絞り込んだ直接比較用リスト</p>
+                <CardDescription className="flex items-center gap-1 flex-wrap">
                   {similarFilters.sameModelCode && (
                     <Badge variant="outline" className="text-xs">
                       同型式
@@ -1490,7 +1507,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
-                <Badge variant="secondary" className="text-base px-3 py-1 bg-chart-1/10 text-chart-1">
+                <Badge className="text-base px-3 py-1 bg-emerald-100 text-emerald-700 border-emerald-200">
                   {similarVehicles.length}台
                 </Badge>
               </div>
@@ -1499,12 +1516,17 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
           <CardContent className="pt-2">
             <ScrollArea className="h-[400px]">
               <div className="space-y-3">
-                <Alert className="bg-chart-1/5 border-chart-1/30 py-2">
-                  <Zap className="h-4 w-4 text-chart-1" />
-                  <AlertDescription className="text-xs">
-                    車両をクリックして<strong>自動価格追従</strong>を設定
-                  </AlertDescription>
-                </Alert>
+                <div className="rounded-lg border-2 border-dashed border-emerald-400/50 bg-emerald-50/50 p-3 flex items-start gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 flex-shrink-0">
+                    <Link2 className="h-4 w-4 text-emerald-700" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-emerald-800">自動価格追従</p>
+                    <p className="text-xs text-emerald-700/80 mt-0.5">
+                      下の車両行にある <strong>追従設定</strong> ボタンを押すと、その競合車両の価格変動に連動して自社価格を自動調整できます。
+                    </p>
+                  </div>
+                </div>
                 {similarVehicles.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
                     <Car className="h-12 w-12 mb-2 opacity-30" />
@@ -1519,6 +1541,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                         <TableHead>仕様</TableHead>
                         <TableHead className="text-right">価格</TableHead>
                         <TableHead className="text-right w-[80px]">差額</TableHead>
+                        <TableHead className="text-center w-[90px]">追従</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1530,10 +1553,9 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                         return (
                           <TableRow
                             key={vehicle.id}
-                            className={`cursor-pointer transition-colors ${
-                              isTracking ? "bg-chart-1/10" : "hover:bg-muted/50"
+                            className={`transition-colors ${
+                              isTracking ? "bg-emerald-50" : "hover:bg-muted/50"
                             }`}
-                            onClick={() => openTrackingModal(vehicle)}
                           >
                             <TableCell>
                               <div className="flex flex-col gap-0.5">
@@ -1578,7 +1600,25 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                                   {Math.round(priceDiff / 10000).toLocaleString()}万
                                 </span>
                               ) : (
-                                <span className="text-muted-foreground text-sm">同���</span>
+                                <span className="text-muted-foreground text-sm">同額</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {isTracking ? (
+                                <Badge className="bg-emerald-600 text-white text-[10px] gap-1 cursor-pointer hover:bg-emerald-700" onClick={() => openTrackingModal(vehicle)}>
+                                  <Link2 className="h-3 w-3" />
+                                  追従中
+                                </Badge>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-7 text-xs gap-1 border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800"
+                                  onClick={() => openTrackingModal(vehicle)}
+                                >
+                                  <Link2 className="h-3 w-3" />
+                                  追従設定
+                                </Button>
                               )}
                             </TableCell>
                           </TableRow>
@@ -1595,10 +1635,10 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
         {/* Price adjustment panel */}
         <div className="space-y-4">
           {trackingSettings?.isActive && (
-            <Card className="border-chart-1 bg-chart-1/5">
+            <Card className="border-emerald-500 bg-emerald-50/50">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <Link2 className="h-4 w-4 text-chart-1" />
+                  <Link2 className="h-4 w-4 text-emerald-600" />
                   自動価格追従設定
                 </CardTitle>
               </CardHeader>
@@ -1989,6 +2029,9 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
           </DialogFooter>
         </DialogContent>
       </Dialog>
+          </div>
+        </main>
+      </div>
     </div>
   )
 }
