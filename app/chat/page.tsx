@@ -92,15 +92,15 @@ const chatOptions = [
     description: "予算策定・予実管理・データ分析・決算書の翻訳",
   },
   {
-    mode: "data-analysis",
-    href: "/chat?mode=data-analysis",
-    icon: BarChart3,
-    iconBg: "bg-primary/10 text-primary",
-    borderHover: "hover:border-primary/50 hover:bg-muted/30",
-    title: "データ分析",
+    mode: "consultant",
+    href: "/chat?mode=consultant",
+    icon: Award,
+    iconBg: "bg-chart-3/10 text-chart-3",
+    borderHover: "hover:border-chart-3/50 hover:bg-chart-3/5",
+    title: "経営コンサルタント",
     badge: null,
     badgeClass: "",
-    description: "自然言語で市場データや販売分析について質問",
+    description: "経営全般に関するアドバイスと戦略的提案",
   },
   {
     mode: "consultant",
@@ -114,12 +114,23 @@ const chatOptions = [
     description: "歯に衣着せぬ辛口アドバイスで経営課題を壁打ち",
   },
   {
+    mode: "data-analysis",
+    href: "/chat?mode=data-analysis",
+    icon: BarChart3,
+    iconBg: "bg-primary/10 text-primary",
+    borderHover: "hover:border-primary/50 hover:bg-muted/30",
+    title: "データ分析",
+    badge: null,
+    badgeClass: "",
+    description: "自然言語で市場データや販売分析について質問",
+  },
+  {
     mode: "custom",
     href: "/chat?mode=custom",
-    icon: Sparkles,
+    icon: Users,
     iconBg: "bg-violet-500/10 text-violet-600",
     borderHover: "hover:border-violet-500/50 hover:bg-violet-500/5",
-    title: "カスタムAIチャット",
+    title: "データアナリスト",
     badge: null,
     badgeClass: "",
     description: "独自のプロンプトでAIチャットを作成・利用",
@@ -228,12 +239,12 @@ function ChatPageContent() {
               {/* Other tools */}
               <div>
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">その他のツール</h2>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  {chatOptions.filter(o => ["data-analysis", "consultant", "custom"].includes(o.mode)).map((option) => (
-                    <Link key={option.mode} href={option.href}>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {chatOptions.filter(o => ["consultant", "consultant", "data-analysis", "custom"].includes(o.mode) && o.title !== "カスタムAIチャット").map((option) => (
+                    <Link key={`${option.mode}-${option.title}`} href={option.href}>
                       <Card className={`h-full cursor-pointer transition-all ${option.borderHover} hover:shadow-sm`}>
                         <CardContent className="flex flex-col items-center p-6 text-center">
-                          {option.mode === "consultant" ? (
+                          {option.mode === "consultant" && option.title === "辛口経営コンサルタント" ? (
                             <div className="h-12 w-12 rounded-full overflow-hidden shadow-md mb-3 ring-2 ring-red-500/30">
                               <img src="/images/consultant-avatar.jpg" alt="" className="h-full w-full object-cover" />
                             </div>
