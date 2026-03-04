@@ -239,46 +239,26 @@ function ChatPageContent() {
               {/* Other tools */}
               <div>
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">その他のツール</h2>
-                <div className="space-y-4">
-                  {/* Top row - 3 consultants */}
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {chatOptions.filter(o => ["consultant", "data-analysis"].includes(o.mode) && o.title !== "データアナリスト").map((option) => (
-                      <Link key={`${option.mode}-${option.title}`} href={option.href}>
-                        <Card className={`h-full cursor-pointer transition-all ${option.borderHover} hover:shadow-sm`}>
-                          <CardContent className="flex flex-col items-center p-6 text-center">
-                            {option.mode === "consultant" && option.title === "辛口経営コンサルタント" ? (
-                              <div className="h-12 w-12 rounded-full overflow-hidden shadow-md mb-3 ring-2 ring-red-500/30">
-                                <img src="/images/consultant-avatar.jpg" alt="" className="h-full w-full object-cover" />
-                              </div>
-                            ) : (
-                              <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${option.iconBg} mb-3`}>
-                                <option.icon className="h-6 w-6" />
-                              </div>
-                            )}
-                            <h2 className="text-sm font-semibold mb-1">{option.title}</h2>
-                            <p className="text-xs text-muted-foreground leading-relaxed">{option.description}</p>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    ))}
-                  </div>
-                  
-                  {/* Bottom row - Data Analyst (wide) */}
-                  <div>
-                    {chatOptions.filter(o => o.title === "データアナリスト").map((option) => (
-                      <Link key={option.title} href={option.href}>
-                        <Card className={`cursor-pointer transition-all ${option.borderHover} hover:shadow-sm`}>
-                          <CardContent className="flex flex-col items-center p-6 text-center">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {chatOptions.filter(o => ["consultant", "consultant", "data-analysis", "custom"].includes(o.mode) && o.title !== "カスタムAIチャット").map((option) => (
+                    <Link key={`${option.mode}-${option.title}`} href={option.href}>
+                      <Card className={`h-full cursor-pointer transition-all ${option.borderHover} hover:shadow-sm`}>
+                        <CardContent className="flex flex-col items-center p-6 text-center">
+                          {option.mode === "consultant" && option.title === "辛口経営コンサルタント" ? (
+                            <div className="h-12 w-12 rounded-full overflow-hidden shadow-md mb-3 ring-2 ring-red-500/30">
+                              <img src="/images/consultant-avatar.jpg" alt="" className="h-full w-full object-cover" />
+                            </div>
+                          ) : (
                             <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${option.iconBg} mb-3`}>
                               <option.icon className="h-6 w-6" />
                             </div>
-                            <h2 className="text-sm font-semibold mb-1">{option.title}</h2>
-                            <p className="text-xs text-muted-foreground leading-relaxed">{option.description}</p>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    ))}
-                  </div>
+                          )}
+                          <h2 className="text-sm font-semibold mb-1">{option.title}</h2>
+                          <p className="text-xs text-muted-foreground leading-relaxed">{option.description}</p>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
                 </div>
               </div>
             </div>
