@@ -45,6 +45,7 @@ import {
   Check,
   Search,
   Info,
+  CheckCircle2,
 } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription } from "@/components/ui/alert"
