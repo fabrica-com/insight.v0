@@ -110,7 +110,16 @@ function loadKpiData(year: number): YearlyKpiData {
   if (typeof window === "undefined") return {}
   try {
     const stored = localStorage.getItem(`${STORAGE_KEY}-${year}`)
-    return stored ? JSON.parse(stored) : {}
+    if (!stored) return {}
+    let parsed
+    try {
+      // Try to decode if it's UTF-8 encoded
+      parsed = JSON.parse(decodeURIComponent(stored))
+    } catch {
+      // Fallback to direct parsing for backward compatibility
+      parsed = JSON.parse(stored)
+    }
+    return parsed
   } catch {
     return {}
   }
@@ -118,7 +127,13 @@ function loadKpiData(year: number): YearlyKpiData {
 
 function saveKpiData(year: number, data: YearlyKpiData) {
   if (typeof window === "undefined") return
-  localStorage.setItem(`${STORAGE_KEY}-${year}`, JSON.stringify(data))
+  try {
+    // Encode to handle non-ASCII characters properly
+    const encoded = encodeURIComponent(JSON.stringify(data))
+    localStorage.setItem(`${STORAGE_KEY}-${year}`, encoded)
+  } catch (error) {
+    console.error("Failed to save KPI data:", error)
+  }
 }
 
 function formatValue(value: number | null, format: string): string {

@@ -76,7 +76,14 @@ const loadChatHistory = (storageKey: string): ChatHistory[] => {
   try {
     const stored = localStorage.getItem(storageKey)
     if (!stored) return []
-    const parsed = JSON.parse(stored)
+    let parsed
+    try {
+      // Try to decode if it's UTF-8 encoded
+      parsed = JSON.parse(decodeURIComponent(stored))
+    } catch {
+      // Fallback to direct parsing for backward compatibility
+      parsed = JSON.parse(stored)
+    }
     return parsed.map((chat: any) => ({
       ...chat,
       createdAt: new Date(chat.createdAt),
@@ -95,7 +102,9 @@ const loadChatHistory = (storageKey: string): ChatHistory[] => {
 const saveChatHistory = (storageKey: string, history: ChatHistory[]) => {
   if (typeof window === "undefined") return
   try {
-    localStorage.setItem(storageKey, JSON.stringify(history))
+    // Encode to handle non-ASCII characters properly
+    const encoded = encodeURIComponent(JSON.stringify(history))
+    localStorage.setItem(storageKey, encoded)
   } catch (error) {
     console.error("Failed to save chat history:", error)
   }
@@ -463,7 +472,7 @@ export function SharedChatLayout({
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto p-2 space-y-1">
               {chatHistories.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-8">履歴���ありません</p>
+                <p className="text-xs text-muted-foreground text-center py-8">{"履歴がありません"}</p>
               ) : (
                 chatHistories.map((chat) => (
                   <button
