@@ -31,9 +31,9 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Tooltip,
   PieChart,
   Pie,
+  Cell,
 } from "recharts"
 import { cn } from "@/lib/utils"
 import { myStore, allStoresWithMine } from "@/lib/store-data"
