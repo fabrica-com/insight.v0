@@ -118,10 +118,7 @@ const mileageValues = [
 ]
 
 // 月の選択肢
-const monthOptions = Array.from({ length: 12 }, (_, i) => ({
-  value: String(i + 1),
-  label: `${i + 1}月`,
-}))
+
 
 // 色オプション
 const colorOptions = [
@@ -610,9 +607,9 @@ export function MarketTrends() {
 
   // 年式範囲（年・月セレクト）
   const [yearFrom, setYearFrom] = useState<string>("")
-  const [monthFrom, setMonthFrom] = useState<string>("")
+
   const [yearTo, setYearTo] = useState<string>("")
-  const [monthTo, setMonthTo] = useState<string>("")
+
 
   // 走行距離範囲
   const [mileageFrom, setMileageFrom] = useState<string>("")
@@ -897,7 +894,7 @@ export function MarketTrends() {
           </TabsTrigger>
           <TabsTrigger value="bodytype" className="flex items-center gap-2">
             <Gauge className="h-4 w-4" />
-            ボディタイプ別
+            ボディ���イプ別
           </TabsTrigger>
         </TabsList>
 
@@ -1019,25 +1016,11 @@ export function MarketTrends() {
                         {yearOptions.map(o => <SelectItem key={`yf-${o.value}`} value={o.value || "empty"}>{o.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
-                    <Select value={monthFrom} onValueChange={setMonthFrom} disabled={!selectedModelYearRange}>
-                      <SelectTrigger className="h-9 w-[72px]"><SelectValue placeholder="-" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="empty">-</SelectItem>
-                        {monthOptions.map(o => <SelectItem key={`mf-${o.value}`} value={o.value}>{o.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
                     <span className="text-sm text-muted-foreground">~</span>
                     <Select value={yearTo} onValueChange={setYearTo} disabled={!selectedModelYearRange}>
                       <SelectTrigger className="h-9 w-[80px]"><SelectValue placeholder="-" /></SelectTrigger>
                       <SelectContent>
                         {yearOptions.map(o => <SelectItem key={`yt-${o.value}`} value={o.value || "empty"}>{o.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <Select value={monthTo} onValueChange={setMonthTo} disabled={!selectedModelYearRange}>
-                      <SelectTrigger className="h-9 w-[72px]"><SelectValue placeholder="-" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="empty">-</SelectItem>
-                        {monthOptions.map(o => <SelectItem key={`mt-${o.value}`} value={o.value}>{o.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -1204,7 +1187,7 @@ export function MarketTrends() {
                 )}
                 {selectedModelYearRange && yearFrom && (
                   <Badge variant="secondary" className="gap-1 text-xs">
-                    {yearFrom}年{monthFrom && monthFrom !== "empty" ? `${monthFrom}月` : ""} ~ {yearTo}年{monthTo && monthTo !== "empty" ? `${monthTo}月` : ""}
+                    {yearFrom}年 ~ {yearTo}年
                   </Badge>
                 )}
                 {(mileageFrom && mileageFrom !== "empty") || (mileageTo && mileageTo !== "empty") ? (
