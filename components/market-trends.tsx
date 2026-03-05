@@ -522,7 +522,7 @@ const generateRankingData = () => {
     { maker: "ホンダ", carName: "ZR-V", model: "RZ系", category: "domestic", type: "SUV" },
     { maker: "マツダ", carName: "MX-30", model: "DR��", category: "domestic", type: "SUV" },
     { maker: "レクサス", carName: "RZ", model: "450e", category: "domestic", type: "SUV" },
-    { maker: "レクサ��", carName: "UX", model: "300e", category: "domestic", type: "SUV" },
+    { maker: "レクサ���", carName: "UX", model: "300e", category: "domestic", type: "SUV" },
   ]
 
   const allVehicles = Object.keys(vehicleModels).reduce((acc, maker) => {
@@ -1007,14 +1007,14 @@ export function MarketTrends() {
                   <Label className="text-sm font-medium">年式</Label>
                   <div className="flex items-center gap-1.5">
                     <Select value={yearFrom} onValueChange={setYearFrom} disabled={!selectedModelYearRange}>
-                      <SelectTrigger className="h-9 w-[80px]"><SelectValue placeholder="-" /></SelectTrigger>
+                      <SelectTrigger className="h-9 w-[100px]"><SelectValue placeholder="-" /></SelectTrigger>
                       <SelectContent>
                         {yearOptions.map(o => <SelectItem key={`yf-${o.value}`} value={o.value || "empty"}>{o.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                     <span className="text-sm text-muted-foreground">~</span>
                     <Select value={yearTo} onValueChange={setYearTo} disabled={!selectedModelYearRange}>
-                      <SelectTrigger className="h-9 w-[80px]"><SelectValue placeholder="-" /></SelectTrigger>
+                      <SelectTrigger className="h-9 w-[100px]"><SelectValue placeholder="-" /></SelectTrigger>
                       <SelectContent>
                         {yearOptions.map(o => <SelectItem key={`yt-${o.value}`} value={o.value || "empty"}>{o.label}</SelectItem>)}
                       </SelectContent>
