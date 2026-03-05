@@ -270,7 +270,7 @@ function ChatPageContent() {
                               </div>
                             ) : option.title === "接客コンサルタント" ? (
                               <div className="h-12 w-12 rounded-full overflow-hidden shadow-md mb-3 ring-2 ring-pink-400/30">
-                                <img src="/images/service-consultant-avatar.svg" alt="接客コンサルタント" className="h-full w-full object-cover" />
+                                <img src="/images/service-consultant-avatar.png" alt="接客コンサルタント" className="h-full w-full object-cover" />
                               </div>
                             ) : option.title === "データ分析" ? (
                               <div className="h-12 w-12 rounded-full overflow-hidden shadow-md mb-3 ring-2 ring-primary/30">

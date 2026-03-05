@@ -393,7 +393,7 @@ export function SharedChatLayout({
     },
     "service-consultant": {
       avatarIcon: Bot,
-      avatarSrc: "/images/service-consultant-avatar.svg",
+      avatarSrc: "/images/service-consultant-avatar.png",
       avatarClass: "rounded-full bg-gradient-to-br from-pink-400 to-rose-500 text-white overflow-hidden",
       borderClass: "border-pink-400/20",
       buttonClass: "bg-gradient-to-r from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white",
@@ -475,7 +475,7 @@ export function SharedChatLayout({
               <div className="flex items-center gap-1">
                 <Button variant="ghost" size="sm" onClick={handleNewChat} className="h-7 gap-1.5 text-xs">
                   <Plus className="h-3.5 w-3.5" />
-                  新規
+                  ��規
                 </Button>
                 <Button
                   variant="ghost"

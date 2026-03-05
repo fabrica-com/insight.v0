@@ -438,7 +438,7 @@ export function ServiceConsultantChat() {
       profileInfo={{
         name: "佐藤 美咲",
         title: "接客コンサルタント",
-        avatarSrc: "/images/service-consultant-avatar.svg",
+        avatarSrc: "/images/service-consultant-avatar.png",
         description: "全国50店舗以上の中古車販売店でミステリーショッパー調査を実施。実際にお客様として来店し、接客態度・初動対応・商談品質・クロージング・フォロー体制を評価してきた一次情報をもとに、現場で即実践できるアドバイスを提供します。",
         specialties: ["初動対応改善", "商談品質向上", "クチコミ対策", "スタッフ教育", "フォロー体制構築", "店舗環境改善"],
         background: "大手コンサルティングファームで小売業の顧客体験改善に従事した後、自動車販売業界に特化。ミステリーショッパーとして累計200回以上の覆面調査を行い、成功パターンと失敗パターンを体系化。現在は中古車販売店の接客品質向上を専門にコンサルティングを行っている。",
