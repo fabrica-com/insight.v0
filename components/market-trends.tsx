@@ -522,7 +522,7 @@ const generateRankingData = () => {
     { maker: "ホンダ", carName: "ZR-V", model: "RZ系", category: "domestic", type: "SUV" },
     { maker: "マツダ", carName: "MX-30", model: "DR��", category: "domestic", type: "SUV" },
     { maker: "レクサス", carName: "RZ", model: "450e", category: "domestic", type: "SUV" },
-    { maker: "レクサス", carName: "UX", model: "300e", category: "domestic", type: "SUV" },
+    { maker: "レクサ��", carName: "UX", model: "300e", category: "domestic", type: "SUV" },
   ]
 
   const allVehicles = Object.keys(vehicleModels).reduce((acc, maker) => {
@@ -669,14 +669,10 @@ export function MarketTrends() {
   useEffect(() => {
     if (selectedModelYearRange) {
       setYearFrom(String(selectedModelYearRange.from))
-      setMonthFrom("")
       setYearTo(String(selectedModelYearRange.to))
-      setMonthTo("")
     } else {
       setYearFrom("")
-      setMonthFrom("")
       setYearTo("")
-      setMonthTo("")
     }
   }, [selectedModelYearRange])
 
