@@ -246,9 +246,17 @@ function ChatPageContent() {
                       <Link key={`${option.mode}-${option.title}`} href={option.href}>
                         <Card className={`h-full cursor-pointer transition-all ${option.borderHover} hover:shadow-sm`}>
                           <CardContent className="flex flex-col items-center p-6 text-center">
-                            {option.mode === "consultant" && option.title === "辛口経営コンサルタント" ? (
+                            {option.title === "経営コンサルタント" ? (
+                              <div className="h-12 w-12 rounded-full overflow-hidden shadow-md mb-3 ring-2 ring-chart-3/30">
+                                <img src="/images/consultant-cartoon.jpg" alt="経営コンサルタント" className="h-full w-full object-cover" />
+                              </div>
+                            ) : option.title === "辛口経営コンサルタント" ? (
                               <div className="h-12 w-12 rounded-full overflow-hidden shadow-md mb-3 ring-2 ring-red-500/30">
-                                <img src="/images/consultant-avatar.jpg" alt="" className="h-full w-full object-cover" />
+                                <img src="/images/consultant-harsh-cartoon.jpg" alt="辛口経営コンサルタント" className="h-full w-full object-cover" />
+                              </div>
+                            ) : option.title === "データ分析" ? (
+                              <div className="h-12 w-12 rounded-full overflow-hidden shadow-md mb-3 ring-2 ring-primary/30">
+                                <img src="/images/data-analysis-cartoon.jpg" alt="データ分析" className="h-full w-full object-cover" />
                               </div>
                             ) : (
                               <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${option.iconBg} mb-3`}>
