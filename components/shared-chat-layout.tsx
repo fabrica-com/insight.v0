@@ -25,7 +25,6 @@ import {
   ThumbsUp,
   ThumbsDown,
   type LucideIcon,
-  X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
