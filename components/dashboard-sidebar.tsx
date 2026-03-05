@@ -16,6 +16,7 @@ import {
   BarChart3,
   MessageSquare,
   QrCode,
+  Newspaper,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -32,6 +33,7 @@ const navigation = [
   { name: "買取・仕入推奨価格", icon: ShoppingCart, href: "/purchase-pricing" },
   { name: "レポート", icon: FileText, href: "/reports" },
   { name: "店舗ランキング", icon: Trophy, href: "/rankings" },
+  { name: "業界ニュース", icon: Newspaper, href: "/news" },
   { name: "QRコード生成", icon: QrCode, href: "/qr-generator" },
 ]
 
