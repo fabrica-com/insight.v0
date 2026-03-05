@@ -6,6 +6,7 @@ import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardSidebar } from "@/components/dashboard-sidebar"
 import { AIAnalysisChat } from "@/components/ai-analysis-chat"
 import { ConsultantChat } from "@/components/consultant-chat"
+import { ServiceConsultantChat } from "@/components/service-consultant-chat"
 import { CeoChat } from "@/components/ceo-chat"
 import { CfoChat } from "@/components/cfo-chat"
 import { CmoChat } from "@/components/cmo-chat"
@@ -18,11 +19,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AiUsageBar } from "@/components/ai-usage-bar"
 import { KpiManagementSheet } from "@/components/kpi-management-sheet"
 import { Badge } from "@/components/ui/badge"
-import { BarChart3, Flame, Sparkles, ArrowLeft, Crown, Wallet, Megaphone, Award, Users, PieChart, MessageSquare, Target } from "lucide-react"
+import { BarChart3, Flame, Sparkles, ArrowLeft, Crown, Wallet, Megaphone, Award, Users, PieChart, MessageSquare, Target, HeartHandshake } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-type ChatMode = "data-analysis" | "consultant" | "ceo" | "cfo" | "cmo" | "grant" | "chro" | "cpo" | "custom" | null
+type ChatMode = "data-analysis" | "consultant" | "service-consultant" | "ceo" | "cfo" | "cmo" | "grant" | "chro" | "cpo" | "custom" | null
 
 const chatOptions = [
   {
@@ -114,6 +115,17 @@ const chatOptions = [
     description: "歯に衣着せぬ辛口アドバイスで経営課題を壁打ち",
   },
   {
+    mode: "service-consultant",
+    href: "/chat?mode=service-consultant",
+    icon: HeartHandshake,
+    iconBg: "bg-pink-400/10 text-pink-500",
+    borderHover: "hover:border-pink-400/50 hover:bg-pink-400/5",
+    title: "接客コンサルタント",
+    badge: null,
+    badgeClass: "",
+    description: "ミステリーショッパー調査に基づく接客・営業改善",
+  },
+  {
     mode: "data-analysis",
     href: "/chat?mode=data-analysis",
     icon: BarChart3,
@@ -140,6 +152,7 @@ const chatOptions = [
 const chatTitles: Record<string, { title: string; subtitle: string }> = {
   "data-analysis": { title: "データ分析", subtitle: "自然言語でデータ分析と市場インサイトを取得" },
   consultant: { title: "辛口経営コンサルタント", subtitle: "歯に衣着せぬ辛口アドバイスで経営課題を壁打ち" },
+  "service-consultant": { title: "接客コンサルタント", subtitle: "ミステリーショッパー調査に基づく接客・営業改善アドバイス" },
   ceo: { title: "AI社長（Co-CEO）", subtitle: "経営判断を統合的にサポートするAI参謀" },
   cfo: { title: "AI金庫番", subtitle: "お金まわりの一切を見守り、先回りして助言" },
   cmo: { title: "AI集客参謀", subtitle: "WEB集客を横断的に見渡し最適な施策を提案" },
@@ -151,6 +164,7 @@ const chatTitles: Record<string, { title: string; subtitle: string }> = {
 const chatComponents: Record<string, React.ComponentType> = {
   "data-analysis": AIAnalysisChat,
   consultant: ConsultantChat,
+  "service-consultant": ServiceConsultantChat,
   ceo: CeoChat,
   cfo: CfoChat,
   cmo: CmoChat,
@@ -164,7 +178,7 @@ function ChatPageContent() {
   const mode = searchParams.get("mode") as ChatMode
   const customChatId = searchParams.get("id")
 
-  const validModes = ["data-analysis", "consultant", "ceo", "cfo", "cmo", "grant", "chro", "cpo", "custom"]
+    const validModes = ["data-analysis", "consultant", "service-consultant", "ceo", "cfo", "cmo", "grant", "chro", "cpo", "custom"]
 
   // Selection screen
   if (!mode || !validModes.includes(mode)) {
@@ -241,8 +255,8 @@ function ChatPageContent() {
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">その他のツール</h2>
                 <div className="space-y-4">
                   {/* Top row - 3 consultants */}
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {chatOptions.filter(o => ["consultant", "data-analysis"].includes(o.mode) && o.title !== "カスタムAIチャット").map((option) => (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    {chatOptions.filter(o => ["consultant", "service-consultant", "data-analysis"].includes(o.mode) && o.title !== "カスタムAIチャット").map((option) => (
                       <Link key={`${option.mode}-${option.title}`} href={option.href}>
                         <Card className={`h-full cursor-pointer transition-all ${option.borderHover} hover:shadow-sm`}>
                           <CardContent className="flex flex-col items-center p-6 text-center">
@@ -253,6 +267,10 @@ function ChatPageContent() {
                             ) : option.title === "辛口経営コンサルタント" ? (
                               <div className="h-12 w-12 rounded-full overflow-hidden shadow-md mb-3 ring-2 ring-red-500/30">
                                 <img src="/images/consultant-harsh-cartoon.jpg" alt="辛口経営コンサルタント" className="h-full w-full object-cover" />
+                              </div>
+                            ) : option.title === "接客コンサルタント" ? (
+                              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-rose-500 shadow-md mb-3 ring-2 ring-pink-400/30">
+                                <HeartHandshake className="h-6 w-6 text-white" />
                               </div>
                             ) : option.title === "データ分析" ? (
                               <div className="h-12 w-12 rounded-full overflow-hidden shadow-md mb-3 ring-2 ring-primary/30">
