@@ -25,6 +25,7 @@ import {
   ThumbsUp,
   ThumbsDown,
   type LucideIcon,
+  X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -137,6 +138,7 @@ export function SharedChatLayout({
   profileInfo,
   }: SharedChatLayoutProps) {
   const [showProfile, setShowProfile] = useState(false)
+  const [showFullImage, setShowFullImage] = useState(false)
   const [chatHistories, setChatHistories] = useState<ChatHistory[]>([])
   const [currentChatId, setCurrentChatId] = useState<string | null>(null)
   const [showHistory, setShowHistory] = useState(true)
@@ -475,7 +477,7 @@ export function SharedChatLayout({
               <div className="flex items-center gap-1">
                 <Button variant="ghost" size="sm" onClick={handleNewChat} className="h-7 gap-1.5 text-xs">
                   <Plus className="h-3.5 w-3.5" />
-                  ��規
+                  ���規
                 </Button>
                 <Button
                   variant="ghost"
@@ -807,6 +809,29 @@ export function SharedChatLayout({
         </Card>
       </div>
 
+      {/* Full-size Image Overlay */}
+      {profileInfo && showFullImage && (profileInfo.avatarSrc || tc.avatarSrc) && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 cursor-pointer"
+          onClick={() => setShowFullImage(false)}
+        >
+          <div className="relative max-w-lg w-full mx-4">
+            <img
+              src={profileInfo.avatarSrc || tc.avatarSrc}
+              alt={profileInfo.name}
+              className="w-full h-auto rounded-xl shadow-2xl"
+            />
+            <button
+              type="button"
+              onClick={() => setShowFullImage(false)}
+              className="absolute -top-3 -right-3 h-8 w-8 rounded-full bg-background shadow-md flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Profile Dialog */}
       {profileInfo && showProfile && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowProfile(false)}>
@@ -814,13 +839,17 @@ export function SharedChatLayout({
             {/* Header */}
             <div className={cn("p-6 text-center text-white", tc.buttonClass.replace("hover:from-", "from-").split(" hover:")[0])}>
               <div className="flex justify-center mb-3">
-                <div className={cn("h-20 w-20 rounded-full overflow-hidden ring-4 ring-white/30 shadow-lg", tc.avatarClass)}>
+                <button
+                  type="button"
+                  onClick={() => (profileInfo.avatarSrc || tc.avatarSrc) && setShowFullImage(true)}
+                  className={cn("h-20 w-20 rounded-full overflow-hidden ring-4 ring-white/30 shadow-lg cursor-pointer hover:ring-white/60 transition-all", tc.avatarClass)}
+                >
                   {(profileInfo.avatarSrc || tc.avatarSrc) ? (
                     <img src={profileInfo.avatarSrc || tc.avatarSrc} alt={profileInfo.name} className="h-full w-full object-cover" />
                   ) : (
                     <AvatarIcon className="h-10 w-10 text-white" />
                   )}
-                </div>
+                </button>
               </div>
               <h2 className="text-lg font-bold">{profileInfo.name}</h2>
               <p className="text-sm opacity-90">{profileInfo.title}</p>
