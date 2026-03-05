@@ -922,7 +922,7 @@ export function MarketTrendsAnalysis() {
                               borderRadius: "8px",
                             }}
                           />
-                          <Bar dataKey="volume" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                          <Bar dataKey="volume" fill="#10b981" radius={[4, 4, 0, 0]} />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>

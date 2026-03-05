@@ -645,7 +645,7 @@ export function KpiManagementSheet() {
                     />
                     <Legend wrapperStyle={{ fontSize: "12px" }} />
                     <Bar dataKey="目標販売" fill="hsl(var(--muted-foreground))" opacity={0.3} radius={[2, 2, 0, 0]} />
-                    <Bar dataKey="実績販売" fill="hsl(var(--chart-4))" radius={[2, 2, 0, 0]} />
+                    <Bar dataKey="実績販売" fill="#8b5cf6" radius={[2, 2, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

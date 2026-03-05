@@ -334,11 +334,11 @@ const periodOptions = [
 ]
 
 const DISTRIBUTION_COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
+  "#3b82f6",
+  "#10b981",
+  "#f59e0b",
+  "#8b5cf6",
+  "#ec4899",
   "hsl(217, 91%, 60%)",
 ]
 
@@ -502,7 +502,7 @@ export function TrendingAnalysis() {
             <div className="flex flex-wrap gap-2">
               {[
                 { value: "all", label: "全て" },
-                { value: "国産車", label: "国産車" },
+                { value: "国産車", label: "国���車" },
                 { value: "輸入車", label: "輸入車" },
               ].map((cat) => (
                 <Button
