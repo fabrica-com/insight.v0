@@ -65,7 +65,7 @@ export interface SharedChatLayoutProps {
   suggestedItems: SuggestedItem[]
   suggestedLabel?: string
   generateResponse: (question: string, messageCount?: number) => string
-  theme: "data-analysis" | "consultant" | "service-consultant" | "ceo" | "cfo" | "cmo" | "grant" | "chro" | "cpo"
+  theme: "data-analysis" | "consultant" | "management-consultant" | "service-consultant" | "ceo" | "cfo" | "cmo" | "grant" | "chro" | "cpo"
   inputPlaceholder?: string
   typingDelay?: number
   enableFileUpload?: boolean
@@ -386,11 +386,19 @@ export function SharedChatLayout({
     },
     consultant: {
       avatarIcon: Flame,
-      avatarSrc: "/images/consultant-avatar.jpg",
+      avatarSrc: "/images/consultant-harsh-cartoon.jpg",
       avatarClass: "rounded-full bg-gradient-to-br from-red-500 to-orange-600 overflow-hidden",
       borderClass: "border-red-500/20",
       buttonClass: "bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 text-white",
       suggestBorderClass: "border-red-500/30 hover:bg-red-500/10 hover:text-red-600",
+    },
+    "management-consultant": {
+      avatarIcon: Bot,
+      avatarSrc: "/images/consultant-cartoon.jpg",
+      avatarClass: "rounded-full bg-gradient-to-br from-blue-500 to-slate-600 overflow-hidden",
+      borderClass: "border-blue-500/20",
+      buttonClass: "bg-gradient-to-r from-blue-500 to-slate-600 hover:from-blue-600 hover:to-slate-700 text-white",
+      suggestBorderClass: "border-blue-500/30 hover:bg-blue-500/10 hover:text-blue-600",
     },
     "service-consultant": {
       avatarIcon: Bot,
