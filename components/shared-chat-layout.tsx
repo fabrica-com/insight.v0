@@ -69,6 +69,14 @@ export interface SharedChatLayoutProps {
   inputPlaceholder?: string
   typingDelay?: number
   enableFileUpload?: boolean
+  profileInfo?: {
+    name: string
+    title: string
+    avatarSrc?: string
+    description: string
+    specialties: string[]
+    background: string
+  }
 }
 
 const loadChatHistory = (storageKey: string): ChatHistory[] => {
@@ -126,7 +134,9 @@ export function SharedChatLayout({
   inputPlaceholder = "質問を入力...",
   typingDelay = 1500,
   enableFileUpload = false,
-}: SharedChatLayoutProps) {
+  profileInfo,
+  }: SharedChatLayoutProps) {
+  const [showProfile, setShowProfile] = useState(false)
   const [chatHistories, setChatHistories] = useState<ChatHistory[]>([])
   const [currentChatId, setCurrentChatId] = useState<string | null>(null)
   const [showHistory, setShowHistory] = useState(true)
@@ -383,6 +393,7 @@ export function SharedChatLayout({
     },
     "service-consultant": {
       avatarIcon: Bot,
+      avatarSrc: "/images/service-consultant-avatar.svg",
       avatarClass: "rounded-full bg-gradient-to-br from-pink-400 to-rose-500 text-white overflow-hidden",
       borderClass: "border-pink-400/20",
       buttonClass: "bg-gradient-to-r from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white",
@@ -534,18 +545,22 @@ export function SharedChatLayout({
                 className={cn("flex gap-3 group", message.role === "user" ? "justify-end" : "justify-start")}
               >
                 {message.role === "assistant" && (
-                  <div
+                  <button
+                    type="button"
+                    onClick={() => profileInfo && setShowProfile(true)}
                     className={cn(
                       "flex h-8 w-8 items-center justify-center flex-shrink-0 shadow-sm",
                       tc.avatarClass,
+                      profileInfo && "cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all",
                     )}
+                    title={profileInfo ? "プロフィールを見る" : undefined}
                   >
                     {tc.avatarSrc ? (
                       <img src={tc.avatarSrc} alt="" className="h-full w-full object-cover" />
                     ) : (
                       <AvatarIcon className="h-4 w-4 text-white" />
                     )}
-                  </div>
+                  </button>
                 )}
                 <div className="flex flex-col">
                   <div
@@ -791,6 +806,58 @@ export function SharedChatLayout({
           </div>
         </Card>
       </div>
+
+      {/* Profile Dialog */}
+      {profileInfo && showProfile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowProfile(false)}>
+          <div className="bg-background rounded-xl shadow-xl max-w-md w-full mx-4 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className={cn("p-6 text-center text-white", tc.buttonClass.replace("hover:from-", "from-").split(" hover:")[0])}>
+              <div className="flex justify-center mb-3">
+                <div className={cn("h-20 w-20 rounded-full overflow-hidden ring-4 ring-white/30 shadow-lg", tc.avatarClass)}>
+                  {(profileInfo.avatarSrc || tc.avatarSrc) ? (
+                    <img src={profileInfo.avatarSrc || tc.avatarSrc} alt={profileInfo.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <AvatarIcon className="h-10 w-10 text-white" />
+                  )}
+                </div>
+              </div>
+              <h2 className="text-lg font-bold">{profileInfo.name}</h2>
+              <p className="text-sm opacity-90">{profileInfo.title}</p>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground leading-relaxed">{profileInfo.description}</p>
+              </div>
+
+              <div>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{"専門分野"}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {profileInfo.specialties.map((s) => (
+                    <span key={s} className={cn("text-xs px-2.5 py-1 rounded-full border", tc.suggestBorderClass)}>
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{"経歴"}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{profileInfo.background}</p>
+              </div>
+
+              <Button
+                onClick={() => setShowProfile(false)}
+                className={cn("w-full", tc.buttonClass)}
+              >
+                {"閉じる"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
