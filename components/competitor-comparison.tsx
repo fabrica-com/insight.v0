@@ -105,7 +105,7 @@ export function CompetitorComparison() {
   const [selectedMunicipality, setSelectedMunicipality] = useState("")
   const [storeNameQuery, setStoreNameQuery] = useState("")
   const [isStorePopoverOpen, setIsStorePopoverOpen] = useState(false)
-  const [registrationMode, setRegistrationMode] = useState<"location" | "url">("location")
+  const [registrationMode, setRegistrationMode] = useState<"location" | "url">("url")
 
   const filteredMunicipalities = useMemo(() => {
     if (!selectedPrefecture) return []
@@ -1327,7 +1327,7 @@ export function CompetitorComparison() {
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    車選びドットコム等の店舗ページURLに対応しています
+                    車選びドットコム、カーセンサーの店舗ページURLに対応しています
                   </p>
                 </TabsContent>
               </Tabs>
@@ -1466,14 +1466,6 @@ export function CompetitorComparison() {
           </Button>
         </div>
       )}
-
-      <Alert className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-900">
-        <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-        <AlertDescription className="text-xs text-amber-800 dark:text-amber-300">
-          <strong className="text-amber-600 dark:text-amber-400">注記：</strong>
-          表示される分析データは、お客様の指定したエリア・条件の公開情報を基にしたものです。取得したデータは貴社内での検討資料としてのみご利用ください。
-        </AlertDescription>
-      </Alert>
 
       {selectedCompetitors.length > 1 && visibleCompetitors.length > 0 && (
         <>
