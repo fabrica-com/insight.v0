@@ -627,8 +627,8 @@ export function PurchasePricingTool() {
             )}
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div className="space-y-2">
+          <div className="flex flex-wrap gap-4">
+            <div className="space-y-2 w-[140px]">
               <Label htmlFor="manufacturer">メーカー</Label>
               <Select value={manufacturer} onValueChange={handleManufacturerChange}>
                 <SelectTrigger id="manufacturer">
@@ -644,7 +644,7 @@ export function PurchasePricingTool() {
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 w-[180px]">
               <Label htmlFor="model">車名</Label>
               <Select value={model} onValueChange={handleModelChange} disabled={!manufacturer}>
                 <SelectTrigger id="model">
@@ -706,8 +706,8 @@ export function PurchasePricingTool() {
             </div>
           )}
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <div className="space-y-2">
+          <div className="flex flex-wrap gap-4">
+            <div className="space-y-2 w-[160px]">
               <Label htmlFor="mileage">走行距離</Label>
               <Select value={mileage} onValueChange={setMileage}>
                 <SelectTrigger id="mileage">
@@ -723,7 +723,7 @@ export function PurchasePricingTool() {
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 w-[140px]">
               <Label htmlFor="color">色</Label>
               <Select value={color} onValueChange={setColor}>
                 <SelectTrigger id="color">
@@ -739,7 +739,7 @@ export function PurchasePricingTool() {
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 w-[180px]">
               <Label htmlFor="grade">
                 グレード <span className="text-xs text-muted-foreground">（任意）</span>
               </Label>
