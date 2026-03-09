@@ -73,6 +73,10 @@ const SAMPLE_FETCHED_DATA: Record<string, Partial<Competitor>> = {
     name: "カーセレクト東京",
     region: "東京都渋谷区",
   },
+  "carsensor.net": {
+    name: "オートガレージ横浜",
+    region: "神奈川県横浜市",
+  },
   default: {
     name: "不明な店舗",
     region: "地域不明",
@@ -168,7 +172,7 @@ export function CompetitorComparison() {
     try {
       const urlObj = new URL(url)
       const domain = urlObj.hostname.replace("www.", "")
-      const supportedDomains = ["kurumaerabi.com"]
+      const supportedDomains = ["kurumaerabi.com", "carsensor.net"]
       const isSupported = supportedDomains.some((d) => domain.includes(d))
       const pathParts = urlObj.pathname.split("/").filter(Boolean)
       const storeId = pathParts[pathParts.length - 1] || `store-${Date.now()}`
