@@ -30,9 +30,10 @@ import {
   Tooltip,
   Bar,
   BarChart,
-  Cell,
+  CartesianGrid,
   PieChart,
   Pie,
+  Cell,
 } from "recharts"
 import { cn } from "@/lib/utils"
 import { myStore, allStoresWithMine } from "@/lib/store-data"
@@ -65,10 +66,10 @@ const salesTrendData = months.map((m, i) => {
 
 // Inventory age distribution
 const inventoryAgeData = [
-  { name: "30日以内", value: Math.floor(myStore.avgInventory * 0.45), color: "hsl(var(--chart-2))" },
-  { name: "31-60日", value: Math.floor(myStore.avgInventory * 0.30), color: "hsl(var(--chart-3))" },
-  { name: "61-90日", value: Math.floor(myStore.avgInventory * 0.15), color: "hsl(var(--chart-5))" },
-  { name: "90日超", value: Math.floor(myStore.avgInventory * 0.10), color: "hsl(var(--destructive))" },
+  { name: "30日以内", value: Math.floor(myStore.avgInventory * 0.45), color: "#22c55e" },
+  { name: "31-60日", value: Math.floor(myStore.avgInventory * 0.30), color: "#3b82f6" },
+  { name: "61-90日", value: Math.floor(myStore.avgInventory * 0.15), color: "#f59e0b" },
+  { name: "90日超", value: Math.floor(myStore.avgInventory * 0.10), color: "#ef4444" },
 ]
 
 // Competitor summary
@@ -226,22 +227,24 @@ export function DashboardOverview() {
                 <AreaChart data={salesTrendData} margin={{ top: 5, right: 5, bottom: 0, left: -15 }}>
                   <defs>
                     <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="month" fontSize={11} tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" />
-                  <YAxis fontSize={11} tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
+                  <XAxis dataKey="month" fontSize={11} tickLine={false} axisLine={false} stroke="#9ca3af" />
+                  <YAxis fontSize={11} tickLine={false} axisLine={false} stroke="#9ca3af" tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "hsl(var(--popover))",
-                      border: "1px solid hsl(var(--border))",
+                      backgroundColor: "#fff",
+                      border: "1px solid #e5e7eb",
                       borderRadius: "8px",
                       fontSize: "12px",
+                      boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
                     }}
                     formatter={(value: number) => [`¥${(value / 10000).toLocaleString()}万`, "売上"]}
                   />
-                  <Area type="monotone" dataKey="revenue" stroke="hsl(var(--chart-1))" fill="url(#revGrad)" strokeWidth={2} dot={{ r: 3, fill: "hsl(var(--chart-1))" }} />
+                  <Area type="monotone" dataKey="revenue" stroke="#3b82f6" fill="url(#revGrad)" strokeWidth={2.5} dot={{ r: 3.5, fill: "#3b82f6", strokeWidth: 2, stroke: "#fff" }} activeDot={{ r: 5, fill: "#3b82f6", stroke: "#fff", strokeWidth: 2 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -251,16 +254,26 @@ export function DashboardOverview() {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-muted-foreground">月間販売台数</span>
                 <div className="flex items-center gap-1.5 text-xs">
-                  <div className="h-2.5 w-2.5 rounded-sm bg-chart-2" />
+                  <div className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: "#22c55e" }} />
                   <span className="text-muted-foreground">台数</span>
                 </div>
               </div>
               <div className="h-[80px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={salesTrendData} margin={{ top: 0, right: 5, bottom: 0, left: -15 }}>
-                    <XAxis dataKey="month" fontSize={10} tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" />
-                    <YAxis fontSize={10} tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" />
-                    <Bar dataKey="sales" radius={[3, 3, 0, 0]} fill="hsl(var(--chart-2))" />
+                    <XAxis dataKey="month" fontSize={10} tickLine={false} axisLine={false} stroke="#9ca3af" />
+                    <YAxis fontSize={10} tickLine={false} axisLine={false} stroke="#9ca3af" />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#fff",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "8px",
+                        fontSize: "12px",
+                        boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+                      }}
+                      formatter={(value: number) => [`${value}台`, "販売台数"]}
+                    />
+                    <Bar dataKey="sales" radius={[3, 3, 0, 0]} fill="#22c55e" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -521,18 +534,27 @@ export function DashboardOverview() {
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs text-muted-foreground font-medium">Sell-Through Rate</span>
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <div className="h-2.5 w-2.5 rounded-sm bg-chart-1" />
+                  <div className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: "#6366f1" }} />
                   STR (%)
                 </div>
               </div>
               <div className="h-[200px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={strChartData} layout="vertical" margin={{ left: 0, right: 10 }}>
-                    <XAxis type="number" fontSize={10} tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" domain={[0, 35]} />
-                    <YAxis type="category" dataKey="name" fontSize={11} tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" width={80} />
+                    <XAxis type="number" fontSize={10} tickLine={false} axisLine={false} stroke="#9ca3af" domain={[0, 35]} />
+                    <YAxis type="category" dataKey="name" fontSize={11} tickLine={false} axisLine={false} stroke="#9ca3af" width={80} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#fff",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "8px",
+                        fontSize: "12px",
+                      }}
+                      formatter={(value: number) => [`${value}%`, "STR"]}
+                    />
                     <Bar dataKey="str" radius={[0, 4, 4, 0]}>
                       {strChartData.map((_, i) => (
-                        <Cell key={i} fill={i === 0 ? "hsl(var(--chart-1))" : "hsl(var(--muted-foreground)/0.2)"} />
+                        <Cell key={i} fill={i === 0 ? "#6366f1" : "#d1d5db"} />
                       ))}
                     </Bar>
                   </BarChart>

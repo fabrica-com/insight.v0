@@ -45,6 +45,8 @@ import {
   Check,
   Search,
   Info,
+  CheckCircle2,
+  ExternalLink,
 } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -70,6 +72,10 @@ const SAMPLE_FETCHED_DATA: Record<string, Partial<Competitor>> = {
   "kurumaerabi.com": {
     name: "カーセレクト東京",
     region: "東京都渋谷区",
+  },
+  "carsensor.net": {
+    name: "オートガレージ横浜",
+    region: "神奈川県横浜市",
   },
   default: {
     name: "不明な店舗",
@@ -103,7 +109,7 @@ export function CompetitorComparison() {
   const [selectedMunicipality, setSelectedMunicipality] = useState("")
   const [storeNameQuery, setStoreNameQuery] = useState("")
   const [isStorePopoverOpen, setIsStorePopoverOpen] = useState(false)
-  const [registrationMode, setRegistrationMode] = useState<"location" | "url">("location")
+  const [registrationMode, setRegistrationMode] = useState<"location" | "url">("url")
 
   const filteredMunicipalities = useMemo(() => {
     if (!selectedPrefecture) return []
@@ -166,7 +172,7 @@ export function CompetitorComparison() {
     try {
       const urlObj = new URL(url)
       const domain = urlObj.hostname.replace("www.", "")
-      const supportedDomains = ["kurumaerabi.com"]
+      const supportedDomains = ["kurumaerabi.com", "carsensor.net"]
       const isSupported = supportedDomains.some((d) => domain.includes(d))
       const pathParts = urlObj.pathname.split("/").filter(Boolean)
       const storeId = pathParts[pathParts.length - 1] || `store-${Date.now()}`
@@ -1325,7 +1331,7 @@ export function CompetitorComparison() {
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    車選びドットコム等の店舗ページURLに対応しています
+                    車選びドットコム、カーセンサーの店舗ページURLに対応しています
                   </p>
                 </TabsContent>
               </Tabs>
@@ -1464,14 +1470,6 @@ export function CompetitorComparison() {
           </Button>
         </div>
       )}
-
-      <Alert className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-900">
-        <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-        <AlertDescription className="text-xs text-amber-800 dark:text-amber-300">
-          <strong className="text-amber-600 dark:text-amber-400">注記：</strong>
-          表示される分析データは、お客様の指定したエリア・条件の公開情報を基にしたものです。取得したデータは貴社内での検討資料としてのみご利用ください。
-        </AlertDescription>
-      </Alert>
 
       {selectedCompetitors.length > 1 && visibleCompetitors.length > 0 && (
         <>

@@ -26,7 +26,15 @@ const loadConfigs = (): CustomChatConfig[] => {
   try {
     const stored = localStorage.getItem(CONFIGS_STORAGE_KEY)
     if (!stored) return []
-    return JSON.parse(stored)
+    let parsed
+    try {
+      // Try to decode if it's UTF-8 encoded
+      parsed = JSON.parse(decodeURIComponent(stored))
+    } catch {
+      // Fallback to direct parsing for backward compatibility
+      parsed = JSON.parse(stored)
+    }
+    return parsed
   } catch {
     return []
   }
@@ -34,7 +42,13 @@ const loadConfigs = (): CustomChatConfig[] => {
 
 const saveConfigs = (configs: CustomChatConfig[]) => {
   if (typeof window === "undefined") return
-  localStorage.setItem(CONFIGS_STORAGE_KEY, JSON.stringify(configs))
+  try {
+    // Encode to handle non-ASCII characters properly
+    const encoded = encodeURIComponent(JSON.stringify(configs))
+    localStorage.setItem(CONFIGS_STORAGE_KEY, encoded)
+  } catch (error) {
+    console.error("Failed to save configs:", error)
+  }
 }
 
 // --- チャットリスト & 作成/編集画面 ---

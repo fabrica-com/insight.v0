@@ -118,10 +118,7 @@ const mileageValues = [
 ]
 
 // 月の選択肢
-const monthOptions = Array.from({ length: 12 }, (_, i) => ({
-  value: String(i + 1),
-  label: `${i + 1}月`,
-}))
+
 
 // 色オプション
 const colorOptions = [
@@ -219,9 +216,61 @@ const generateGradeDepreciationData = (grades: string[], baseData: typeof weekly
   return data
 }
 
+// グレード別の相場金額データを生成（実際の価格推移）
+const generateGradePriceTrendData = (grades: string[], baseData: typeof weeklyPriceHistoryData) => {
+  const baseStartPrice = baseData[0].average
+  const gradeBasePrices = grades.map((_, idx) => {
+    // 上位グレードほど高い価格帯を設定
+    const multiplier = 1 + (grades.length - 1 - idx) * 0.15
+    return Math.round(baseStartPrice * multiplier)
+  })
+  const data = baseData.map((weekData, i) => {
+    const point: Record<string, string | number> = { week: weekData.week }
+    const baseRatio = weekData.average / baseStartPrice
+    grades.forEach((grade, idx) => {
+      const gradeBase = gradeBasePrices[idx]
+      const noise = (Math.random() - 0.5) * gradeBase * 0.005
+      point[grade] = Math.round(gradeBase * baseRatio + noise)
+    })
+    return point
+  })
+  return data
+}
+
+// メーカー別の相場金額データを生成
+const generateMakerPriceTrendData = (
+  selectedMakerId: string,
+  baseData: typeof weeklyPriceHistoryData
+) => {
+  const isDomestic = manufacturers.domestic.some(m => m.id === selectedMakerId)
+  let labels: string[]
+  if (isDomestic) {
+    labels = manufacturers.domestic.map(m => m.name)
+  } else {
+    labels = [...new Set(Object.values(importedCountryMap))]
+  }
+  const baseStartPrice = baseData[0].average
+  const labelBasePrices = labels.map((_, idx) => {
+    const multiplier = 0.85 + idx * 0.08
+    return Math.round(baseStartPrice * multiplier)
+  })
+  const data = baseData.map((weekData, i) => {
+    const point: Record<string, string | number> = { week: weekData.week }
+    const baseRatio = weekData.average / baseStartPrice
+    labels.forEach((label, idx) => {
+      const lBase = labelBasePrices[idx]
+      const noise = (Math.random() - 0.5) * lBase * 0.005
+      point[label] = Math.round(lBase * baseRatio + noise)
+    })
+    return point
+  })
+  return { data, labels }
+}
+
 // デフォルトのグレード別データ（アルファード30系のグレードをデフォルト表示用）
 const defaultGrades = ["S", "SC", "Executive Lounge", "S Cパッケージ"]
 const defaultGradeDepreciationData = generateGradeDepreciationData(defaultGrades, weeklyPriceHistoryData)
+const defaultGradePriceTrendData = generateGradePriceTrendData(defaultGrades, weeklyPriceHistoryData)
 
 // 輸入車の国別マッピング
 const importedCountryMap: Record<string, string> = {
@@ -473,7 +522,7 @@ const generateRankingData = () => {
     { maker: "ホンダ", carName: "ZR-V", model: "RZ系", category: "domestic", type: "SUV" },
     { maker: "マツダ", carName: "MX-30", model: "DR��", category: "domestic", type: "SUV" },
     { maker: "レクサス", carName: "RZ", model: "450e", category: "domestic", type: "SUV" },
-    { maker: "レクサス", carName: "UX", model: "300e", category: "domestic", type: "SUV" },
+    { maker: "レクサ���", carName: "UX", model: "300e", category: "domestic", type: "SUV" },
   ]
 
   const allVehicles = Object.keys(vehicleModels).reduce((acc, maker) => {
@@ -554,12 +603,13 @@ export function MarketTrends() {
   const [selectedVariant, setSelectedVariant] = useState<string>("")
   const [showChart, setShowChart] = useState(false)
   const [hiddenComparisonLabels, setHiddenComparisonLabels] = useState<Set<string>>(new Set())
+  const [hiddenPriceTrendLabels, setHiddenPriceTrendLabels] = useState<Set<string>>(new Set())
 
   // 年式範囲（年・月セレクト）
   const [yearFrom, setYearFrom] = useState<string>("")
-  const [monthFrom, setMonthFrom] = useState<string>("")
+
   const [yearTo, setYearTo] = useState<string>("")
-  const [monthTo, setMonthTo] = useState<string>("")
+
 
   // 走行距離範囲
   const [mileageFrom, setMileageFrom] = useState<string>("")
@@ -619,14 +669,10 @@ export function MarketTrends() {
   useEffect(() => {
     if (selectedModelYearRange) {
       setYearFrom(String(selectedModelYearRange.from))
-      setMonthFrom("")
       setYearTo(String(selectedModelYearRange.to))
-      setMonthTo("")
     } else {
       setYearFrom("")
-      setMonthFrom("")
       setYearTo("")
-      setMonthTo("")
     }
   }, [selectedModelYearRange])
 
@@ -646,6 +692,40 @@ export function MarketTrends() {
   // モード変更時に非表示ラベルをリセット
   useEffect(() => {
     setHiddenComparisonLabels(new Set())
+    setHiddenPriceTrendLabels(new Set())
+  }, [comparisonChartMode, selectedMaker, selectedModelType])
+
+  // グレード別相場推移（相場金額）
+  const { priceTrendData, priceTrendLabels, priceTrendTitle, priceTrendDesc } = useMemo(() => {
+    if (comparisonChartMode === "grade") {
+      return {
+        priceTrendData: generateGradePriceTrendData(availableGrades, weeklyPriceHistoryData),
+        priceTrendLabels: availableGrades,
+        priceTrendTitle: "グレード別 相場推移（過去2年）",
+        priceTrendDesc: "グレードごとの平均相場金額の推移",
+      }
+    }
+    if (comparisonChartMode === "maker") {
+      const isDomestic = manufacturers.domestic.some(m => m.id === selectedMaker)
+      const result = generateMakerPriceTrendData(selectedMaker, weeklyPriceHistoryData)
+      return {
+        priceTrendData: result.data,
+        priceTrendLabels: result.labels,
+        priceTrendTitle: isDomestic
+          ? "国産メーカー別 相場推移（過去2年）"
+          : "輸入車 国別 相場推移（過去2年）",
+        priceTrendDesc: isDomestic
+          ? "国産メーカーごとの平均相場金額の推移"
+          : "輸入車の国別平均相場金額の推移",
+      }
+    }
+    return {
+      priceTrendData: defaultGradePriceTrendData,
+      priceTrendLabels: defaultGrades,
+      priceTrendTitle: "グレード別 相場推移（過去2年）",
+      priceTrendDesc: "グレードごとの平均相場金額の推移",
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [comparisonChartMode, selectedMaker, selectedModelType])
 
   const { comparisonData, comparisonLabels, comparisonTitle, comparisonDesc } = useMemo(() => {
@@ -696,7 +776,7 @@ export function MarketTrends() {
     const siteName = "車選びドットコム"
     setVehicleTitle(`${siteName}掲載車両`)
 
-    // 個別車両の価格推移データ生成（シミュレーション）
+    // 個別車両の価格推���データ生成（シミュレーション）
     const basePrice = 2000000 + Math.random() * 5000000
     const weeks = 52 // 1年分
     const priceData: {week: string; price: number}[] = []
@@ -810,7 +890,7 @@ export function MarketTrends() {
           </TabsTrigger>
           <TabsTrigger value="bodytype" className="flex items-center gap-2">
             <Gauge className="h-4 w-4" />
-            ボディタイプ別
+            ボディ���イプ別
           </TabsTrigger>
         </TabsList>
 
@@ -927,30 +1007,16 @@ export function MarketTrends() {
                   <Label className="text-sm font-medium">年式</Label>
                   <div className="flex items-center gap-1.5">
                     <Select value={yearFrom} onValueChange={setYearFrom} disabled={!selectedModelYearRange}>
-                      <SelectTrigger className="h-9 w-[80px]"><SelectValue placeholder="-" /></SelectTrigger>
+                      <SelectTrigger className="h-9 w-[100px]"><SelectValue placeholder="-" /></SelectTrigger>
                       <SelectContent>
                         {yearOptions.map(o => <SelectItem key={`yf-${o.value}`} value={o.value || "empty"}>{o.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
-                    <Select value={monthFrom} onValueChange={setMonthFrom} disabled={!selectedModelYearRange}>
-                      <SelectTrigger className="h-9 w-[72px]"><SelectValue placeholder="-" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="empty">-</SelectItem>
-                        {monthOptions.map(o => <SelectItem key={`mf-${o.value}`} value={o.value}>{o.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
                     <span className="text-sm text-muted-foreground">~</span>
                     <Select value={yearTo} onValueChange={setYearTo} disabled={!selectedModelYearRange}>
-                      <SelectTrigger className="h-9 w-[80px]"><SelectValue placeholder="-" /></SelectTrigger>
+                      <SelectTrigger className="h-9 w-[100px]"><SelectValue placeholder="-" /></SelectTrigger>
                       <SelectContent>
                         {yearOptions.map(o => <SelectItem key={`yt-${o.value}`} value={o.value || "empty"}>{o.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <Select value={monthTo} onValueChange={setMonthTo} disabled={!selectedModelYearRange}>
-                      <SelectTrigger className="h-9 w-[72px]"><SelectValue placeholder="-" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="empty">-</SelectItem>
-                        {monthOptions.map(o => <SelectItem key={`mt-${o.value}`} value={o.value}>{o.label}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -1117,7 +1183,7 @@ export function MarketTrends() {
                 )}
                 {selectedModelYearRange && yearFrom && (
                   <Badge variant="secondary" className="gap-1 text-xs">
-                    {yearFrom}年{monthFrom && monthFrom !== "empty" ? `${monthFrom}月` : ""} ~ {yearTo}年{monthTo && monthTo !== "empty" ? `${monthTo}月` : ""}
+                    {yearFrom}年 ~ {yearTo}年
                   </Badge>
                 )}
                 {(mileageFrom && mileageFrom !== "empty") || (mileageTo && mileageTo !== "empty") ? (
@@ -1289,7 +1355,79 @@ export function MarketTrends() {
             </CardContent>
           </Card>
 
-          {/* 比較��ャート（メーカー別 or グレード別） */}
+          {/* グレード別 相場推移（相場金額） */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{priceTrendTitle}</CardTitle>
+              <CardDescription>
+                {priceTrendDesc}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[400px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={priceTrendData}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="week" 
+                      tick={{ fontSize: 11 }}
+                      tickFormatter={(value) => {
+                        const parts = value.split("/")
+                        return `${parts[0].slice(2)}/${parts[1]}`
+                      }}
+                      interval={7}
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => `${(value / 10000).toFixed(0)}万`}
+                      domain={["dataMin - 100000", "dataMax + 100000"]}
+                    />
+                    <Tooltip 
+                      formatter={(value: number, name: string) => [`${(value / 10000).toFixed(1)}万円`, name]}
+                      labelFormatter={(label) => `週: ${label}`}
+                    />
+                    <Legend 
+                      onClick={(e) => {
+                        const label = e.dataKey as string
+                        setHiddenPriceTrendLabels(prev => {
+                          const next = new Set(prev)
+                          if (next.has(label)) {
+                            next.delete(label)
+                          } else {
+                            next.add(label)
+                          }
+                          return next
+                        })
+                      }}
+                      formatter={(value) => (
+                        <span style={{ 
+                          color: hiddenPriceTrendLabels.has(value) ? "#ccc" : undefined,
+                          textDecoration: hiddenPriceTrendLabels.has(value) ? "line-through" : undefined,
+                          cursor: "pointer",
+                        }}>
+                          {value}
+                        </span>
+                      )}
+                    />
+                    {priceTrendLabels.map((label, idx) => (
+                      <Line 
+                        key={label}
+                        type="stepAfter" 
+                        dataKey={label} 
+                        name={label} 
+                        stroke={gradeColors[idx % gradeColors.length]} 
+                        strokeWidth={2}
+                        dot={false}
+                        hide={hiddenPriceTrendLabels.has(label)}
+                      />
+                    ))}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 比較チャート（メーカー別 or グレード別） */}
           <Card>
             <CardHeader>
               <CardTitle>{comparisonTitle}</CardTitle>

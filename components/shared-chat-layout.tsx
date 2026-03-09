@@ -65,10 +65,18 @@ export interface SharedChatLayoutProps {
   suggestedItems: SuggestedItem[]
   suggestedLabel?: string
   generateResponse: (question: string, messageCount?: number) => string
-  theme: "data-analysis" | "consultant" | "ceo" | "cfo" | "cmo" | "grant" | "chro" | "cpo"
+  theme: "data-analysis" | "consultant" | "management-consultant" | "service-consultant" | "ceo" | "cfo" | "cmo" | "grant" | "chro" | "cpo"
   inputPlaceholder?: string
   typingDelay?: number
   enableFileUpload?: boolean
+  profileInfo?: {
+    name: string
+    title: string
+    avatarSrc?: string
+    description: string
+    specialties: string[]
+    background: string
+  }
 }
 
 const loadChatHistory = (storageKey: string): ChatHistory[] => {
@@ -76,7 +84,14 @@ const loadChatHistory = (storageKey: string): ChatHistory[] => {
   try {
     const stored = localStorage.getItem(storageKey)
     if (!stored) return []
-    const parsed = JSON.parse(stored)
+    let parsed
+    try {
+      // Try to decode if it's UTF-8 encoded
+      parsed = JSON.parse(decodeURIComponent(stored))
+    } catch {
+      // Fallback to direct parsing for backward compatibility
+      parsed = JSON.parse(stored)
+    }
     return parsed.map((chat: any) => ({
       ...chat,
       createdAt: new Date(chat.createdAt),
@@ -95,7 +110,9 @@ const loadChatHistory = (storageKey: string): ChatHistory[] => {
 const saveChatHistory = (storageKey: string, history: ChatHistory[]) => {
   if (typeof window === "undefined") return
   try {
-    localStorage.setItem(storageKey, JSON.stringify(history))
+    // Encode to handle non-ASCII characters properly
+    const encoded = encodeURIComponent(JSON.stringify(history))
+    localStorage.setItem(storageKey, encoded)
   } catch (error) {
     console.error("Failed to save chat history:", error)
   }
@@ -117,7 +134,10 @@ export function SharedChatLayout({
   inputPlaceholder = "質問を入力...",
   typingDelay = 1500,
   enableFileUpload = false,
-}: SharedChatLayoutProps) {
+  profileInfo,
+  }: SharedChatLayoutProps) {
+  const [showProfile, setShowProfile] = useState(false)
+  const [showFullImage, setShowFullImage] = useState(false)
   const [chatHistories, setChatHistories] = useState<ChatHistory[]>([])
   const [currentChatId, setCurrentChatId] = useState<string | null>(null)
   const [showHistory, setShowHistory] = useState(true)
@@ -366,11 +386,27 @@ export function SharedChatLayout({
     },
     consultant: {
       avatarIcon: Flame,
-      avatarSrc: "/images/consultant-avatar.jpg",
+      avatarSrc: "/images/consultant-harsh-cartoon.jpg",
       avatarClass: "rounded-full bg-gradient-to-br from-red-500 to-orange-600 overflow-hidden",
       borderClass: "border-red-500/20",
       buttonClass: "bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 text-white",
       suggestBorderClass: "border-red-500/30 hover:bg-red-500/10 hover:text-red-600",
+    },
+    "management-consultant": {
+      avatarIcon: Bot,
+      avatarSrc: "/images/consultant-cartoon.jpg",
+      avatarClass: "rounded-full bg-gradient-to-br from-blue-500 to-slate-600 overflow-hidden",
+      borderClass: "border-blue-500/20",
+      buttonClass: "bg-gradient-to-r from-blue-500 to-slate-600 hover:from-blue-600 hover:to-slate-700 text-white",
+      suggestBorderClass: "border-blue-500/30 hover:bg-blue-500/10 hover:text-blue-600",
+    },
+    "service-consultant": {
+      avatarIcon: Bot,
+      avatarSrc: "/images/service-consultant-avatar.png",
+      avatarClass: "rounded-full bg-gradient-to-br from-pink-400 to-rose-500 text-white overflow-hidden",
+      borderClass: "border-pink-400/20",
+      buttonClass: "bg-gradient-to-r from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white",
+      suggestBorderClass: "border-pink-400/30 hover:bg-pink-400/10 hover:text-pink-600",
     },
     ceo: {
       avatarIcon: Bot,
@@ -448,7 +484,7 @@ export function SharedChatLayout({
               <div className="flex items-center gap-1">
                 <Button variant="ghost" size="sm" onClick={handleNewChat} className="h-7 gap-1.5 text-xs">
                   <Plus className="h-3.5 w-3.5" />
-                  新規
+                  ���規
                 </Button>
                 <Button
                   variant="ghost"
@@ -463,7 +499,7 @@ export function SharedChatLayout({
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto p-2 space-y-1">
               {chatHistories.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-8">履歴���ありません</p>
+                <p className="text-xs text-muted-foreground text-center py-8">{"履歴がありません"}</p>
               ) : (
                 chatHistories.map((chat) => (
                   <button
@@ -518,18 +554,22 @@ export function SharedChatLayout({
                 className={cn("flex gap-3 group", message.role === "user" ? "justify-end" : "justify-start")}
               >
                 {message.role === "assistant" && (
-                  <div
+                  <button
+                    type="button"
+                    onClick={() => profileInfo && setShowProfile(true)}
                     className={cn(
                       "flex h-8 w-8 items-center justify-center flex-shrink-0 shadow-sm",
                       tc.avatarClass,
+                      profileInfo && "cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all",
                     )}
+                    title={profileInfo ? "プロフィールを見る" : undefined}
                   >
                     {tc.avatarSrc ? (
                       <img src={tc.avatarSrc} alt="" className="h-full w-full object-cover" />
                     ) : (
                       <AvatarIcon className="h-4 w-4 text-white" />
                     )}
-                  </div>
+                  </button>
                 )}
                 <div className="flex flex-col">
                   <div
@@ -775,6 +815,85 @@ export function SharedChatLayout({
           </div>
         </Card>
       </div>
+
+      {/* Full-size Image Overlay */}
+      {profileInfo && showFullImage && (profileInfo.avatarSrc || tc.avatarSrc) && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 cursor-pointer"
+          onClick={() => setShowFullImage(false)}
+        >
+          <div className="relative max-w-lg w-full mx-4">
+            <img
+              src={profileInfo.avatarSrc || tc.avatarSrc}
+              alt={profileInfo.name}
+              className="w-full h-auto rounded-xl shadow-2xl"
+            />
+            <button
+              type="button"
+              onClick={() => setShowFullImage(false)}
+              className="absolute -top-3 -right-3 h-8 w-8 rounded-full bg-background shadow-md flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Dialog */}
+      {profileInfo && showProfile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowProfile(false)}>
+          <div className="bg-background rounded-xl shadow-xl max-w-md w-full mx-4 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className={cn("p-6 text-center text-white", tc.buttonClass.replace("hover:from-", "from-").split(" hover:")[0])}>
+              <div className="flex justify-center mb-3">
+                <button
+                  type="button"
+                  onClick={() => (profileInfo.avatarSrc || tc.avatarSrc) && setShowFullImage(true)}
+                  className={cn("h-20 w-20 rounded-full overflow-hidden ring-4 ring-white/30 shadow-lg cursor-pointer hover:ring-white/60 transition-all", tc.avatarClass)}
+                >
+                  {(profileInfo.avatarSrc || tc.avatarSrc) ? (
+                    <img src={profileInfo.avatarSrc || tc.avatarSrc} alt={profileInfo.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <AvatarIcon className="h-10 w-10 text-white" />
+                  )}
+                </button>
+              </div>
+              <h2 className="text-lg font-bold">{profileInfo.name}</h2>
+              <p className="text-sm opacity-90">{profileInfo.title}</p>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground leading-relaxed">{profileInfo.description}</p>
+              </div>
+
+              <div>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{"専門分野"}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {profileInfo.specialties.map((s) => (
+                    <span key={s} className={cn("text-xs px-2.5 py-1 rounded-full border", tc.suggestBorderClass)}>
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{"経歴"}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{profileInfo.background}</p>
+              </div>
+
+              <Button
+                onClick={() => setShowProfile(false)}
+                className={cn("w-full", tc.buttonClass)}
+              >
+                {"閉じる"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

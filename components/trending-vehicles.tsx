@@ -133,7 +133,7 @@ export function TrendingVehicles() {
                   {chartData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={index === 0 ? "hsl(var(--chart-1))" : "hsl(var(--muted-foreground)/0.3)"}
+                      fill={index === 0 ? "#3b82f6" : "hsl(var(--muted-foreground)/0.3)"}
                     />
                   ))}
                 </Bar>

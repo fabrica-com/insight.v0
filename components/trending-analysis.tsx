@@ -334,11 +334,11 @@ const periodOptions = [
 ]
 
 const DISTRIBUTION_COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
+  "#3b82f6",
+  "#10b981",
+  "#f59e0b",
+  "#8b5cf6",
+  "#ec4899",
   "hsl(217, 91%, 60%)",
 ]
 
@@ -501,31 +501,17 @@ export function TrendingAnalysis() {
             <Label className="text-base font-semibold">車両カテゴリー</Label>
             <div className="flex flex-wrap gap-2">
               {[
-                { value: "all", label: "すべて" },
-                { value: "国産車", label: "���産車" },
+                { value: "all", label: "全て" },
+                { value: "国産車", label: "国���車" },
                 { value: "輸入車", label: "輸入車" },
-                { value: "軽自動車", label: "軽自動車" },
-                { value: "segment-all", label: "すべて", desc: "" },
-                { value: "segment-A", label: "Aセグメント", desc: "軽・小型コンパクト" },
-                { value: "segment-B", label: "Bセグメント", desc: "コンパクトカー" },
-                { value: "segment-C", label: "Cセグメント", desc: "大型コンパクト・小型セダン" },
-                { value: "segment-D", label: "Dセグメント", desc: "中型セダン・ワゴン" },
-                { value: "segment-E", label: "Eセグメント", desc: "大型セダン" },
-                { value: "segment-F", label: "Fセグメント", desc: "フルサイズ高級車" },
               ].map((cat) => (
                 <Button
                   key={cat.value}
                   variant={vehicleCategory === cat.value ? "default" : "outline"}
                   size="sm"
                   onClick={() => setVehicleCategory(cat.value)}
-                  className={cat.desc ? "relative group" : ""}
                 >
                   {cat.label}
-                  {cat.desc && (
-                    <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-muted-foreground whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                      {cat.desc}
-                    </span>
-                  )}
                 </Button>
               ))}
             </div>

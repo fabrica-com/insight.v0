@@ -207,19 +207,19 @@ const exportData = [
 ]
 
 const CHART_COLORS = {
-  primary: "hsl(var(--chart-1))",
-  secondary: "hsl(var(--chart-2))",
-  accent: "hsl(var(--chart-3))",
-  purple: "hsl(var(--chart-4))",
-  pink: "hsl(var(--chart-5))",
+  primary: "#3b82f6",
+  secondary: "#10b981",
+  accent: "#f59e0b",
+  purple: "#8b5cf6",
+  pink: "#ec4899",
 }
 
 const PIE_COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
+  "#3b82f6",
+  "#10b981",
+  "#f59e0b",
+  "#ef4444",
+  "#8b5cf6",
 ]
 
 const EXPORT_CHART_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"]
@@ -308,15 +308,16 @@ export function ReportsDashboard() {
                           <stop offset="95%" stopColor={CHART_COLORS.secondary} stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                      <XAxis dataKey="month" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                      <YAxis className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="month" className="text-xs" tick={{ fill: "#6b7280" }} />
+                      <YAxis className="text-xs" tick={{ fill: "#6b7280" }} />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: "hsl(var(--card))",
-                          border: "1px solid hsl(var(--border))",
+                          backgroundColor: "#fff",
+                          border: "1px solid #e5e7eb",
                           borderRadius: "8px",
                           fontSize: "12px",
+                          boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
                         }}
                       />
                       <Legend wrapperStyle={{ fontSize: "12px" }} />
@@ -396,11 +397,13 @@ export function ReportsDashboard() {
                     </Pie>
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: "hsl(var(--card))",
-                        border: "1px solid hsl(var(--border))",
+                        backgroundColor: "#fff",
+                        border: "1px solid #e5e7eb",
                         borderRadius: "8px",
                         fontSize: "12px",
+                        boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
                       }}
+                      formatter={(value: number) => [`${value}%`, "シェア"]}
                     />
                     <Legend wrapperStyle={{ fontSize: "12px" }} />
                   </PieChart>
@@ -497,15 +500,16 @@ export function ReportsDashboard() {
                         <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis dataKey="month" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-                    <YAxis className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="month" className="text-xs" tick={{ fill: "#6b7280" }} />
+                    <YAxis className="text-xs" tick={{ fill: "#6b7280" }} />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: "hsl(var(--card))",
-                        border: "1px solid hsl(var(--border))",
+                        backgroundColor: "#fff",
+                        border: "1px solid #e5e7eb",
                         borderRadius: "8px",
                         fontSize: "12px",
+                        boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
                       }}
                     />
                     <Legend wrapperStyle={{ fontSize: "12px" }} />

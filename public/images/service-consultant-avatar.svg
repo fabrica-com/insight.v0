@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f9a8d4"/>
+      <stop offset="100%" stop-color="#f472b6"/>
+    </linearGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#2d2d44"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#fde8d0"/>
+      <stop offset="100%" stop-color="#f5d5b8"/>
+    </linearGradient>
+    <linearGradient id="blazer" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#1e3a5f"/>
+      <stop offset="100%" stop-color="#152a45"/>
+    </linearGradient>
+    <linearGradient id="blouse" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f0f0f0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="100" fill="url(#bg)"/>
+
+  <!-- Neck -->
+  <rect x="85" y="120" width="30" height="20" rx="4" fill="url(#skin)"/>
+
+  <!-- Blazer / Shoulders -->
+  <path d="M52 200 Q52 148 75 138 L100 132 L125 138 Q148 148 148 200 Z" fill="url(#blazer)"/>
+
+  <!-- Blouse collar -->
+  <path d="M82 138 L100 155 L118 138 L112 132 L100 142 L88 132 Z" fill="url(#blouse)"/>
+
+  <!-- Face -->
+  <ellipse cx="100" cy="95" rx="38" ry="42" fill="url(#skin)"/>
+
+  <!-- Hair back -->
+  <path d="M58 80 Q58 35 100 32 Q142 35 142 80 L142 95 Q140 70 100 65 Q60 70 58 95 Z" fill="url(#hair)"/>
+
+  <!-- Hair sides -->
+  <path d="M58 80 Q55 95 58 110 Q60 98 62 85 Z" fill="url(#hair)"/>
+  <path d="M142 80 Q145 95 142 110 Q140 98 138 85 Z" fill="url(#hair)"/>
+
+  <!-- Hair bangs -->
+  <path d="M65 72 Q72 58 85 60 Q78 68 75 78 Z" fill="url(#hair)"/>
+  <path d="M82 60 Q95 52 108 55 Q100 62 92 68 Z" fill="url(#hair)"/>
+  <path d="M105 56 Q118 52 130 60 Q122 65 115 68 Z" fill="url(#hair)"/>
+  <path d="M128 62 Q135 58 140 72 Q135 68 130 75 Z" fill="url(#hair)"/>
+
+  <!-- Eyebrows -->
+  <path d="M75 82 Q82 78 90 80" stroke="#3d3d5c" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M110 80 Q118 78 125 82" stroke="#3d3d5c" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+  <!-- Eyes -->
+  <ellipse cx="83" cy="90" rx="6" ry="5.5" fill="#ffffff"/>
+  <ellipse cx="117" cy="90" rx="6" ry="5.5" fill="#ffffff"/>
+  <ellipse cx="84" cy="90" rx="3.5" ry="4" fill="#2d2d44"/>
+  <ellipse cx="118" cy="90" rx="3.5" ry="4" fill="#2d2d44"/>
+  <circle cx="85.5" cy="88.5" r="1.2" fill="#ffffff"/>
+  <circle cx="119.5" cy="88.5" r="1.2" fill="#ffffff"/>
+
+  <!-- Eyelashes -->
+  <path d="M76 88 Q77 86 78 87" stroke="#2d2d44" stroke-width="1" fill="none"/>
+  <path d="M122 87 Q123 86 124 88" stroke="#2d2d44" stroke-width="1" fill="none"/>
+
+  <!-- Glasses -->
+  <rect x="72" y="82" width="22" height="16" rx="8" fill="none" stroke="#5a5a7a" stroke-width="1.8"/>
+  <rect x="106" y="82" width="22" height="16" rx="8" fill="none" stroke="#5a5a7a" stroke-width="1.8"/>
+  <line x1="94" y1="89" x2="106" y2="89" stroke="#5a5a7a" stroke-width="1.5"/>
+  <line x1="72" y1="89" x2="66" y2="87" stroke="#5a5a7a" stroke-width="1.5"/>
+  <line x1="128" y1="89" x2="134" y2="87" stroke="#5a5a7a" stroke-width="1.5"/>
+
+  <!-- Nose -->
+  <path d="M98 97 Q100 102 102 97" stroke="#d4a68c" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Smile -->
+  <path d="M88 108 Q100 118 112 108" stroke="#c97070" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+  <!-- Lips color -->
+  <path d="M90 108 Q100 115 110 108 Q100 112 90 108" fill="#e8918f" opacity="0.6"/>
+
+  <!-- Cheek blush -->
+  <ellipse cx="72" cy="104" rx="7" ry="4" fill="#f5b5b5" opacity="0.35"/>
+  <ellipse cx="128" cy="104" rx="7" ry="4" fill="#f5b5b5" opacity="0.35"/>
+
+  <!-- Earrings -->
+  <circle cx="60" cy="100" r="2.5" fill="#e8c468"/>
+  <circle cx="140" cy="100" r="2.5" fill="#e8c468"/>
+</svg>

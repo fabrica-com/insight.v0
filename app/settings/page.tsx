@@ -36,7 +36,16 @@ function loadCompetitors(): CompetitorStore[] {
   if (typeof window === "undefined") return []
   try {
     const stored = localStorage.getItem(COMPETITOR_STORAGE_KEY)
-    return stored ? JSON.parse(stored) : []
+    if (!stored) return []
+    let parsed
+    try {
+      // Try to decode if it's UTF-8 encoded
+      parsed = JSON.parse(decodeURIComponent(stored))
+    } catch {
+      // Fallback to direct parsing for backward compatibility
+      parsed = JSON.parse(stored)
+    }
+    return parsed
   } catch {
     return []
   }
@@ -44,7 +53,13 @@ function loadCompetitors(): CompetitorStore[] {
 
 function saveCompetitors(stores: CompetitorStore[]) {
   if (typeof window === "undefined") return
-  localStorage.setItem(COMPETITOR_STORAGE_KEY, JSON.stringify(stores))
+  try {
+    // Encode to handle non-ASCII characters properly
+    const encoded = encodeURIComponent(JSON.stringify(stores))
+    localStorage.setItem(COMPETITOR_STORAGE_KEY, encoded)
+  } catch (error) {
+    console.error("Failed to save competitors:", error)
+  }
 }
 
 const STORAGE_KEY = "symphony-insight-inventory-url"
@@ -53,7 +68,16 @@ function loadInventoryUrl(): { name: string; url: string } {
   if (typeof window === "undefined") return { name: "", url: "" }
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    return stored ? JSON.parse(stored) : { name: "", url: "" }
+    if (!stored) return { name: "", url: "" }
+    let parsed
+    try {
+      // Try to decode if it's UTF-8 encoded
+      parsed = JSON.parse(decodeURIComponent(stored))
+    } catch {
+      // Fallback to direct parsing for backward compatibility
+      parsed = JSON.parse(stored)
+    }
+    return parsed
   } catch {
     return { name: "", url: "" }
   }
@@ -61,7 +85,13 @@ function loadInventoryUrl(): { name: string; url: string } {
 
 function saveInventoryUrl(data: { name: string; url: string }) {
   if (typeof window === "undefined") return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  try {
+    // Encode to handle non-ASCII characters properly
+    const encoded = encodeURIComponent(JSON.stringify(data))
+    localStorage.setItem(STORAGE_KEY, encoded)
+  } catch (error) {
+    console.error("Failed to save inventory URL:", error)
+  }
 }
 
 function isValidUrl(str: string): boolean {

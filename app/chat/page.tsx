@@ -6,6 +6,8 @@ import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardSidebar } from "@/components/dashboard-sidebar"
 import { AIAnalysisChat } from "@/components/ai-analysis-chat"
 import { ConsultantChat } from "@/components/consultant-chat"
+import { ManagementConsultantChat } from "@/components/management-consultant-chat"
+import { ServiceConsultantChat } from "@/components/service-consultant-chat"
 import { CeoChat } from "@/components/ceo-chat"
 import { CfoChat } from "@/components/cfo-chat"
 import { CmoChat } from "@/components/cmo-chat"
@@ -18,11 +20,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AiUsageBar } from "@/components/ai-usage-bar"
 import { KpiManagementSheet } from "@/components/kpi-management-sheet"
 import { Badge } from "@/components/ui/badge"
-import { BarChart3, Flame, Sparkles, ArrowLeft, Crown, Wallet, Megaphone, Award, Users, PieChart, MessageSquare, Target } from "lucide-react"
+import { BarChart3, Flame, Sparkles, ArrowLeft, Crown, Wallet, Megaphone, Award, Users, PieChart, MessageSquare, Target, HeartHandshake } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-type ChatMode = "data-analysis" | "consultant" | "ceo" | "cfo" | "cmo" | "grant" | "chro" | "cpo" | "custom" | null
+type ChatMode = "data-analysis" | "consultant" | "management-consultant" | "service-consultant" | "ceo" | "cfo" | "cmo" | "grant" | "chro" | "cpo" | "custom" | null
 
 const chatOptions = [
   {
@@ -92,15 +94,15 @@ const chatOptions = [
     description: "予算策定・予実管理・データ分析・決算書の翻訳",
   },
   {
-    mode: "data-analysis",
-    href: "/chat?mode=data-analysis",
-    icon: BarChart3,
-    iconBg: "bg-primary/10 text-primary",
-    borderHover: "hover:border-primary/50 hover:bg-muted/30",
-    title: "データ分析",
+    mode: "management-consultant",
+    href: "/chat?mode=management-consultant",
+    icon: Award,
+    iconBg: "bg-blue-500/10 text-blue-600",
+    borderHover: "hover:border-blue-500/50 hover:bg-blue-500/5",
+    title: "経営コンサルタント",
     badge: null,
     badgeClass: "",
-    description: "自然言語で市場データや販売分析について質問",
+    description: "経営全般に関するアドバイスと戦略的提案",
   },
   {
     mode: "consultant",
@@ -112,6 +114,28 @@ const chatOptions = [
     badge: null,
     badgeClass: "",
     description: "歯に衣着せぬ辛口アドバイスで経営課題を壁打ち",
+  },
+  {
+    mode: "service-consultant",
+    href: "/chat?mode=service-consultant",
+    icon: HeartHandshake,
+    iconBg: "bg-pink-400/10 text-pink-500",
+    borderHover: "hover:border-pink-400/50 hover:bg-pink-400/5",
+    title: "接客コンサルタント",
+    badge: null,
+    badgeClass: "",
+    description: "ミステリーショッパー調査に基づく接客・営業改善",
+  },
+  {
+    mode: "data-analysis",
+    href: "/chat?mode=data-analysis",
+    icon: BarChart3,
+    iconBg: "bg-primary/10 text-primary",
+    borderHover: "hover:border-primary/50 hover:bg-muted/30",
+    title: "データ分析",
+    badge: null,
+    badgeClass: "",
+    description: "自然言語で市場データや販売分析について質問",
   },
   {
     mode: "custom",
@@ -129,6 +153,8 @@ const chatOptions = [
 const chatTitles: Record<string, { title: string; subtitle: string }> = {
   "data-analysis": { title: "データ分析", subtitle: "自然言語でデータ分析と市場インサイトを取得" },
   consultant: { title: "辛口経営コンサルタント", subtitle: "歯に衣着せぬ辛口アドバイスで経営課題を壁打ち" },
+  "management-consultant": { title: "経営コンサルタント", subtitle: "経営全般に関するアドバイスと戦略的提案" },
+  "service-consultant": { title: "接客コンサルタント", subtitle: "ミステリーショッパー調査に基づく接客・営業改善アドバイス" },
   ceo: { title: "AI社長（Co-CEO）", subtitle: "経営判断を統合的にサポートするAI参謀" },
   cfo: { title: "AI金庫番", subtitle: "お金まわりの一切を見守り、先回りして助言" },
   cmo: { title: "AI集客参謀", subtitle: "WEB集客を横断的に見渡し最適な施策を提案" },
@@ -140,6 +166,8 @@ const chatTitles: Record<string, { title: string; subtitle: string }> = {
 const chatComponents: Record<string, React.ComponentType> = {
   "data-analysis": AIAnalysisChat,
   consultant: ConsultantChat,
+  "management-consultant": ManagementConsultantChat,
+  "service-consultant": ServiceConsultantChat,
   ceo: CeoChat,
   cfo: CfoChat,
   cmo: CmoChat,
@@ -153,7 +181,7 @@ function ChatPageContent() {
   const mode = searchParams.get("mode") as ChatMode
   const customChatId = searchParams.get("id")
 
-  const validModes = ["data-analysis", "consultant", "ceo", "cfo", "cmo", "grant", "chro", "cpo", "custom"]
+    const validModes = ["data-analysis", "consultant", "management-consultant", "service-consultant", "ceo", "cfo", "cmo", "grant", "chro", "cpo", "custom"]
 
   // Selection screen
   if (!mode || !validModes.includes(mode)) {
@@ -228,26 +256,60 @@ function ChatPageContent() {
               {/* Other tools */}
               <div>
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">その他のツール</h2>
-                <div className="grid gap-4 sm:grid-cols-3">
-                  {chatOptions.filter(o => ["data-analysis", "consultant", "custom"].includes(o.mode)).map((option) => (
-                    <Link key={option.mode} href={option.href}>
-                      <Card className={`h-full cursor-pointer transition-all ${option.borderHover} hover:shadow-sm`}>
-                        <CardContent className="flex flex-col items-center p-6 text-center">
-                          {option.mode === "consultant" ? (
-                            <div className="h-12 w-12 rounded-full overflow-hidden shadow-md mb-3 ring-2 ring-red-500/30">
-                              <img src="/images/consultant-avatar.jpg" alt="" className="h-full w-full object-cover" />
-                            </div>
-                          ) : (
-                            <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${option.iconBg} mb-3`}>
+                <div className="space-y-4">
+                  {/* Top row - 3 consultants */}
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    {chatOptions.filter(o => ["management-consultant", "consultant", "service-consultant", "data-analysis"].includes(o.mode) && o.title !== "カスタムAIチャット").map((option) => (
+                      <Link key={`${option.mode}-${option.title}`} href={option.href}>
+                        <Card className={`h-full cursor-pointer transition-all ${option.borderHover} hover:shadow-sm`}>
+                          <CardContent className="flex flex-col items-center p-6 text-center">
+                            {option.title === "経営コンサルタント" ? (
+                              <div className="h-12 w-12 rounded-full overflow-hidden shadow-md mb-3 ring-2 ring-blue-500/30">
+                                <img src="/images/consultant-cartoon.jpg" alt="経営コンサルタント" className="h-full w-full object-cover" />
+                              </div>
+                            ) : option.title === "辛口経営コンサルタント" ? (
+                              <div className="h-12 w-12 rounded-full overflow-hidden shadow-md mb-3 ring-2 ring-red-500/30">
+                                <img src="/images/consultant-harsh-cartoon.jpg" alt="辛口経営コンサルタント" className="h-full w-full object-cover" />
+                              </div>
+                            ) : option.title === "接客コンサルタント" ? (
+                              <div className="h-12 w-12 rounded-full overflow-hidden shadow-md mb-3 ring-2 ring-pink-400/30">
+                                <img src="/images/service-consultant-avatar.png" alt="接客コンサルタント" className="h-full w-full object-cover" />
+                              </div>
+                            ) : option.title === "データ分析" ? (
+                              <div className="h-12 w-12 rounded-full overflow-hidden shadow-md mb-3 ring-2 ring-primary/30">
+                                <img src="/images/data-analysis-cartoon.jpg" alt="データ分析" className="h-full w-full object-cover" />
+                              </div>
+                            ) : (
+                              <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${option.iconBg} mb-3`}>
+                                <option.icon className="h-6 w-6" />
+                              </div>
+                            )}
+                            <h2 className="text-sm font-semibold mb-1">{option.title}</h2>
+                            <p className="text-xs text-muted-foreground leading-relaxed">{option.description}</p>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                  
+                  {/* Bottom row - Custom AI Chat (wide) */}
+                  <div>
+                    {chatOptions.filter(o => o.title === "カスタムAIチャット").map((option) => (
+                      <Link key={option.title} href={option.href}>
+                        <Card className={`cursor-pointer transition-all ${option.borderHover} hover:shadow-sm`}>
+                          <CardContent className="flex items-center gap-6 p-6">
+                            <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${option.iconBg} mb-0 shrink-0`}>
                               <option.icon className="h-6 w-6" />
                             </div>
-                          )}
-                          <h2 className="text-sm font-semibold mb-1">{option.title}</h2>
-                          <p className="text-xs text-muted-foreground leading-relaxed">{option.description}</p>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
+                            <div className="flex-1">
+                              <h2 className="text-sm font-semibold mb-1">{option.title}</h2>
+                              <p className="text-xs text-muted-foreground leading-relaxed">{option.description}</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

@@ -205,11 +205,11 @@ export function ExportVehicleAnalysis() {
   }))
 
   const PIE_COLORS = [
-    "hsl(var(--chart-1))",
-    "hsl(var(--chart-2))",
-    "hsl(var(--chart-3))",
-    "hsl(var(--chart-4))",
-    "hsl(var(--chart-5))",
+  "#3b82f6",
+  "#10b981",
+  "#f59e0b",
+  "#8b5cf6",
+  "#ec4899",
     "hsl(217, 91%, 60%)",
     "hsl(45, 93%, 47%)",
     "hsl(340, 75%, 55%)",
@@ -351,7 +351,7 @@ export function ExportVehicleAnalysis() {
                       />
                       <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                         {topModelsChart.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={index < 3 ? "hsl(var(--chart-1))" : "hsl(var(--muted-foreground)/0.3)"} />
+                          <Cell key={`cell-${index}`} fill={index < 3 ? "#3b82f6" : "#d1d5db"} />
                         ))}
                       </Bar>
                     </BarChart>
@@ -367,7 +367,7 @@ export function ExportVehicleAnalysis() {
                   <Globe className="h-5 w-5 text-chart-2" />
                   仕向け国分布 TOP8
                 </CardTitle>
-                <CardDescription>輸出先の国別構成比</CardDescription>
+                <CardDescription>輸出先の国別構成���</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-[320px] flex items-center">

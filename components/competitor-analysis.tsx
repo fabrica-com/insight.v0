@@ -41,12 +41,12 @@ export function CompetitorAnalysis() {
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="yours" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="competitor" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} />
@@ -61,7 +61,7 @@ export function CompetitorAnalysis() {
               <Area
                 type="monotone"
                 dataKey="yours"
-                stroke="hsl(var(--chart-1))"
+                stroke="#3b82f6"
                 fillOpacity={1}
                 fill="url(#yours)"
                 strokeWidth={2}
@@ -69,7 +69,7 @@ export function CompetitorAnalysis() {
               <Area
                 type="monotone"
                 dataKey="competitor"
-                stroke="hsl(var(--chart-2))"
+                stroke="#10b981"
                 fillOpacity={1}
                 fill="url(#competitor)"
                 strokeWidth={2}

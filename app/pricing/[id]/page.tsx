@@ -960,10 +960,12 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
   const calculateTrackingPrice = () => {
     if (!selectedTrackingTarget) return 0
     const targetTotalPrice = calculatePaymentTotal(selectedTrackingTarget.price)
+    // fixed = below (subtract), percentage = above (add)
+    const absOffset = Math.abs(trackingOffset)
     if (trackingOffsetType === "fixed") {
-      return targetTotalPrice + trackingOffset
+      return targetTotalPrice - absOffset
     } else {
-      return Math.round(targetTotalPrice * (1 + trackingOffset / 100))
+      return targetTotalPrice + absOffset
     }
   }
 
@@ -2018,40 +2020,72 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                 </Card>
 
                 <div className="space-y-3">
-                  <Label>価格差の設定方法</Label>
-                  <Select value={trackingOffsetType} onValueChange={(v) => setTrackingOffsetType(v as "fixed" | "percentage")}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="fixed">固定金額（例：1万円下回る）</SelectItem>
-                      <SelectItem value="percentage">割合（例：2%下回る）</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label>価格差（万円単位）</Label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground shrink-0">設定金額</span>
+                    <Input
+                      type="number"
+                      value={Math.abs(trackingOffset) / 10000}
+                      onChange={(e) => {
+                        const val = Math.max(0, Number(e.target.value)) * 10000
+                        setTrackingOffset(trackingOffsetType === "fixed" ? -val : val)
+                      }}
+                      className="w-24 text-center text-lg"
+                      min={0}
+                      step={1}
+                    />
+                    <span className="text-sm text-muted-foreground shrink-0">万円</span>
+                  </div>
                 </div>
 
                 <div className="space-y-3">
-                  <Label>{trackingOffsetType === "fixed" ? "���格差（円）" : "価格差（%）"}</Label>
-                  <Slider value={[trackingOffset]} onValueChange={([v]) => setTrackingOffset(v)} min={trackingOffsetType === "fixed" ? -200000 : -20} max={trackingOffsetType === "fixed" ? 100000 : 10} step={trackingOffsetType === "fixed" ? 10000 : 1} />
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{trackingOffsetType === "fixed" ? "-20万円" : "-20%"}</span>
-                    <span className="font-medium text-lg">{trackingOffset === 0 ? "同額" : trackingOffsetType === "fixed" ? `${trackingOffset > 0 ? "+" : ""}${(trackingOffset / 10000).toFixed(0)}万円` : `${trackingOffset > 0 ? "+" : ""}${trackingOffset}%`}</span>
-                    <span className="text-muted-foreground">{trackingOffsetType === "fixed" ? "+10万円" : "+10%"}</span>
+                  <Label>設定金額から</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={trackingOffsetType === "fixed" ? "default" : "outline"}
+                      className="flex-1"
+                      onClick={() => {
+                        setTrackingOffsetType("fixed")
+                        setTrackingOffset(-Math.abs(trackingOffset))
+                      }}
+                    >
+                      <ChevronDown className="h-4 w-4 mr-1" />
+                      下回る
+                    </Button>
+                    <Button
+                      variant={trackingOffsetType === "percentage" ? "default" : "outline"}
+                      className="flex-1"
+                      onClick={() => {
+                        setTrackingOffsetType("percentage")
+                        setTrackingOffset(Math.abs(trackingOffset))
+                      }}
+                    >
+                      <ChevronUp className="h-4 w-4 mr-1" />
+                      上回る
+                    </Button>
                   </div>
-                  <Card className="border-emerald-300 bg-emerald-50/50"><CardContent className="py-3">
-                    <div className="flex items-center justify-between"><span className="text-sm text-muted-foreground">追従支払総額</span><span className="text-xl font-bold text-emerald-700">¥{calculateTrackingPrice().toLocaleString()}</span></div>
-                    <div className="flex items-center justify-between mt-1"><span className="text-xs text-muted-foreground">車両本体価格</span><span className="text-sm text-muted-foreground">¥{Math.max(0, calculateTrackingPrice() - expenses).toLocaleString()}</span></div>
-                  </CardContent></Card>
+                  <p className="text-sm text-muted-foreground text-center">
+                    {"追従車の支払総額から "}
+                    <span className="font-semibold text-foreground">{(Math.abs(trackingOffset) / 10000).toFixed(0)}万円 {trackingOffsetType === "fixed" ? "下回る" : "上回る"}</span>
+                    {" 価格に設定"}
+                  </p>
                 </div>
+
+                <Card className="border-emerald-300 bg-emerald-50/50"><CardContent className="py-3">
+                  <div className="flex items-center justify-between"><span className="text-sm text-muted-foreground">追従支払総額</span><span className="text-xl font-bold text-emerald-700">¥{calculateTrackingPrice().toLocaleString()}</span></div>
+                  <div className="flex items-center justify-between mt-1"><span className="text-xs text-muted-foreground">車両本体価格</span><span className="text-sm text-muted-foreground">¥{Math.max(0, calculateTrackingPrice() - expenses).toLocaleString()}</span></div>
+                </CardContent></Card>
 
                 <div className="space-y-3">
                   <Label className="flex items-center gap-2">下限支払総額<span className="text-xs text-muted-foreground font-normal">（これ以下には設定されません）</span></Label>
                   <div className="flex items-center gap-2"><span className="text-lg">¥</span><Input type="text" value={trackingMinPrice} onChange={(e) => setTrackingMinPrice(e.target.value.replace(/[^0-9]/g, ""))} placeholder="例: 4500000" className="text-lg" /></div>
                   {Number(trackingMinPrice) > 0 && calculateTrackingPrice() < Number(trackingMinPrice) && (
-                    <Alert className="bg-amber-50 border-amber-300"><AlertTriangle className="h-4 w-4 text-amber-600" /><AlertDescription className="text-sm">追従価格が下限を下回るため、下限総額 ¥{Number(trackingMinPrice).toLocaleString()} が適用��れます</AlertDescription></Alert>
+                    <Alert className="bg-amber-50 border-amber-300"><AlertTriangle className="h-4 w-4 text-amber-600" /><AlertDescription className="text-sm">追従価格が下限を下回るため、下限総額 ¥{Number(trackingMinPrice).toLocaleString()} が適用されます</AlertDescription></Alert>
                   )}
                 </div>
 
                 <div className="flex items-center justify-between p-3 rounded-lg border">
-                  <div className="space-y-0.5"><Label>自動追��を有���化</Label><p className="text-xs text-muted-foreground">相手���価格変更したら自動で追従</p></div>
+                  <div className="space-y-0.5"><Label>自動追従を有効化</Label><p className="text-xs text-muted-foreground">相手が価格変更したら自動で追従</p></div>
                   <Switch checked={trackingActive} onCheckedChange={setTrackingActive} />
                 </div>
 
