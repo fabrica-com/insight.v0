@@ -544,10 +544,19 @@ export default function CompetitorDetailPage() {
     )
   }
 
-  const daysFromStart = calculateDaysFromListingStart(vehicle.listingStartDate)
+const daysFromStart = calculateDaysFromListingStart(vehicle.listingStartDate)
   const priceDropFromNew = vehicle.newCarPrice - vehicle.price
   const priceDropPercent = ((priceDropFromNew / vehicle.newCarPrice) * 100).toFixed(1)
-
+  
+  // Calculate drop from first listing price
+  const firstListingPrice = vehicle.priceHistory.length > 0 
+    ? vehicle.priceHistory[0].price 
+    : vehicle.price
+  const priceDropFromListing = firstListingPrice - vehicle.price
+  const priceDropFromListingPercent = firstListingPrice > 0 
+    ? ((priceDropFromListing / firstListingPrice) * 100).toFixed(1) 
+    : "0.0"
+  
   // Get external URL - prioritize kurumaerabi, fallback to carsensor
   const externalUrl = vehicle.kurumaerabi_url || vehicle.carsensor_url
   const externalUrlLabel = vehicle.kurumaerabi_url ? "車選びドットコムで見る" : "カーセンサーで見る"
@@ -723,12 +732,22 @@ export default function CompetitorDetailPage() {
                     </div>
                     <div className="text-sm text-muted-foreground mt-1">車両本体 ¥{vehicle.price.toLocaleString()}</div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm text-muted-foreground">新車価格からの下落</div>
-                    <div className="text-xl font-semibold text-destructive flex items-center justify-end gap-1">
-                      <TrendingDown className="h-5 w-5" />
-                      -{priceDropPercent}%
-                      <span className="text-sm ml-2">(¥{priceDropFromNew.toLocaleString()})</span>
+                  <div className="text-right space-y-2">
+                    <div>
+                      <div className="text-sm text-muted-foreground">新車価格からの下落</div>
+                      <div className="text-lg font-semibold text-destructive flex items-center justify-end gap-1">
+                        <TrendingDown className="h-4 w-4" />
+                        -{priceDropPercent}%
+                        <span className="text-sm ml-1">(¥{priceDropFromNew.toLocaleString()})</span>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">掲載初日からの下落</div>
+                      <div className="text-lg font-semibold text-amber-600 flex items-center justify-end gap-1">
+                        <TrendingDown className="h-4 w-4" />
+                        -{priceDropFromListingPercent}%
+                        <span className="text-sm ml-1">(¥{priceDropFromListing.toLocaleString()})</span>
+                      </div>
                     </div>
                   </div>
                 </div>
