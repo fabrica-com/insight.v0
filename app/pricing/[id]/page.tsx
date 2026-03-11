@@ -43,7 +43,6 @@ import {
   AlertTriangle,
   CheckCircle2,
   Filter,
-
   ChevronDown,
   ChevronUp,
   ExternalLink,
@@ -57,6 +56,10 @@ import {
   Clock,
   Wrench,
   Shield,
+  X,
+  List,
+  Power,
+  Trash2,
 } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts"
 
@@ -89,6 +92,7 @@ type InventoryItem = {
   viewCount: number // PV count on listing
   inquiryCount: number // number of inquiries
   favoriteCount: number // number of favorites
+  listingStartDate: string // 入庫日
 }
 
 type CompetitorInventoryItem = {
@@ -105,7 +109,10 @@ type CompetitorInventoryItem = {
   color: string
   price: number
   listingDate: string
+  listingStartDate: string // 入庫日
   url: string
+  kurumaerabi_url?: string // 車選びドットコムURL
+  carsensor_url?: string // カーセンサーURL
   newCarPrice: number
   priceHistory: { date: string; price: number }[]
   transmission: string
@@ -128,6 +135,22 @@ type PriceTrackingSetting = {
   isActive: boolean
 }
 
+type TrackedVehicle = {
+  id: string
+  ownVehicleId: string
+  ownVehicleName: string
+  targetVehicleId: string
+  targetVehicleName: string
+  targetCompetitorName: string
+  targetPrice: number
+  ownPrice: number
+  priceOffset: number
+  offsetType: "fixed" | "percentage"
+  minPrice: number
+  isActive: boolean
+  createdAt: string
+}
+
 const mockCompetitorInventory: CompetitorInventoryItem[] = [
   {
     id: "COMP001",
@@ -142,7 +165,10 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ホワイトパール",
     price: 4180000,
     listingDate: "2024-01-15",
+    listingStartDate: "2026-01-15",
     url: "https://kurumaerabi.com/usedcar/detail/AU1234567890/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU1234567890/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0001234567.html",
     newCarPrice: 5200000,
     transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
     inspection: "2026年5月", repairHistory: "なし",
@@ -169,7 +195,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ブラック",
     price: 3950000,
     listingDate: "2024-01-18",
+    listingStartDate: "2025-10-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU2345678901/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0002345678.html",
     newCarPrice: 4800000,
     transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
     inspection: "2025年12月", repairHistory: "なし",
@@ -195,7 +223,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ブラック",
     price: 3780000,
     listingDate: "2024-02-10",
+    listingStartDate: "2025-11-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU2345678999/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU2345678999/",
     newCarPrice: 5100000,
     transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
     inspection: "車検なし", repairHistory: "あり（軽微）",
@@ -220,7 +250,10 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ホワイトパール",
     price: 4350000,
     listingDate: "2024-01-20",
+    listingStartDate: "2025-12-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU2345679001/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU2345679001/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0002345679.html",
     newCarPrice: 5000000,
     transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
     inspection: "2026年1月", repairHistory: "なし",
@@ -245,7 +278,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ホワイトパール",
     price: 4250000,
     listingDate: "2024-02-20",
+    listingStartDate: "2026-01-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU1234567891/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU1234567891/",
     newCarPrice: 5200000,
     transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
     inspection: "2026年6月", repairHistory: "なし",
@@ -270,7 +305,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ホワイトパール",
     price: 4080000,
     listingDate: "2024-03-01",
+    listingStartDate: "2026-01-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU1234567892/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0001234892.html",
     newCarPrice: 5200000,
     transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
     inspection: "2025年9月", repairHistory: "なし",
@@ -295,7 +332,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ホワイトパール",
     price: 3980000,
     listingDate: "2024-04-10",
+    listingStartDate: "2026-02-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU1234567893/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU1234567893/",
     newCarPrice: 5200000,
     transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
     inspection: "車検なし", repairHistory: "あり（軽微）",
@@ -320,7 +359,10 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ホワイトパール",
     price: 4580000,
     listingDate: "2024-03-15",
+    listingStartDate: "2026-02-15",
     url: "https://kurumaerabi.com/usedcar/detail/AU1234567894/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU1234567894/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0001234894.html",
     newCarPrice: 5400000,
     transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
     inspection: "2027年2月", repairHistory: "なし",
@@ -343,7 +385,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "プラチナホワイト",
     price: 3280000,
     listingDate: "2024-01-20",
+    listingStartDate: "2025-11-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU3456789012/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU3456789012/",
     newCarPrice: 3500000,
     transmission: "CVT", drivetrain: "FF", fuelType: "ハイブリッド",
     inspection: "2026年4月", repairHistory: "なし",
@@ -368,7 +412,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "クリスタルブラック",
     price: 2980000,
     listingDate: "2024-02-05",
+    listingStartDate: "2025-12-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU3456789099/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0003456099.html",
     newCarPrice: 3400000,
     transmission: "CVT", drivetrain: "FF", fuelType: "ハイブリッド",
     inspection: "2025年10月", repairHistory: "なし",
@@ -393,7 +439,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "プラチナホワイト",
     price: 2920000,
     listingDate: "2024-03-10",
+    listingStartDate: "2026-02-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU3456789100/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU3456789100/",
     newCarPrice: 3400000,
     transmission: "CVT", drivetrain: "FF", fuelType: "ハイブリッド",
     inspection: "2025年6月", repairHistory: "なし",
@@ -418,7 +466,10 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "サンドカーキ",
     price: 3150000,
     listingDate: "2024-04-01",
+    listingStartDate: "2026-02-15",
     url: "https://kurumaerabi.com/usedcar/detail/AU3456789101/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU3456789101/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0003456101.html",
     newCarPrice: 3600000,
     transmission: "CVT", drivetrain: "FF", fuelType: "ハイブリッド",
     inspection: "2026年8月", repairHistory: "なし",
@@ -441,7 +492,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ダイヤモンドブラック",
     price: 4250000,
     listingDate: "2024-01-22",
+    listingStartDate: "2025-11-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU4567890123/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0004567890.html",
     newCarPrice: 4700000,
     transmission: "CVT", drivetrain: "4WD", fuelType: "e-POWER",
     inspection: "2028年3月", repairHistory: "なし",
@@ -466,7 +519,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "プレシャスブラック",
     price: 3980000,
     listingDate: "2024-01-25",
+    listingStartDate: "2025-10-15",
     url: "https://kurumaerabi.com/usedcar/detail/AU5678901234/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU5678901234/",
     newCarPrice: 4500000,
     transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
     inspection: "2026年5月", repairHistory: "なし",
@@ -491,7 +546,10 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ホワイトパール",
     price: 3650000,
     listingDate: "2024-02-15",
+    listingStartDate: "2025-12-15",
     url: "https://kurumaerabi.com/usedcar/detail/AU5678901299/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU5678901299/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0005678901.html",
     newCarPrice: 4200000,
     transmission: "CVT", drivetrain: "FF", fuelType: "ガソリン",
     inspection: "2025年9月", repairHistory: "なし",
@@ -516,7 +574,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "アッシュ",
     price: 3650000,
     listingDate: "2024-01-28",
+    listingStartDate: "2025-12-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU6789012345/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU6789012345/",
     newCarPrice: 3900000,
     transmission: "CVT", drivetrain: "FF", fuelType: "ハイブリッド",
     inspection: "2028年2月", repairHistory: "なし",
@@ -541,7 +601,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ソウルレッド",
     price: 3480000,
     listingDate: "2024-01-30",
+    listingStartDate: "2025-11-15",
     url: "https://kurumaerabi.com/usedcar/detail/AU7890123456/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0007890123.html",
     newCarPrice: 4000000,
     transmission: "6AT", drivetrain: "AWD", fuelType: "ディーゼル",
     inspection: "2026年6月", repairHistory: "なし",
@@ -566,7 +628,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ジェットブラック",
     price: 2680000,
     listingDate: "2024-02-20",
+    listingStartDate: "2026-01-05",
     url: "https://kurumaerabi.com/usedcar/detail/AU7890123499/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU7890123499/",
     newCarPrice: 3800000,
     transmission: "6AT", drivetrain: "AWD", fuelType: "ディーゼル",
     inspection: "2026年4月", repairHistory: "なし",
@@ -591,7 +655,10 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ソウルレッドクリスタル",
     price: 2750000,
     listingDate: "2024-03-05",
+    listingStartDate: "2026-01-15",
     url: "https://kurumaerabi.com/usedcar/detail/AU7890123500/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU7890123500/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0007890500.html",
     newCarPrice: 3800000,
     transmission: "6AT", drivetrain: "AWD", fuelType: "ディーゼル",
     inspection: "2026年8月", repairHistory: "��り（板金）",
@@ -616,7 +683,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "マシーングレー",
     price: 2820000,
     listingDate: "2024-03-20",
+    listingStartDate: "2026-02-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU7890123501/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0007890501.html",
     newCarPrice: 3800000,
     transmission: "6AT", drivetrain: "AWD", fuelType: "ディーゼル",
     inspection: "2026年11月", repairHistory: "なし",
@@ -640,11 +709,13 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ホワイトパール",
     price: 8500000,
     listingDate: "2024-02-01",
+    listingStartDate: "2026-01-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU8901234567/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU8901234567/",
     newCarPrice: 10500000,
     transmission: "CVT", drivetrain: "4WD", fuelType: "ハイブリッド",
     inspection: "2027年1月", repairHistory: "なし",
-    equipment: ["エグゼクティブラウンジシート", "JBLサウンド", "デ������ルキー", "パノラミックビュー"],
+    equipment: ["エグゼクティブラウンジシート", "JBLサウンド", "デ��������ルキー", "パノラミックビュー"],
     daysOnMarket: 15,
     priceHistory: [
       { date: "02/01", price: 9200000 }, { date: "02/15", price: 8800000 },
@@ -663,6 +734,55 @@ const TIMELINE = FISCAL_TIMELINE.slice(0, CURRENT_MONTH_IDX + 1)
 
 const DEFAULT_EXPENSE_RATE = 0.1 // 諸費用率（車両本体価格の10%）
 
+// Mock data for vehicles with active price tracking
+const mockTrackedVehicles: TrackedVehicle[] = [
+  {
+    id: "TRACK001",
+    ownVehicleId: "INV001",
+    ownVehicleName: "トヨタ アルファード 2.5S Cパッケージ",
+    targetVehicleId: "COMP001",
+    targetVehicleName: "トヨタ アルファード 2.5S Cパッケージ",
+    targetCompetitorName: "カーセレクト東京",
+    targetPrice: 4598000,
+    ownPrice: 4588000,
+    priceOffset: -10000,
+    offsetType: "fixed",
+    minPrice: 4200000,
+    isActive: true,
+    createdAt: "2024-03-01",
+  },
+  {
+    id: "TRACK002",
+    ownVehicleId: "INV001",
+    ownVehicleName: "トヨタ アルファード 2.5S Cパッケージ",
+    targetVehicleId: "COMP001B",
+    targetVehicleName: "トヨタ アルファード 2.5S Cパッケージ",
+    targetCompetitorName: "オートセンター東京",
+    targetPrice: 4675000,
+    ownPrice: 4655000,
+    priceOffset: -20000,
+    offsetType: "fixed",
+    minPrice: 4200000,
+    isActive: true,
+    createdAt: "2024-02-25",
+  },
+  {
+    id: "TRACK003",
+    ownVehicleId: "INV001",
+    ownVehicleName: "トヨタ アルファード 2.5S Cパッケージ",
+    targetVehicleId: "COMP002C",
+    targetVehicleName: "トヨタ アルファード 2.5S Aパッケージ",
+    targetCompetitorName: "ビッグモーター埼玉",
+    targetPrice: 4785000,
+    ownPrice: 4735000,
+    priceOffset: -50000,
+    offsetType: "fixed",
+    minPrice: 4100000,
+    isActive: false,
+    createdAt: "2024-02-15",
+  },
+]
+
 const mockInventory: InventoryItem[] = [
   {
     id: "INV001",
@@ -676,15 +796,16 @@ const mockInventory: InventoryItem[] = [
     inspection: "2026年4月", repairHistory: "なし",
     equipment: ["両側パワスラ", "純正ナビ", "BSM", "パノラミックビュー", "JBLサウンド"],
     viewCount: 342, inquiryCount: 5, favoriteCount: 18,
-    priceHistory: [
-      { date: "11/01", price: 4580000 }, { date: "12/01", price: 4480000 },
-      { date: "01/01", price: 4480000 }, { date: "02/01", price: 4380000 },
-      { date: "03/01", price: 4280000 }, { date: "04/01", price: 4280000 },
-      { date: "05/01", price: 4280000 },
-    ],
+priceHistory: [
+  { date: "11/01", price: 4580000 }, { date: "12/01", price: 4480000 },
+  { date: "01/01", price: 4480000 }, { date: "02/01", price: 4380000 },
+  { date: "03/01", price: 4280000 }, { date: "04/01", price: 4280000 },
+  { date: "05/01", price: 4280000 },
+  ],
+  listingStartDate: "2025-11-01",
   },
   {
-    id: "INV002",
+  id: "INV002",
     manufacturer: "ホンダ", model: "ヴェゼル", modelCode: "RV5",
     grade: "e:HEV Z", year: 2021, month: 8, mileage: 22000,
     color: "プラチナホワイト",
@@ -695,13 +816,14 @@ const mockInventory: InventoryItem[] = [
     inspection: "2025年8月", repairHistory: "なし",
     equipment: ["ホンダセンシング", "純正ナビ", "ETC2.0", "LEDヘッド"],
     viewCount: 580, inquiryCount: 12, favoriteCount: 35,
-    priceHistory: [
-      { date: "01/01", price: 3080000 }, { date: "02/01", price: 2980000 },
-      { date: "03/01", price: 2890000 }, { date: "04/01", price: 2890000 },
-    ],
+priceHistory: [
+  { date: "01/01", price: 3080000 }, { date: "02/01", price: 2980000 },
+  { date: "03/01", price: 2890000 }, { date: "04/01", price: 2890000 },
+  ],
+  listingStartDate: "2026-01-01",
   },
   {
-    id: "INV003",
+  id: "INV003",
     manufacturer: "日産", model: "セレナ", modelCode: "C28",
     grade: "e:POWER ハイウェイスター", year: 2019, month: 12, mileage: 48000,
     color: "ブリリアントシルバー",
@@ -712,12 +834,13 @@ const mockInventory: InventoryItem[] = [
     inspection: "2025年12月", repairHistory: "なし",
     equipment: ["プロパイロット", "アラウンドビュー", "両側パワスラ", "純正ナビ"],
     viewCount: 890, inquiryCount: 22, favoriteCount: 55,
-    priceHistory: [
-      { date: "03/15", price: 2550000 }, { date: "04/01", price: 2450000 },
-    ],
+priceHistory: [
+  { date: "03/15", price: 2550000 }, { date: "04/01", price: 2450000 },
+  ],
+  listingStartDate: "2026-02-15",
   },
   {
-    id: "INV004",
+  id: "INV004",
     manufacturer: "マツダ", model: "CX-5", modelCode: "KF5P",
     grade: "XD Lパッケージ", year: 2020, month: 7, mileage: 41000,
     color: "ソウルレッドクリスタル",
@@ -728,14 +851,15 @@ const mockInventory: InventoryItem[] = [
     inspection: "2026年7月", repairHistory: "なし",
     equipment: ["BOSE", "本革シート", "i-ACTIVSENSE", "パワーリフトゲート"],
     viewCount: 210, inquiryCount: 3, favoriteCount: 11,
-    priceHistory: [
-      { date: "11/01", price: 2980000 }, { date: "12/01", price: 2880000 },
-      { date: "01/01", price: 2880000 }, { date: "02/01", price: 2800000 },
-      { date: "03/01", price: 2750000 }, { date: "04/01", price: 2750000 },
-    ],
+priceHistory: [
+  { date: "11/01", price: 2980000 }, { date: "12/01", price: 2880000 },
+  { date: "01/01", price: 2880000 }, { date: "02/01", price: 2800000 },
+  { date: "03/01", price: 2750000 }, { date: "04/01", price: 2750000 },
+  ],
+  listingStartDate: "2025-11-01",
   },
   {
-    id: "INV005",
+  id: "INV005",
     manufacturer: "トヨタ", model: "ハリアー", modelCode: "MXUA80",
     grade: "ハイブリッド G", year: 2021, month: 3, mileage: 18000,
     color: "ブラック",
@@ -746,13 +870,14 @@ const mockInventory: InventoryItem[] = [
     inspection: "2027年3月", repairHistory: "なし",
     equipment: ["セーフティセンス", "純正ナビ", "パワーバックドア", "BSM", "LEDヘッド"],
     viewCount: 460, inquiryCount: 8, favoriteCount: 28,
-    priceHistory: [
-      { date: "12/01", price: 4180000 }, { date: "01/01", price: 4080000 },
-      { date: "02/01", price: 3980000 }, { date: "03/01", price: 3980000 },
-    ],
+priceHistory: [
+  { date: "12/01", price: 4180000 }, { date: "01/01", price: 4080000 },
+  { date: "02/01", price: 3980000 }, { date: "03/01", price: 3980000 },
+  ],
+  listingStartDate: "2025-12-01",
   },
   {
-    id: "INV006",
+  id: "INV006",
     manufacturer: "日産", model: "エクストレイル", modelCode: "T33",
     grade: "20Xi", year: 2019, month: 6, mileage: 52000,
     color: "ダークメタルグレー",
@@ -763,14 +888,15 @@ const mockInventory: InventoryItem[] = [
     inspection: "2025年6月", repairHistory: "あり（軽微）",
     equipment: ["プロパイロット", "社外ナビ", "アラウンドビュー", "ETC"],
     viewCount: 185, inquiryCount: 2, favoriteCount: 7,
-    priceHistory: [
-      { date: "11/01", price: 2580000 }, { date: "12/01", price: 2480000 },
-      { date: "01/01", price: 2480000 }, { date: "02/01", price: 2380000 },
-      { date: "03/01", price: 2380000 },
-    ],
+priceHistory: [
+  { date: "11/01", price: 2580000 }, { date: "12/01", price: 2480000 },
+  { date: "01/01", price: 2480000 }, { date: "02/01", price: 2380000 },
+  { date: "03/01", price: 2380000 },
+  ],
+  listingStartDate: "2025-11-01",
   },
   {
-    id: "INV007",
+  id: "INV007",
     manufacturer: "ホンダ", model: "ステップワゴン", modelCode: "RP8",
     grade: "スパーダ ハイブリッド", year: 2020, month: 10, mileage: 38000,
     color: "プレミアムスパークルブラック",
@@ -781,13 +907,14 @@ const mockInventory: InventoryItem[] = [
     inspection: "2026年10月", repairHistory: "なし",
     equipment: ["ホンダセンシング", "両側パワスラ", "純正ナビ", "ETC2.0", "LEDヘッド"],
     viewCount: 620, inquiryCount: 15, favoriteCount: 42,
-    priceHistory: [
-      { date: "02/01", price: 3280000 }, { date: "03/01", price: 3150000 },
-      { date: "04/01", price: 3150000 },
-    ],
+priceHistory: [
+  { date: "02/01", price: 3280000 }, { date: "03/01", price: 3150000 },
+  { date: "04/01", price: 3150000 },
+  ],
+  listingStartDate: "2026-02-01",
   },
   {
-    id: "INV008",
+  id: "INV008",
     manufacturer: "トヨタ", model: "ランドクルーザープラド", modelCode: "TRJ150W",
     grade: "TX Lパッケージ", year: 2018, month: 5, mileage: 65000,
     color: "ホワイトパール",
@@ -798,14 +925,15 @@ const mockInventory: InventoryItem[] = [
     inspection: "2024年5月", repairHistory: "なし",
     equipment: ["本革シート", "純正ナビ", "セーフティセンスP", "LEDヘッド", "ルーフレール"],
     viewCount: 145, inquiryCount: 1, favoriteCount: 5,
-    priceHistory: [
-      { date: "09/01", price: 4580000 }, { date: "10/01", price: 4480000 },
-      { date: "11/01", price: 4380000 }, { date: "12/01", price: 4280000 },
-      { date: "01/01", price: 4280000 }, { date: "02/01", price: 4250000 },
-      { date: "03/01", price: 4250000 },
-    ],
+priceHistory: [
+  { date: "09/01", price: 4580000 }, { date: "10/01", price: 4480000 },
+  { date: "11/01", price: 4380000 }, { date: "12/01", price: 4280000 },
+  { date: "01/01", price: 4280000 }, { date: "02/01", price: 4250000 },
+  { date: "03/01", price: 4250000 },
+  ],
+  listingStartDate: "2025-09-01",
   },
-]
+  ]
 
 const calculatePaymentTotal = (vehiclePrice: number | string) => {
   const priceNum = typeof vehiclePrice === "string" ? Number.parseFloat(vehiclePrice.replace(/,/g, "")) : vehiclePrice
@@ -827,6 +955,12 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
   const [trackingModalOpen, setTrackingModalOpen] = useState(false)
   const [selectedTrackingTarget, setSelectedTrackingTarget] = useState<CompetitorInventoryItem | null>(null)
   const [trackingSettings, setTrackingSettings] = useState<PriceTrackingSetting | null>(null)
+  
+  // Tracked vehicles for current inventory item
+  const [trackedVehicles, setTrackedVehicles] = useState<TrackedVehicle[]>(() => 
+    mockTrackedVehicles.filter(tv => tv.ownVehicleId === vehicleId)
+  )
+  const [showTrackedList, setShowTrackedList] = useState(false)
   const [trackingOffset, setTrackingOffset] = useState<number>(-10000)
   const [trackingOffsetType, setTrackingOffsetType] = useState<"fixed" | "percentage">("fixed")
   const [trackingMinPrice, setTrackingMinPrice] = useState<string>("")
@@ -1024,6 +1158,18 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
     router.push("/pricing")
   }
 
+  const toggleTrackedVehicle = (trackId: string) => {
+    setTrackedVehicles(prev => 
+      prev.map(tv => 
+        tv.id === trackId ? { ...tv, isActive: !tv.isActive } : tv
+      )
+    )
+  }
+
+  const removeTrackedVehicle = (trackId: string) => {
+    setTrackedVehicles(prev => prev.filter(tv => tv.id !== trackId))
+  }
+
 
 
   if (!selectedItem) {
@@ -1184,6 +1330,122 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </CardContent>
       </Card>
+
+      {/* Tracked Vehicles Section */}
+      {trackedVehicles.length > 0 && (
+        <Card className="border-emerald-500/30 bg-emerald-50/30">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Link2 className="h-4 w-4 text-emerald-600" />
+                <CardTitle className="text-base">価格追従中の車両</CardTitle>
+                <Badge className="bg-emerald-100 text-emerald-700 border-emerald-300">
+                  {trackedVehicles.filter(tv => tv.isActive).length}/{trackedVehicles.length}台 有効
+                </Badge>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowTrackedList(!showTrackedList)}
+                className="gap-1.5"
+              >
+                <List className="h-4 w-4" />
+                {showTrackedList ? "閉じる" : "一覧を表示"}
+                {showTrackedList ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              </Button>
+            </div>
+          </CardHeader>
+          {showTrackedList && (
+            <CardContent className="pt-0">
+              <ScrollArea className="max-h-[300px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">追従対象</TableHead>
+                      <TableHead className="text-xs">競合店名</TableHead>
+                      <TableHead className="text-xs text-right">競合価格</TableHead>
+                      <TableHead className="text-xs text-right">自社価格</TableHead>
+                      <TableHead className="text-xs text-center">差額設定</TableHead>
+                      <TableHead className="text-xs text-center">状態</TableHead>
+                      <TableHead className="text-xs text-center">操作</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {trackedVehicles.map((tv) => (
+                      <TableRow key={tv.id} className={!tv.isActive ? "opacity-50" : ""}>
+                        <TableCell className="py-2">
+                          <div>
+                            <p className="text-sm font-medium">{tv.targetVehicleName}</p>
+                            <p className="text-xs text-muted-foreground">追従ID: {tv.targetVehicleId}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <p className="text-sm">{tv.targetCompetitorName}</p>
+                        </TableCell>
+                        <TableCell className="py-2 text-right">
+                          <p className="text-sm font-medium">¥{tv.targetPrice.toLocaleString()}</p>
+                        </TableCell>
+                        <TableCell className="py-2 text-right">
+                          <p className="text-sm font-medium text-primary">¥{tv.ownPrice.toLocaleString()}</p>
+                        </TableCell>
+                        <TableCell className="py-2 text-center">
+                          <Badge variant="outline" className="text-xs">
+                            {tv.offsetType === "fixed" 
+                              ? `${tv.priceOffset > 0 ? "+" : ""}${(tv.priceOffset / 10000).toFixed(0)}万円`
+                              : `${tv.priceOffset}%`
+                            }
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-2 text-center">
+                          <Badge 
+                            className={tv.isActive 
+                              ? "bg-emerald-100 text-emerald-700 border-emerald-300" 
+                              : "bg-muted text-muted-foreground"
+                            }
+                          >
+                            {tv.isActive ? "有効" : "停止中"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <div className="flex items-center justify-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleTrackedVehicle(tv.id)}
+                              className={`h-8 w-8 p-0 ${tv.isActive ? "text-amber-600 hover:text-amber-700 hover:bg-amber-50" : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"}`}
+                              title={tv.isActive ? "追従を停止" : "追従を再開"}
+                            >
+                              <Power className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeTrackedVehicle(tv.id)}
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              title="追従を削除"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+              {trackedVehicles.some(tv => tv.isActive) && (
+                <Alert className="mt-3 bg-amber-50/50 border-amber-200">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-sm text-amber-800">
+                    価格追従が有効な車両は、対象車両の価格変更に応じて自動で価格が更新されます。
+                    追従を停止するには「停止」ボタンをクリックしてください。
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          )}
+        </Card>
+      )}
 
       {/* ===== STEP 1: 競合比較 ===== */}
       {step === 1 && (
@@ -1420,7 +1682,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                         {competitors.map((comp) => {
                           const pd = selectedItem.currentPrice - comp.price
                           return (
-                            <TableRow key={comp.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => setIndividualChartVehicle(comp)}>
+                            <TableRow key={comp.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => router.push(`/pricing/${vehicleId}/competitor/${comp.id}`)}>
                               <TableCell>
                                 <div className="flex flex-col gap-0.5">
                                   <span className="font-medium text-sm flex items-center gap-1"><Building2 className="h-3 w-3" />{comp.competitorName}</span>
@@ -1580,7 +1842,7 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
                         {areaVehicles.map((vehicle) => {
                           const pd2 = selectedItem.currentPrice - vehicle.price
                           return (
-                            <TableRow key={vehicle.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => setIndividualChartVehicle(vehicle)}>
+                            <TableRow key={vehicle.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => router.push(`/pricing/${vehicleId}/competitor/${vehicle.id}`)}>
                               <TableCell>
                                 <div className="flex flex-col gap-0.5">
                                   <span className="font-medium text-sm flex items-center gap-1"><Building2 className="h-3 w-3" />{vehicle.competitorName}</span>

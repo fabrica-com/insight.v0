@@ -45,7 +45,10 @@ type CompetitorInventoryItem = {
   color: string
   price: number
   listingDate: string
+  listingStartDate: string
   url: string
+  kurumaerabi_url?: string
+  carsensor_url?: string
   newCarPrice: number
   priceHistory: { date: string; price: number }[]
 }
@@ -64,7 +67,10 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ホワイトパール",
     price: 4180000,
     listingDate: "2024-01-15",
+    listingStartDate: "2026-01-15",
     url: "https://kurumaerabi.com/usedcar/detail/AU1234567890/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU1234567890/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0001234567.html",
     newCarPrice: 5200000,
     priceHistory: [
       { date: "01/15", price: 4580000 },
@@ -90,7 +96,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ブラック",
     price: 3950000,
     listingDate: "2024-01-18",
+    listingStartDate: "2025-10-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU2345678901/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0002345678.html",
     newCarPrice: 4800000,
     priceHistory: [
       { date: "01/18", price: 4250000 },
@@ -113,7 +121,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ブラック",
     price: 3780000,
     listingDate: "2024-02-10",
+    listingStartDate: "2025-11-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU2345678999/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU2345678999/",
     newCarPrice: 5100000,
     priceHistory: [
       { date: "02/10", price: 4100000 },
@@ -135,7 +145,10 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ホワイトパール",
     price: 4350000,
     listingDate: "2024-01-20",
+    listingStartDate: "2025-12-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU2345679001/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU2345679001/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0002345679.html",
     newCarPrice: 5000000,
     priceHistory: [
       { date: "01/20", price: 4600000 },
@@ -157,7 +170,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "プラチナホワイト",
     price: 3280000,
     listingDate: "2024-01-20",
+    listingStartDate: "2025-11-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU3456789012/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU3456789012/",
     newCarPrice: 3500000,
     priceHistory: [
       { date: "01/20", price: 3380000 },
@@ -178,7 +193,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "クリスタルブラック",
     price: 2980000,
     listingDate: "2024-02-05",
+    listingStartDate: "2025-12-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU3456789099/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0003456099.html",
     newCarPrice: 3400000,
     priceHistory: [
       { date: "02/05", price: 3180000 },
@@ -199,7 +216,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ダイヤモンドブラック",
     price: 4250000,
     listingDate: "2024-01-22",
+    listingStartDate: "2025-11-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU4567890123/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0004567890.html",
     newCarPrice: 4700000,
     priceHistory: [
       { date: "01/22", price: 4450000 },
@@ -220,7 +239,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "プレシャスブラック",
     price: 3980000,
     listingDate: "2024-01-25",
+    listingStartDate: "2025-10-15",
     url: "https://kurumaerabi.com/usedcar/detail/AU5678901234/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU5678901234/",
     newCarPrice: 4500000,
     priceHistory: [
       { date: "01/25", price: 4280000 },
@@ -242,7 +263,10 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ホワイトパール",
     price: 3650000,
     listingDate: "2024-02-15",
+    listingStartDate: "2025-12-15",
     url: "https://kurumaerabi.com/usedcar/detail/AU5678901299/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU5678901299/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0005678901.html",
     newCarPrice: 4200000,
     priceHistory: [
       { date: "02/15", price: 3850000 },
@@ -263,7 +287,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "アッシュ",
     price: 3650000,
     listingDate: "2024-01-28",
+    listingStartDate: "2025-12-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU6789012345/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU6789012345/",
     newCarPrice: 3900000,
     priceHistory: [
       { date: "01/28", price: 3750000 },
@@ -284,7 +310,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ソウルレッド",
     price: 3480000,
     listingDate: "2024-01-30",
+    listingStartDate: "2025-11-15",
     url: "https://kurumaerabi.com/usedcar/detail/AU7890123456/",
+    carsensor_url: "https://www.carsensor.net/usedcar/detail/VU0007890123.html",
     newCarPrice: 4000000,
     priceHistory: [
       { date: "01/30", price: 3680000 },
@@ -305,7 +333,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ジェットブラック",
     price: 2680000,
     listingDate: "2024-02-20",
+    listingStartDate: "2026-01-05",
     url: "https://kurumaerabi.com/usedcar/detail/AU7890123499/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU7890123499/",
     newCarPrice: 3800000,
     priceHistory: [
       { date: "02/20", price: 2880000 },
@@ -326,7 +356,9 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     color: "ホワイトパール",
     price: 8500000,
     listingDate: "2024-02-01",
+    listingStartDate: "2026-01-01",
     url: "https://kurumaerabi.com/usedcar/detail/AU8901234567/",
+    kurumaerabi_url: "https://www.kurumaerabi.com/usedcar/detail/AU8901234567/",
     newCarPrice: 10500000,
     priceHistory: [
       { date: "02/01", price: 9200000 },
@@ -963,8 +995,8 @@ export function PricingOptimization() {
                           key={item.id}
                           className="border-b border-border cursor-pointer transition-colors hover:bg-muted/50"
                           onClick={() => {
-                            setSelectedVehicle(item)
-                            setShowVehicleDetail(true)
+                            // Navigate to competitor detail page
+                            router.push(`/pricing/competitor/${item.id}`)
                           }}
                         >
                           <td className="py-4">
