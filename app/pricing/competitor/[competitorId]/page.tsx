@@ -359,14 +359,14 @@ function calculatePaymentTotal(price: number): number {
   return Math.round(price * 1.1)
 }
 
-// Generate weekly average price data from listing start date
-function generateWeeklyAverageData(
+// Generate daily price data from listing start date
+function generateDailyPriceData(
   listingStartDate: string,
   priceHistory: { date: string; price: number }[]
-): { week: string; weekLabel: string; avgPrice: number; priceInMan: number }[] {
+): { date: string; price: number; priceInMan: number }[] {
   const startDate = new Date(listingStartDate)
   const today = new Date("2026-03-11")
-  const weeks: { week: string; weekLabel: string; avgPrice: number; priceInMan: number }[] = []
+  const days: { date: string; price: number; priceInMan: number }[] = []
   
   // Convert priceHistory dates to full dates (assuming current year context)
   const priceWithDates = priceHistory.map((p) => {
@@ -382,54 +382,35 @@ function generateWeeklyAverageData(
   // Sort by date
   priceWithDates.sort((a, b) => a.date.getTime() - b.date.getTime())
   
-  // Generate weekly data from listing start
-  let currentWeekStart = new Date(startDate)
-  let weekNumber = 1
+  // Generate daily data from listing start
+  let currentDate = new Date(startDate)
+  let currentPrice = priceWithDates.length > 0 ? priceWithDates[0].price : 0
   
-  while (currentWeekStart <= today) {
-    const weekEnd = new Date(currentWeekStart)
-    weekEnd.setDate(weekEnd.getDate() + 6)
-    
-    // Find prices within this week
-    const pricesInWeek = priceWithDates.filter(
-      (p) => p.date >= currentWeekStart && p.date <= weekEnd
+  while (currentDate <= today) {
+    // Check if there's a price change on this date
+    const priceOnDate = priceWithDates.find(
+      (p) => p.date.getTime() === currentDate.getTime()
     )
     
-    // If we have prices in this week, use their average
-    // Otherwise, use the most recent price before this week
-    let avgPrice: number
-    if (pricesInWeek.length > 0) {
-      avgPrice = pricesInWeek.reduce((sum, p) => sum + p.price, 0) / pricesInWeek.length
-    } else {
-      // Find the most recent price before this week
-      const previousPrices = priceWithDates.filter((p) => p.date < currentWeekStart)
-      if (previousPrices.length > 0) {
-        avgPrice = previousPrices[previousPrices.length - 1].price
-      } else if (priceWithDates.length > 0) {
-        avgPrice = priceWithDates[0].price
-      } else {
-        avgPrice = 0
-      }
+    if (priceOnDate) {
+      currentPrice = priceOnDate.price
     }
     
-    const weekLabel = `${weekNumber}週目`
-    const weekDateLabel = `${(currentWeekStart.getMonth() + 1).toString().padStart(2, "0")}/${currentWeekStart.getDate().toString().padStart(2, "0")}`
+    const dateLabel = `${(currentDate.getMonth() + 1).toString().padStart(2, "0")}/${currentDate.getDate().toString().padStart(2, "0")}`
     
-    weeks.push({
-      week: weekDateLabel,
-      weekLabel,
-      avgPrice: Math.round(avgPrice),
-      priceInMan: Math.round(avgPrice / 10000),
+    days.push({
+      date: dateLabel,
+      price: currentPrice,
+      priceInMan: currentPrice / 10000,
     })
     
-    currentWeekStart.setDate(currentWeekStart.getDate() + 7)
-    weekNumber++
+    currentDate.setDate(currentDate.getDate() + 1)
     
-    // Limit to reasonable number of weeks
-    if (weekNumber > 52) break
+    // Limit to reasonable number of days
+    if (days.length > 365) break
   }
   
-  return weeks
+  return days
 }
 
 export default function CompetitorDetailPage() {
@@ -471,11 +452,11 @@ export default function CompetitorDetailPage() {
   const externalUrl = vehicle.kurumaerabi_url || vehicle.carsensor_url
   const externalUrlLabel = vehicle.kurumaerabi_url ? "車選びドットコムで見る" : "カーセンサーで見る"
 
-  // Chart data - generate weekly average data from listing start date
-  const chartData = generateWeeklyAverageData(vehicle.listingStartDate, vehicle.priceHistory)
+  // Chart data - generate daily price data from listing start date
+  const chartData = generateDailyPriceData(vehicle.listingStartDate, vehicle.priceHistory)
 
-  const minPrice = Math.min(...chartData.map((p) => p.avgPrice))
-  const maxPrice = Math.max(...chartData.map((p) => p.avgPrice))
+  const minPrice = Math.min(...chartData.map((p) => p.price))
+  const maxPrice = Math.max(...chartData.map((p) => p.price))
   const yMin = Math.floor(minPrice / 100000) * 10 - 10
   const yMax = Math.ceil(maxPrice / 100000) * 10 + 10
 
@@ -559,10 +540,10 @@ export default function CompetitorDetailPage() {
                   </div>
                 </div>
 
-                {/* Price Chart - weekly average from listing start date */}
+                {/* Price Chart - daily from listing start date */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">価格推移（週平均・入庫時から）</h3>
+                    <h3 className="font-semibold">価格推移（日次・入庫時から）</h3>
                     <Badge variant="outline" className="text-xs">
                       <Calendar className="h-3 w-3 mr-1" />
                       入庫日: {vehicle.listingStartDate}
@@ -572,7 +553,12 @@ export default function CompetitorDetailPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e5e5e5" />
-                        <XAxis dataKey="week" tick={{ fontSize: 11 }} tickLine={false} />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fontSize: 11 }} 
+                          tickLine={false}
+                          interval={Math.max(0, Math.floor(chartData.length / 8) - 1)}
+                        />
                         <YAxis
                           domain={[yMin, yMax]}
                           tickFormatter={(value) => `${value}万`}
@@ -581,8 +567,8 @@ export default function CompetitorDetailPage() {
                           axisLine={false}
                         />
                         <Tooltip
-                          formatter={(value: number) => [`¥${(value * 10000).toLocaleString()}`, "週平均価格"]}
-                          labelFormatter={(label) => `週: ${label}`}
+                          formatter={(value: number) => [`¥${(value * 10000).toLocaleString()}`, "価格"]}
+                          labelFormatter={(label) => `日付: ${label}`}
                         />
                         <ReferenceLine
                           y={vehicle.price / 10000}
@@ -591,12 +577,12 @@ export default function CompetitorDetailPage() {
                           label={{ value: "現在価格", position: "right", fontSize: 10, fill: "#ef4444" }}
                         />
                         <Line
-                          type="monotone"
+                          type="stepAfter"
                           dataKey="priceInMan"
                           stroke="#3b82f6"
                           strokeWidth={2}
-                          dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
-                          activeDot={{ r: 6 }}
+                          dot={false}
+                          activeDot={{ r: 4, fill: "#3b82f6" }}
                         />
                       </LineChart>
                     </ResponsiveContainer>
