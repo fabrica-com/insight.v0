@@ -453,38 +453,50 @@ function generateDailyPriceData(
   priceHistory: { date: string; price: number }[]
 ): { date: string; price: number; priceInMan: number }[] {
   const startDate = new Date(listingStartDate)
+  startDate.setHours(0, 0, 0, 0)
   const today = new Date("2026-03-11")
+  today.setHours(0, 0, 0, 0)
   const days: { date: string; price: number; priceInMan: number }[] = []
   
-  // Convert priceHistory dates to full dates (assuming current year context)
-  const priceWithDates = priceHistory.map((p) => {
+  // Convert priceHistory dates to a map with date string key for easy lookup
+  const priceMap = new Map<string, number>()
+  priceHistory.forEach((p) => {
     const [month, day] = p.date.split("/").map(Number)
-    // Determine year based on context (if month is later than current month, it's previous year)
+    // Determine year based on context (if month > 3, it's 2025, else 2026)
     const year = month > 3 ? 2025 : 2026
-    return {
-      date: new Date(year, month - 1, day),
-      price: p.price,
-    }
+    const dateKey = `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`
+    priceMap.set(dateKey, p.price)
   })
   
-  // Sort by date
-  priceWithDates.sort((a, b) => a.date.getTime() - b.date.getTime())
+  // Sort price history by date to find the first price
+  const sortedHistory = [...priceHistory].sort((a, b) => {
+    const [aMonth, aDay] = a.date.split("/").map(Number)
+    const [bMonth, bDay] = b.date.split("/").map(Number)
+    const aYear = aMonth > 3 ? 2025 : 2026
+    const bYear = bMonth > 3 ? 2025 : 2026
+    const aDate = new Date(aYear, aMonth - 1, aDay)
+    const bDate = new Date(bYear, bMonth - 1, bDay)
+    return aDate.getTime() - bDate.getTime()
+  })
+  
+  // Get initial price from the first entry in sorted history
+  let currentPrice = sortedHistory.length > 0 ? sortedHistory[0].price : 0
   
   // Generate daily data from listing start
   let currentDate = new Date(startDate)
-  let currentPrice = priceWithDates.length > 0 ? priceWithDates[0].price : 0
   
   while (currentDate <= today) {
-    // Check if there's a price change on this date
-    const priceOnDate = priceWithDates.find(
-      (p) => p.date.getTime() === currentDate.getTime()
-    )
+    const year = currentDate.getFullYear()
+    const month = currentDate.getMonth() + 1
+    const day = currentDate.getDate()
+    const dateKey = `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`
     
-    if (priceOnDate) {
-      currentPrice = priceOnDate.price
+    // Check if there's a price change on this date
+    if (priceMap.has(dateKey)) {
+      currentPrice = priceMap.get(dateKey)!
     }
     
-    const dateLabel = `${(currentDate.getMonth() + 1).toString().padStart(2, "0")}/${currentDate.getDate().toString().padStart(2, "0")}`
+    const dateLabel = `${month.toString().padStart(2, "0")}/${day.toString().padStart(2, "0")}`
     
     days.push({
       date: dateLabel,
