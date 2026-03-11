@@ -43,7 +43,6 @@ import {
   AlertTriangle,
   CheckCircle2,
   Filter,
-
   ChevronDown,
   ChevronUp,
   ExternalLink,
@@ -57,6 +56,10 @@ import {
   Clock,
   Wrench,
   Shield,
+  X,
+  List,
+  Power,
+  Trash2,
 } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts"
 
@@ -126,6 +129,22 @@ type PriceTrackingSetting = {
   offsetType: "fixed" | "percentage"
   minPrice: number
   isActive: boolean
+}
+
+type TrackedVehicle = {
+  id: string
+  ownVehicleId: string
+  ownVehicleName: string
+  targetVehicleId: string
+  targetVehicleName: string
+  targetCompetitorName: string
+  targetPrice: number
+  ownPrice: number
+  priceOffset: number
+  offsetType: "fixed" | "percentage"
+  minPrice: number
+  isActive: boolean
+  createdAt: string
 }
 
 const mockCompetitorInventory: CompetitorInventoryItem[] = [
@@ -644,7 +663,7 @@ const mockCompetitorInventory: CompetitorInventoryItem[] = [
     newCarPrice: 10500000,
     transmission: "CVT", drivetrain: "4WD", fuelType: "ハイブリッド",
     inspection: "2027年1月", repairHistory: "なし",
-    equipment: ["エグゼクティブラウンジシート", "JBLサウンド", "デ������ルキー", "パノラミックビュー"],
+    equipment: ["エグゼクティブラウンジシート", "JBLサウンド", "デ��������ルキー", "パノラミックビュー"],
     daysOnMarket: 15,
     priceHistory: [
       { date: "02/01", price: 9200000 }, { date: "02/15", price: 8800000 },
@@ -662,6 +681,55 @@ const CURRENT_MONTH_IDX = FISCAL_TIMELINE.indexOf(CURRENT_MONTH_KEY)
 const TIMELINE = FISCAL_TIMELINE.slice(0, CURRENT_MONTH_IDX + 1)
 
 const DEFAULT_EXPENSE_RATE = 0.1 // 諸費用率（車両本体価格の10%）
+
+// Mock data for vehicles with active price tracking
+const mockTrackedVehicles: TrackedVehicle[] = [
+  {
+    id: "TRACK001",
+    ownVehicleId: "INV001",
+    ownVehicleName: "トヨタ アルファード 2.5S Cパッケージ",
+    targetVehicleId: "COMP001",
+    targetVehicleName: "トヨタ アルファード 2.5S Cパッケージ",
+    targetCompetitorName: "カーセレクト東京",
+    targetPrice: 4598000,
+    ownPrice: 4588000,
+    priceOffset: -10000,
+    offsetType: "fixed",
+    minPrice: 4200000,
+    isActive: true,
+    createdAt: "2024-03-01",
+  },
+  {
+    id: "TRACK002",
+    ownVehicleId: "INV001",
+    ownVehicleName: "トヨタ アルファード 2.5S Cパッケージ",
+    targetVehicleId: "COMP001B",
+    targetVehicleName: "トヨタ アルファード 2.5S Cパッケージ",
+    targetCompetitorName: "オートセンター東京",
+    targetPrice: 4675000,
+    ownPrice: 4655000,
+    priceOffset: -20000,
+    offsetType: "fixed",
+    minPrice: 4200000,
+    isActive: true,
+    createdAt: "2024-02-25",
+  },
+  {
+    id: "TRACK003",
+    ownVehicleId: "INV001",
+    ownVehicleName: "トヨタ アルファード 2.5S Cパッケージ",
+    targetVehicleId: "COMP002C",
+    targetVehicleName: "トヨタ アルファード 2.5S Aパッケージ",
+    targetCompetitorName: "ビッグモーター埼玉",
+    targetPrice: 4785000,
+    ownPrice: 4735000,
+    priceOffset: -50000,
+    offsetType: "fixed",
+    minPrice: 4100000,
+    isActive: false,
+    createdAt: "2024-02-15",
+  },
+]
 
 const mockInventory: InventoryItem[] = [
   {
@@ -827,6 +895,12 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
   const [trackingModalOpen, setTrackingModalOpen] = useState(false)
   const [selectedTrackingTarget, setSelectedTrackingTarget] = useState<CompetitorInventoryItem | null>(null)
   const [trackingSettings, setTrackingSettings] = useState<PriceTrackingSetting | null>(null)
+  
+  // Tracked vehicles for current inventory item
+  const [trackedVehicles, setTrackedVehicles] = useState<TrackedVehicle[]>(() => 
+    mockTrackedVehicles.filter(tv => tv.ownVehicleId === vehicleId)
+  )
+  const [showTrackedList, setShowTrackedList] = useState(false)
   const [trackingOffset, setTrackingOffset] = useState<number>(-10000)
   const [trackingOffsetType, setTrackingOffsetType] = useState<"fixed" | "percentage">("fixed")
   const [trackingMinPrice, setTrackingMinPrice] = useState<string>("")
@@ -1024,6 +1098,18 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
     router.push("/pricing")
   }
 
+  const toggleTrackedVehicle = (trackId: string) => {
+    setTrackedVehicles(prev => 
+      prev.map(tv => 
+        tv.id === trackId ? { ...tv, isActive: !tv.isActive } : tv
+      )
+    )
+  }
+
+  const removeTrackedVehicle = (trackId: string) => {
+    setTrackedVehicles(prev => prev.filter(tv => tv.id !== trackId))
+  }
+
 
 
   if (!selectedItem) {
@@ -1184,6 +1270,122 @@ export default function PricingDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </CardContent>
       </Card>
+
+      {/* Tracked Vehicles Section */}
+      {trackedVehicles.length > 0 && (
+        <Card className="border-emerald-500/30 bg-emerald-50/30">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Link2 className="h-4 w-4 text-emerald-600" />
+                <CardTitle className="text-base">価格追従中の車両</CardTitle>
+                <Badge className="bg-emerald-100 text-emerald-700 border-emerald-300">
+                  {trackedVehicles.filter(tv => tv.isActive).length}/{trackedVehicles.length}台 有効
+                </Badge>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowTrackedList(!showTrackedList)}
+                className="gap-1.5"
+              >
+                <List className="h-4 w-4" />
+                {showTrackedList ? "閉じる" : "一覧を表示"}
+                {showTrackedList ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              </Button>
+            </div>
+          </CardHeader>
+          {showTrackedList && (
+            <CardContent className="pt-0">
+              <ScrollArea className="max-h-[300px]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">追従対象</TableHead>
+                      <TableHead className="text-xs">競合店名</TableHead>
+                      <TableHead className="text-xs text-right">競合価格</TableHead>
+                      <TableHead className="text-xs text-right">自社価格</TableHead>
+                      <TableHead className="text-xs text-center">差額設定</TableHead>
+                      <TableHead className="text-xs text-center">状態</TableHead>
+                      <TableHead className="text-xs text-center">操作</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {trackedVehicles.map((tv) => (
+                      <TableRow key={tv.id} className={!tv.isActive ? "opacity-50" : ""}>
+                        <TableCell className="py-2">
+                          <div>
+                            <p className="text-sm font-medium">{tv.targetVehicleName}</p>
+                            <p className="text-xs text-muted-foreground">追従ID: {tv.targetVehicleId}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <p className="text-sm">{tv.targetCompetitorName}</p>
+                        </TableCell>
+                        <TableCell className="py-2 text-right">
+                          <p className="text-sm font-medium">¥{tv.targetPrice.toLocaleString()}</p>
+                        </TableCell>
+                        <TableCell className="py-2 text-right">
+                          <p className="text-sm font-medium text-primary">¥{tv.ownPrice.toLocaleString()}</p>
+                        </TableCell>
+                        <TableCell className="py-2 text-center">
+                          <Badge variant="outline" className="text-xs">
+                            {tv.offsetType === "fixed" 
+                              ? `${tv.priceOffset > 0 ? "+" : ""}${(tv.priceOffset / 10000).toFixed(0)}万円`
+                              : `${tv.priceOffset}%`
+                            }
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-2 text-center">
+                          <Badge 
+                            className={tv.isActive 
+                              ? "bg-emerald-100 text-emerald-700 border-emerald-300" 
+                              : "bg-muted text-muted-foreground"
+                            }
+                          >
+                            {tv.isActive ? "有効" : "停止中"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-2">
+                          <div className="flex items-center justify-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleTrackedVehicle(tv.id)}
+                              className={`h-8 w-8 p-0 ${tv.isActive ? "text-amber-600 hover:text-amber-700 hover:bg-amber-50" : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"}`}
+                              title={tv.isActive ? "追従を停止" : "追従を再開"}
+                            >
+                              <Power className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeTrackedVehicle(tv.id)}
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              title="追従を削除"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+              {trackedVehicles.some(tv => tv.isActive) && (
+                <Alert className="mt-3 bg-amber-50/50 border-amber-200">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-sm text-amber-800">
+                    価格追従が有効な車両は、対象車両の価格変更に応じて自動で価格が更新されます。
+                    追従を停止するには「停止」ボタンをクリックしてください。
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          )}
+        </Card>
+      )}
 
       {/* ===== STEP 1: 競合比較 ===== */}
       {step === 1 && (
