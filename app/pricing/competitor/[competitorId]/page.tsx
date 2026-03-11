@@ -544,45 +544,70 @@ export default function CompetitorDetailPage() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold">価格推移（日次・入庫時から）</h3>
-                    <Badge variant="outline" className="text-xs">
-                      <Calendar className="h-3 w-3 mr-1" />
-                      入庫日: {vehicle.listingStartDate}
-                    </Badge>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <div className="w-3 h-0.5 bg-blue-500" />
+                        <span>価格</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <div className="w-3 h-0.5 bg-red-500 border-dashed" style={{ borderTop: "2px dashed #ef4444", height: 0 }} />
+                        <span>現在価格</span>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        入庫日: {vehicle.listingStartDate}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="h-[280px] w-full">
+                  <div className="h-[280px] w-full bg-muted/20 rounded-lg p-2">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 10 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e5e5e5" />
+                      <LineChart data={chartData} margin={{ top: 15, right: 40, left: 10, bottom: 10 }}>
+                        <defs>
+                          <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15}/>
+                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e5e5" opacity={0.5} />
                         <XAxis 
                           dataKey="date" 
-                          tick={{ fontSize: 11 }} 
+                          tick={{ fontSize: 10, fill: "#888" }} 
                           tickLine={false}
-                          interval={Math.max(0, Math.floor(chartData.length / 8) - 1)}
+                          axisLine={{ stroke: "#e5e5e5" }}
+                          interval={Math.max(0, Math.floor(chartData.length / 7) - 1)}
                         />
                         <YAxis
                           domain={[yMin, yMax]}
                           tickFormatter={(value) => `${value}万`}
-                          tick={{ fontSize: 11 }}
+                          tick={{ fontSize: 10, fill: "#888" }}
                           tickLine={false}
                           axisLine={false}
+                          width={45}
                         />
                         <Tooltip
+                          contentStyle={{ 
+                            backgroundColor: "white", 
+                            border: "1px solid #e5e5e5",
+                            borderRadius: "8px",
+                            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+                          }}
                           formatter={(value: number) => [`¥${(value * 10000).toLocaleString()}`, "価格"]}
-                          labelFormatter={(label) => `日付: ${label}`}
+                          labelFormatter={(label) => `${label}`}
                         />
                         <ReferenceLine
                           y={vehicle.price / 10000}
                           stroke="#ef4444"
-                          strokeDasharray="5 5"
-                          label={{ value: "現在価格", position: "right", fontSize: 10, fill: "#ef4444" }}
+                          strokeDasharray="6 4"
+                          strokeWidth={1.5}
                         />
                         <Line
                           type="stepAfter"
                           dataKey="priceInMan"
                           stroke="#3b82f6"
-                          strokeWidth={2}
+                          strokeWidth={2.5}
                           dot={false}
-                          activeDot={{ r: 4, fill: "#3b82f6" }}
+                          activeDot={{ r: 5, fill: "#3b82f6", stroke: "#fff", strokeWidth: 2 }}
+                          fill="url(#priceGradient)"
                         />
                       </LineChart>
                     </ResponsiveContainer>
