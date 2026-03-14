@@ -660,11 +660,13 @@ export default function MarketAlertPage() {
                             {row.predicted==="FLAT" && <Minus className="inline h-4 w-4 mr-1" />}
                             {row.predicted==="DOWN"?"下落":row.predicted==="UP"?"上昇":"横ばい"}
                           </div>
-                          <div className={row.actual>2?"text-emerald-500":row.actual<-2?"text-red-500":"text-muted-foreground"}>
-                            {row.actual>0?"+":""}{row.actual.toFixed(1)}%
+                          <div className={row.actual !== null && row.actual > 2 ? "text-emerald-500" : row.actual !== null && row.actual < -2 ? "text-red-500" : "text-muted-foreground"}>
+                            {row.actual !== null ? `${row.actual > 0 ? "+" : ""}${row.actual.toFixed(1)}%` : "-"}
                           </div>
                           <div>
-                            {row.correct ? 
+                            {row.correct === null ? 
+                              <Minus className="h-5 w-5 text-muted-foreground" /> :
+                              row.correct ? 
                               <Check className="h-5 w-5 text-emerald-500" /> : 
                               <X className="h-5 w-5 text-red-500" />
                             }
