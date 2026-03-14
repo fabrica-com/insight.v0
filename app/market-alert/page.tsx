@@ -489,7 +489,11 @@ const getFilteredData = () => {
     // 円建て価格をドルに変換（万円 → 千ドル）- その時期の実際の為替レートを使用
     displayPrice: priceCurrency === "usd" 
       ? parseFloat(((d.auctionPrice * 10000) / d.usdJpy / 1000).toFixed(2))
-      : d.auctionPrice
+      : d.auctionPrice,
+    // CAA成約単価もドルに変換（万円 → 千ドル）
+    displayCaaPrice: priceCurrency === "usd" && d.caaPrice !== null
+      ? parseFloat(((d.caaPrice * 10000) / d.usdJpy / 1000).toFixed(2))
+      : d.caaPrice
   }))
 }
 
@@ -777,7 +781,7 @@ const chartData = getFilteredData()
                         <ReferenceLine yAxisId="score" y={60} stroke="#ef4444" strokeDasharray="4 4" strokeOpacity={0.6}/>
                         <ReferenceLine yAxisId="score" y={30} stroke="#22c55e" strokeDasharray="3 3" strokeOpacity={0.4}/>
                         {visibleSeries.newCarReg && (
-                          <Line yAxisId="newcar" type="monotone" dataKey="newCarReg" name="新車登録（12週先行）"
+                          <Line yAxisId="newcar" type="monotone" dataKey="newCarReg" name="新車登���（12週先行）"
                             stroke="#22c55e" strokeWidth={1.5} dot={false} strokeDasharray="5 3"/>
                         )}
                         {visibleSeries.retailRate && (
@@ -797,7 +801,7 @@ const chartData = getFilteredData()
                             stroke="#8b5cf6" strokeWidth={1.5} dot={false} connectNulls/>
                         )}
                         {visibleSeries.caaPrice && (
-                          <Line yAxisId="price" type="monotone" dataKey="caaPrice" name="CAA成約単価(万円)"
+                          <Line yAxisId="price" type="monotone" dataKey="displayCaaPrice" name={`CAA成約単価(${priceCurrency === "usd" ? "千$" : "万円"})`}
                             stroke="#14b8a6" strokeWidth={1.5} dot={false} connectNulls strokeDasharray="4 2"/>
                         )}
                         {visibleSeries.score && (
