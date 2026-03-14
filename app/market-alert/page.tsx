@@ -345,8 +345,8 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
       <div className="text-sm font-semibold text-muted-foreground mb-2">{label}</div>
       {payload.map((p, i)=>(
         <div key={i} className="text-sm" style={{color: p.color}}>
-{p.name}: <span className="font-semibold">{typeof p.value==="number"?p.value.toFixed(1):p.value}</span>
-  {p.name==="オークション成約単価"?"万円":p.name==="リスクスコア"?"pt":p.name.includes("新車")?"千台":p.name.includes("小売")?"％":""}
+{p.name.replace(/\(.*\)/, "")}: <span className="font-semibold">{typeof p.value==="number"?p.value.toFixed(1):p.value}</span>
+  {p.name.includes("オークション") ? (p.name.includes("千$") ? "千$" : "万円") : p.name==="リスクスコア"?"pt":p.name.includes("新車")?"千台":p.name.includes("小売")?"％":""}
         </div>
       ))}
       {d?.event && (
@@ -416,6 +416,7 @@ const [signals, setSignals] = useState({...initialSignals})
 const [animScore, setAnimScore] = useState(0)
 const [chartInterval, setChartInterval] = useState<"monthly" | "weekly">("monthly")
 const [chartPeriod, setChartPeriod] = useState<3 | 5 | 10>(10)
+const [priceCurrency, setPriceCurrency] = useState<"jpy" | "usd">("jpy")
 const [visibleSeries, setVisibleSeries] = useState({
   score: true,
   auctionPrice: true,
@@ -423,18 +424,26 @@ const [visibleSeries, setVisibleSeries] = useState({
   retailRate: true,
 })
 
-// Filter data based on period and interval
+// 為替レート（1ドル = 150円で固定、実際はAPIから取得）
+const USD_JPY_RATE = 150
+
+// Filter data based on period and interval, convert currency if needed
 const getFilteredData = () => {
   const baseData = chartInterval === "weekly" ? weeklyData : monthlyData
   const currentYear = 26 // 2026
   const startYear = currentYear - chartPeriod
-  const startMonth = `${startYear.toString().padStart(2, '0')}/04`
   
   return baseData.filter(d => {
     const [year] = d.month.split('/')
     const yearNum = parseInt(year)
     return yearNum >= startYear
-  })
+  }).map(d => ({
+    ...d,
+    // 円建て価格をドルに変換（万円 → 千ドル）
+    displayPrice: priceCurrency === "usd" 
+      ? parseFloat(((d.auctionPrice * 10000) / USD_JPY_RATE / 1000).toFixed(2))
+      : d.auctionPrice
+  }))
 }
 
 const chartData = getFilteredData()
@@ -615,6 +624,25 @@ const chartData = getFilteredData()
                           週次
                         </Button>
                       </div>
+                      {/* Currency selector */}
+                      <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+                        <Button 
+                          variant={priceCurrency === "jpy" ? "default" : "ghost"} 
+                          size="sm" 
+                          className="h-7 px-2 text-xs"
+                          onClick={() => setPriceCurrency("jpy")}
+                        >
+                          円
+                        </Button>
+                        <Button 
+                          variant={priceCurrency === "usd" ? "default" : "ghost"} 
+                          size="sm" 
+                          className="h-7 px-2 text-xs"
+                          onClick={() => setPriceCurrency("usd")}
+                        >
+                          $
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
@@ -633,7 +661,7 @@ const chartData = getFilteredData()
                       onClick={() => setVisibleSeries(prev => ({ ...prev, auctionPrice: !prev.auctionPrice }))}
                     >
                       <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#3b82f6' }} />
-                      オークション成約単価
+                      オークション成約単価{priceCurrency === "usd" ? "(千$)" : "(万円)"}
                     </button>
                     <button 
                       className={`flex items-center gap-1.5 text-xs transition-opacity ${!visibleSeries.newCarReg ? 'opacity-40' : ''}`}
@@ -666,7 +694,7 @@ const chartData = getFilteredData()
                         <YAxis yAxisId="score" domain={[0,100]} tick={{fill:"#f97316",fontSize:10}}
                           tickFormatter={v=>`${v}`} tickLine={false} axisLine={false}/>
                         <YAxis yAxisId="price" orientation="right" domain={['auto','auto']}
-                          tick={{fill:"#3b82f6",fontSize:10}} tickFormatter={v=>`${v}万`} tickLine={false} axisLine={false}/>
+                          tick={{fill:"#3b82f6",fontSize:10}} tickFormatter={v=> priceCurrency === "usd" ? `$${v}k` : `${v}万`} tickLine={false} axisLine={false}/>
                         <YAxis yAxisId="newcar" orientation="right" domain={[40,150]} hide/>
                         <YAxis yAxisId="retail" orientation="right" domain={[30,100]} hide/>
                         <Tooltip content={<CustomTooltip />}/>
@@ -685,7 +713,7 @@ const chartData = getFilteredData()
                             stroke="#f97316" fill="rgba(249,115,22,0.1)" strokeWidth={2}/>
                         )}
                         {visibleSeries.auctionPrice && (
-                          <Line yAxisId="price" type="monotone" dataKey="auctionPrice" name="オークション成約単価"
+                          <Line yAxisId="price" type="monotone" dataKey="displayPrice" name={`オークション成約単価${priceCurrency === "usd" ? "(千$)" : "(万円)"}`}
                             stroke="#3b82f6" strokeWidth={2.5} dot={false}/>
                         )}
                       </ComposedChart>
