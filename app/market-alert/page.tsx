@@ -223,8 +223,9 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 // ゲージコンポーネント
 function RiskGauge({ score, size = 200 }: { score: number; size?: number }) {
   const risk = getRiskLevel(score)
-  const angle = (score / 100) * 180 - 90
-  const cx = size/2, cy = size/2 * 0.95
+  // Angle: score 0 = -180 (left), score 100 = 0 (right)
+  const angle = -180 + (score / 100) * 180
+  const cx = size/2, cy = size/2 * 0.7
   const r = size * 0.38
   const toRad = (deg: number) => deg * Math.PI / 180
   
@@ -236,8 +237,8 @@ function RiskGauge({ score, size = 200 }: { score: number; size?: number }) {
       stroke={color} strokeWidth={size*0.06} fill="none" opacity={0.9} strokeLinecap="round"/>
   }
   
-  const needleX = cx + (r*0.85) * Math.cos(toRad(angle))
-  const needleY = cy + (r*0.85) * Math.sin(toRad(angle))
+  const needleX = cx + (r*0.75) * Math.cos(toRad(angle))
+  const needleY = cy + (r*0.75) * Math.sin(toRad(angle))
 
   const getColor = () => {
     if(score < 30) return "#22c55e"
@@ -248,7 +249,7 @@ function RiskGauge({ score, size = 200 }: { score: number; size?: number }) {
   }
 
   return (
-    <svg width={size} height={size*0.65} style={{overflow:"visible"}}>
+    <svg width={size} height={size*0.75} style={{overflow:"visible"}}>
       {/* Track */}
       <path d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
         stroke="hsl(var(--muted))" strokeWidth={size*0.06} fill="none" opacity={0.3}/>
@@ -261,12 +262,12 @@ function RiskGauge({ score, size = 200 }: { score: number; size?: number }) {
       {/* Needle */}
       <line x1={cx} y1={cy} x2={needleX} y2={needleY}
         stroke={getColor()} strokeWidth={3} strokeLinecap="round"/>
-      <circle cx={cx} cy={cy} r={size*0.045} fill={getColor()}/>
-      <circle cx={cx} cy={cy} r={size*0.025} fill="hsl(var(--background))"/>
-      {/* Score text */}
-      <text x={cx} y={cy+size*0.15} textAnchor="middle" fontSize={size*0.22}
+      <circle cx={cx} cy={cy} r={size*0.04} fill={getColor()}/>
+      <circle cx={cx} cy={cy} r={size*0.02} fill="hsl(var(--background))"/>
+      {/* Score text - positioned below the gauge */}
+      <text x={cx} y={cy+size*0.22} textAnchor="middle" fontSize={size*0.2}
         fontWeight="800" fill={getColor()}>{score}</text>
-      <text x={cx} y={cy+size*0.28} textAnchor="middle" fontSize={size*0.075}
+      <text x={cx} y={cy+size*0.34} textAnchor="middle" fontSize={size*0.07}
         fill="hsl(var(--muted-foreground))">/ 100</text>
     </svg>
   )
