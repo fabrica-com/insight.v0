@@ -23,7 +23,6 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { MarketAlertWidget } from "@/components/market-alert-widget"
 
 const navigation = [
   { name: "ダッシュボード", icon: LayoutDashboard, href: "/" },
@@ -95,11 +94,6 @@ export function DashboardSidebar({ defaultCollapsed = false }: { defaultCollapse
           )
         })}
       </nav>
-
-      {/* Market Alert Widget - Always visible */}
-      <div className="border-t border-border">
-        <MarketAlertWidget collapsed={collapsed} />
-      </div>
 
       <div className="border-t border-border p-3">
         <Link href="/settings">

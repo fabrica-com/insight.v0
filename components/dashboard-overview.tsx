@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   BarChart3,
   Trophy,
+  Gauge,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -85,6 +86,21 @@ const pricingAlerts = {
   optimal: 5,
   underpriced: 1,
   longTerm: 3,
+}
+
+// Market alert data
+const marketAlertData = {
+  riskScore: 39,
+  riskLevel: "注意",
+  riskColor: "text-amber-500",
+  trend: "横ばい",
+  indicators: [
+    { name: "小売成約率", value: 72.5, weight: 30, status: "良好" },
+    { name: "オークション成約率", value: 68.8, weight: 20, status: "注意" },
+    { name: "輸出圧力指数", value: 82, weight: 20, status: "警戒" },
+    { name: "新車登録台数", value: 108, weight: 10, status: "良好" },
+  ],
+  recommendation: "相場は安定傾向。現状維持で問題なし。",
 }
 
 // Trending vehicles for dashboard
@@ -359,8 +375,88 @@ export function DashboardOverview() {
         </Card>
       </div>
 
-      {/* Row 3: Pricing + Competitor + AI */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      {/* Row 3: Market Alert + Pricing + Competitor + AI */}
+      <div className="grid gap-6 lg:grid-cols-4">
+        {/* Market Alert Summary */}
+        <Card className="border-amber-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-3 bg-gradient-to-r from-amber-500/5 to-transparent">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-600">
+                <Gauge className="h-4 w-4 text-white" />
+              </div>
+              <CardTitle className="text-base font-semibold">相場リスク</CardTitle>
+            </div>
+            <Link href="/market-alert">
+              <Button variant="ghost" size="sm" className="gap-1 text-xs text-primary hover:text-primary">
+                詳細 <ArrowUpRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Risk Score Gauge */}
+            <div className="flex items-center justify-center">
+              <div className="relative flex items-center justify-center">
+                <svg className="w-28 h-14 overflow-visible" viewBox="0 0 120 60">
+                  <defs>
+                    <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#22c55e" />
+                      <stop offset="50%" stopColor="#f59e0b" />
+                      <stop offset="100%" stopColor="#ef4444" />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d="M 10 55 A 50 50 0 0 1 110 55"
+                    fill="none"
+                    stroke="url(#gaugeGradient)"
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M 10 55 A 50 50 0 0 1 110 55"
+                    fill="none"
+                    stroke="hsl(var(--muted))"
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                    opacity="0.2"
+                  />
+                  {/* Needle */}
+                  <line
+                    x1="60"
+                    y1="55"
+                    x2={60 + 35 * Math.cos(Math.PI - (marketAlertData.riskScore / 100) * Math.PI)}
+                    y2={55 - 35 * Math.sin(Math.PI - (marketAlertData.riskScore / 100) * Math.PI)}
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    className="text-foreground"
+                  />
+                  <circle cx="60" cy="55" r="4" fill="currentColor" className="text-foreground" />
+                </svg>
+                <div className="absolute bottom-0 text-center">
+                  <div className="text-2xl font-bold">{marketAlertData.riskScore}</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <Badge className={cn(
+                "text-xs px-3 py-1",
+                marketAlertData.riskScore < 30 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
+                marketAlertData.riskScore < 60 ? "bg-amber-500/10 text-amber-600 border-amber-500/20" :
+                "bg-red-500/10 text-red-600 border-red-500/20"
+              )}>
+                {marketAlertData.riskLevel}
+              </Badge>
+              <p className="text-xs text-muted-foreground mt-1">USS予測: {marketAlertData.trend}</p>
+            </div>
+
+            {/* Recommendation */}
+            <div className="p-3 rounded-lg bg-muted/50 border border-border">
+              <p className="text-xs text-muted-foreground">{marketAlertData.recommendation}</p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Pricing Alerts Summary */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-3">
