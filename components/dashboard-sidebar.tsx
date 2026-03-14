@@ -17,6 +17,7 @@ import {
   MessageSquare,
   QrCode,
   Newspaper,
+  AlertTriangle,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -36,6 +37,7 @@ const navigation = [
   { name: "店舗ランキング", icon: Trophy, href: "/rankings" },
   { name: "業界ニュース", icon: Newspaper, href: "/news" },
   { name: "QRコード生成", icon: QrCode, href: "/qr-generator" },
+  { name: "相場リスクエンジン", icon: AlertTriangle, href: "/market-alert" },
 ]
 
 export function DashboardSidebar({ defaultCollapsed = false }: { defaultCollapsed?: boolean }) {
