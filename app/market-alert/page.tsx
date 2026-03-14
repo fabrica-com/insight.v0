@@ -24,10 +24,75 @@ import {
 // 6モジュール統合型 中古車オークション相場リスク予測システム
 // ─────────────────────────────────────────────────────────────────
 
-// 過去データ（月次データ 2021年4月〜2026年3月 - 5年間）
+// 過去データ（月次データ 2016年4月〜2026年3月 - 10年間）
 // newCarReg: 新車登録台数（12週先行指標）- 値が高いと供給増で中古車相場に下押し圧力
-const historicalScores = [
-  // 2021年（半導体不足による相場急騰期）- 新車登録減少→中古車相場上昇
+const monthlyData = [
+  // 2016年（安定期）
+  {month:"16/04",score:28,actual:+1.2,predicted:"FLAT",correct:true, ussPrice:58.2,newCarReg:95,event:null},
+  {month:"16/05",score:30,actual:+0.8,predicted:"FLAT",correct:true, ussPrice:58.8,newCarReg:98,event:null},
+  {month:"16/06",score:32,actual:+1.5,predicted:"FLAT",correct:false,ussPrice:59.5,newCarReg:100,event:null},
+  {month:"16/07",score:28,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:59.8,newCarReg:102,event:null},
+  {month:"16/08",score:25,actual:+1.8,predicted:"UP",  correct:true, ussPrice:60.8,newCarReg:98,event:null},
+  {month:"16/09",score:22,actual:+2.2,predicted:"UP",  correct:true, ussPrice:62.2,newCarReg:95,event:null},
+  {month:"16/10",score:20,actual:+1.5,predicted:"UP",  correct:true, ussPrice:63.2,newCarReg:92,event:null},
+  {month:"16/11",score:22,actual:+0.8,predicted:"UP",  correct:true, ussPrice:63.8,newCarReg:90,event:null},
+  {month:"16/12",score:25,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:64.2,newCarReg:88,event:null},
+  // 2017年（緩やかな上昇）
+  {month:"17/01",score:28,actual:+1.2,predicted:"FLAT",correct:true, ussPrice:65.0,newCarReg:90,event:null},
+  {month:"17/02",score:30,actual:+0.8,predicted:"FLAT",correct:true, ussPrice:65.5,newCarReg:92,event:null},
+  {month:"17/03",score:32,actual:-0.5,predicted:"FLAT",correct:true, ussPrice:65.2,newCarReg:95,event:null},
+  {month:"17/04",score:35,actual:-1.2,predicted:"FLAT",correct:false,ussPrice:64.4,newCarReg:98,event:null},
+  {month:"17/05",score:38,actual:-0.8,predicted:"DOWN",correct:true, ussPrice:63.8,newCarReg:100,event:null},
+  {month:"17/06",score:35,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:64.2,newCarReg:98,event:null},
+  {month:"17/07",score:32,actual:+1.2,predicted:"FLAT",correct:false,ussPrice:65.0,newCarReg:95,event:null},
+  {month:"17/08",score:28,actual:+1.8,predicted:"UP",  correct:true, ussPrice:66.2,newCarReg:92,event:null},
+  {month:"17/09",score:25,actual:+2.0,predicted:"UP",  correct:true, ussPrice:67.5,newCarReg:88,event:null},
+  {month:"17/10",score:22,actual:+1.5,predicted:"UP",  correct:true, ussPrice:68.5,newCarReg:85,event:null},
+  {month:"17/11",score:20,actual:+1.2,predicted:"UP",  correct:true, ussPrice:69.2,newCarReg:82,event:null},
+  {month:"17/12",score:22,actual:+0.8,predicted:"UP",  correct:true, ussPrice:69.8,newCarReg:80,event:null},
+  // 2018年（上昇継続）
+  {month:"18/01",score:25,actual:+1.5,predicted:"UP",  correct:true, ussPrice:70.8,newCarReg:82,event:null},
+  {month:"18/02",score:28,actual:+1.2,predicted:"UP",  correct:true, ussPrice:71.5,newCarReg:85,event:null},
+  {month:"18/03",score:30,actual:+0.8,predicted:"FLAT",correct:true, ussPrice:72.0,newCarReg:88,event:null},
+  {month:"18/04",score:32,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:72.4,newCarReg:90,event:null},
+  {month:"18/05",score:35,actual:-0.5,predicted:"FLAT",correct:true, ussPrice:72.0,newCarReg:95,event:null},
+  {month:"18/06",score:38,actual:-1.0,predicted:"DOWN",correct:true, ussPrice:71.2,newCarReg:98,event:null},
+  {month:"18/07",score:42,actual:-1.5,predicted:"DOWN",correct:true, ussPrice:70.2,newCarReg:102,event:null},
+  {month:"18/08",score:45,actual:-0.8,predicted:"DOWN",correct:true, ussPrice:69.6,newCarReg:105,event:null},
+  {month:"18/09",score:42,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:70.0,newCarReg:102,event:null},
+  {month:"18/10",score:38,actual:+1.2,predicted:"FLAT",correct:false,ussPrice:70.8,newCarReg:98,event:null},
+  {month:"18/11",score:35,actual:+1.5,predicted:"UP",  correct:true, ussPrice:71.8,newCarReg:95,event:null},
+  {month:"18/12",score:32,actual:+0.8,predicted:"UP",  correct:true, ussPrice:72.4,newCarReg:92,event:null},
+  // 2019年（消費税前後の変動）
+  {month:"19/01",score:30,actual:+1.2,predicted:"UP",  correct:true, ussPrice:73.2,newCarReg:90,event:null},
+  {month:"19/02",score:28,actual:+1.5,predicted:"UP",  correct:true, ussPrice:74.2,newCarReg:88,event:null},
+  {month:"19/03",score:25,actual:+2.0,predicted:"UP",  correct:true, ussPrice:75.8,newCarReg:85,event:null},
+  {month:"19/04",score:22,actual:+2.5,predicted:"UP",  correct:true, ussPrice:77.8,newCarReg:82,event:null},
+  {month:"19/05",score:20,actual:+1.8,predicted:"UP",  correct:true, ussPrice:79.2,newCarReg:80,event:null},
+  {month:"19/06",score:22,actual:+1.2,predicted:"UP",  correct:true, ussPrice:80.2,newCarReg:78,event:null},
+  {month:"19/07",score:25,actual:+0.8,predicted:"FLAT",correct:true, ussPrice:80.8,newCarReg:80,event:null},
+  {month:"19/08",score:30,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:81.2,newCarReg:85,event:null},
+  {month:"19/09",score:45,actual:-2.5,predicted:"DOWN",correct:true, ussPrice:79.2,newCarReg:120,event:"消費税"},
+  {month:"19/10",score:55,actual:-4.0,predicted:"DOWN",correct:true, ussPrice:76.0,newCarReg:130,event:"消費税反動"},
+  {month:"19/11",score:48,actual:-1.5,predicted:"DOWN",correct:true, ussPrice:74.8,newCarReg:115,event:null},
+  {month:"19/12",score:42,actual:-0.5,predicted:"FLAT",correct:true, ussPrice:74.4,newCarReg:105,event:null},
+  // 2020年（COVID-19）
+  {month:"20/01",score:38,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:74.8,newCarReg:100,event:null},
+  {month:"20/02",score:45,actual:-1.2,predicted:"FLAT",correct:false,ussPrice:73.8,newCarReg:108,event:null},
+  {month:"20/03",score:65,actual:-5.5,predicted:"DOWN",correct:true, ussPrice:69.8,newCarReg:125,event:"COVID発生"},
+  {month:"20/04",score:85,actual:-8.2,predicted:"DOWN",correct:true, ussPrice:64.2,newCarReg:145,event:"緊急事態"},
+  {month:"20/05",score:82,actual:+2.5,predicted:"DOWN",correct:false,ussPrice:65.8,newCarReg:140,event:"底→反発"},
+  {month:"20/06",score:65,actual:+4.5,predicted:"UP",  correct:true, ussPrice:68.8,newCarReg:120,event:null},
+  {month:"20/07",score:48,actual:+3.8,predicted:"UP",  correct:true, ussPrice:71.5,newCarReg:105,event:null},
+  {month:"20/08",score:35,actual:+3.2,predicted:"UP",  correct:true, ussPrice:73.8,newCarReg:95,event:null},
+  {month:"20/09",score:28,actual:+2.8,predicted:"UP",  correct:true, ussPrice:75.8,newCarReg:88,event:null},
+  {month:"20/10",score:22,actual:+3.5,predicted:"UP",  correct:true, ussPrice:78.5,newCarReg:82,event:null},
+  {month:"20/11",score:18,actual:+4.0,predicted:"UP",  correct:true, ussPrice:81.6,newCarReg:78,event:null},
+  {month:"20/12",score:15,actual:+4.5,predicted:"UP",  correct:true, ussPrice:85.2,newCarReg:72,event:"上昇開始"},
+  // 2021年（半導体不足による相場急騰期）
+  {month:"21/01",score:12,actual:+5.0,predicted:"UP",  correct:true, ussPrice:89.5,newCarReg:68,event:null},
+  {month:"21/02",score:10,actual:+5.5,predicted:"UP",  correct:true, ussPrice:94.5,newCarReg:65,event:null},
+  {month:"21/03",score:8,actual:+6.0,predicted:"UP",   correct:true, ussPrice:100.2,newCarReg:62,event:"100万超"},
   {month:"21/04",score:18,actual:+3.2,predicted:"UP",  correct:true, ussPrice:72.5,newCarReg:65,event:"半導体不足"},
   {month:"21/05",score:15,actual:+4.5,predicted:"UP",  correct:true, ussPrice:75.8,newCarReg:62,event:null},
   {month:"21/06",score:12,actual:+5.2,predicted:"UP",  correct:true, ussPrice:79.8,newCarReg:58,event:null},
@@ -37,7 +102,7 @@ const historicalScores = [
   {month:"21/10",score:18,actual:+3.5,predicted:"UP",  correct:true, ussPrice:94.8,newCarReg:48,event:null},
   {month:"21/11",score:20,actual:+2.8,predicted:"UP",  correct:true, ussPrice:97.5,newCarReg:52,event:null},
   {month:"21/12",score:22,actual:+2.5,predicted:"UP",  correct:true, ussPrice:100.0,newCarReg:55,event:"100万超"},
-  // 2022年（ピークから下落開始）- 新車登録回復開始→中古車相場ピーク後下落
+  // 2022年（ピークから下落開始）
   {month:"22/01",score:25,actual:+3.5,predicted:"UP",  correct:true, ussPrice:103.5,newCarReg:58,event:null},
   {month:"22/02",score:28,actual:+4.2,predicted:"UP",  correct:true, ussPrice:107.8,newCarReg:62,event:"ウクライナ"},
   {month:"22/03",score:32,actual:+3.8,predicted:"UP",  correct:true, ussPrice:111.8,newCarReg:68,event:null},
@@ -50,7 +115,7 @@ const historicalScores = [
   {month:"22/10",score:72,actual:-4.2,predicted:"DOWN",correct:true, ussPrice:104.2,newCarReg:112,event:null},
   {month:"22/11",score:75,actual:-3.5,predicted:"DOWN",correct:true, ussPrice:100.5,newCarReg:115,event:null},
   {month:"22/12",score:78,actual:-2.8,predicted:"DOWN",correct:true, ussPrice:97.8,newCarReg:118,event:"年末調整"},
-  // 2023年（底打ち〜回復）- 新車登録高水準維持後減少開始→中古車相場底打ち
+  // 2023年（底打ち〜回復）
   {month:"23/01",score:75,actual:-1.5,predicted:"DOWN",correct:true, ussPrice:96.2,newCarReg:120,event:null},
   {month:"23/02",score:72,actual:-0.8,predicted:"DOWN",correct:true, ussPrice:95.5,newCarReg:118,event:null},
   {month:"23/03",score:68,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:96.0,newCarReg:115,event:"底打ち"},
@@ -63,7 +128,7 @@ const historicalScores = [
   {month:"23/10",score:32,actual:+2.2,predicted:"UP",  correct:true, ussPrice:116.0,newCarReg:88,event:null},
   {month:"23/11",score:28,actual:+1.8,predicted:"UP",  correct:true, ussPrice:118.2,newCarReg:85,event:null},
   {month:"23/12",score:25,actual:+1.5,predicted:"UP",  correct:true, ussPrice:120.0,newCarReg:82,event:null},
-  // 2024年（緩やかな上昇〜調整）- 新車登録安定→中古車相場横ばい傾向
+  // 2024年（緩やかな上昇〜調整）
   {month:"24/01",score:20,actual:+1.2,predicted:"UP",  correct:true, ussPrice:121.5,newCarReg:80,event:null},
   {month:"24/02",score:22,actual:+1.8,predicted:"UP",  correct:true, ussPrice:122.8,newCarReg:82,event:null},
   {month:"24/03",score:24,actual:+2.1,predicted:"UP",  correct:true, ussPrice:124.2,newCarReg:85,event:null},
@@ -76,7 +141,7 @@ const historicalScores = [
   {month:"24/10",score:52,actual:-2.0,predicted:"DOWN",correct:true, ussPrice:121.8,newCarReg:122,event:null},
   {month:"24/11",score:58,actual:-2.5,predicted:"DOWN",correct:true, ussPrice:120.2,newCarReg:125,event:null},
   {month:"24/12",score:65,actual:-3.2,predicted:"DOWN",correct:true, ussPrice:118.5,newCarReg:128,event:"年末調整"},
-  // 2025年（急落〜回復）- 新車登録ピーク後減少→中古車相場底打ち反発
+  // 2025年（急落〜回復）
   {month:"25/01",score:72,actual:-4.5,predicted:"DOWN",correct:true, ussPrice:115.8,newCarReg:125,event:"急落警告"},
   {month:"25/02",score:78,actual:-5.8,predicted:"DOWN",correct:true, ussPrice:112.2,newCarReg:120,event:null},
   {month:"25/03",score:82,actual:-6.2,predicted:"DOWN",correct:true, ussPrice:108.5,newCarReg:115,event:"底値警戒"},
@@ -94,6 +159,39 @@ const historicalScores = [
   {month:"26/02",score:35,actual:-0.8,predicted:"FLAT",correct:true, ussPrice:127.5,newCarReg:110,event:null},
   {month:"26/03",score:39,actual:null,predicted:"FLAT",correct:null,ussPrice:127.0,newCarReg:112,event:"現在"},
 ]
+
+// 週次データを月次データから補間生成
+function generateWeeklyData(monthlyData: typeof monthlyData) {
+  const weeklyData: typeof monthlyData = []
+  for (let i = 0; i < monthlyData.length - 1; i++) {
+    const current = monthlyData[i]
+    const next = monthlyData[i + 1]
+    // 4週に分割
+    for (let w = 0; w < 4; w++) {
+      const ratio = w / 4
+      const [year, month] = current.month.split("/")
+      const weekNum = w + 1
+      weeklyData.push({
+        month: `${year}/${month}W${weekNum}`,
+        score: Math.round(current.score + (next.score - current.score) * ratio),
+        actual: current.actual !== null && next.actual !== null 
+          ? parseFloat((current.actual + (next.actual - current.actual) * ratio).toFixed(1))
+          : current.actual,
+        predicted: current.predicted,
+        correct: current.correct,
+        ussPrice: parseFloat((current.ussPrice + (next.ussPrice - current.ussPrice) * ratio).toFixed(1)),
+        newCarReg: Math.round(current.newCarReg + (next.newCarReg - current.newCarReg) * ratio),
+        event: w === 0 ? current.event : null,
+      })
+    }
+  }
+  // 最後の月を追加
+  const last = monthlyData[monthlyData.length - 1]
+  weeklyData.push({ ...last, month: `${last.month}W1` })
+  return weeklyData
+}
+
+const weeklyData = generateWeeklyData(monthlyData)
 
 // 現在のシグナル値（2026Q1想定）
 const initialSignals = {
@@ -223,22 +321,22 @@ function getRiskLevel(score: number) {
 
 // バックテスト精度
 const backtestAccuracy = (() => {
-  const total = historicalScores.length
-  const correct = historicalScores.filter(x=>x.correct).length
-  const crashes = historicalScores.filter(x=>x.predicted==="DOWN")
+  const total = monthlyData.length
+  const correct = monthlyData.filter(x=>x.correct).length
+  const crashes = monthlyData.filter(x=>x.predicted==="DOWN")
   const crashCorrect = crashes.filter(x=>x.correct).length
-  return {
+  return { 
     overall: Math.round(correct/total*100),
     crashes: Math.round(crashCorrect/crashes.length*100),
-    surges: Math.round(historicalScores.filter(x=>x.predicted==="UP"&&x.correct).length /
-             historicalScores.filter(x=>x.predicted==="UP").length*100),
+    surges: Math.round(monthlyData.filter(x=>x.predicted==="UP"&&x.correct).length /
+      monthlyData.filter(x=>x.predicted==="UP").length*100),
   }
 })()
 
 // Custom Tooltip
 function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) {
   if(!active || !payload?.length) return null
-  const d = historicalScores.find(x=>x.month===label)
+  const d = monthlyData.find(x=>x.month===label) || weeklyData.find(x=>x.month===label)
   return (
     <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
       <div className="text-sm font-semibold text-muted-foreground mb-2">{label}</div>
@@ -311,8 +409,10 @@ function RiskGauge({ score, size = 200 }: { score: number; size?: number }) {
 }
 
 export default function MarketAlertPage() {
-  const [signals, setSignals] = useState({...initialSignals})
-  const [animScore, setAnimScore] = useState(0)
+const [signals, setSignals] = useState({...initialSignals})
+const [animScore, setAnimScore] = useState(0)
+const [chartInterval, setChartInterval] = useState<"monthly" | "weekly">("monthly")
+const chartData = chartInterval === "monthly" ? monthlyData : weeklyData
   const { composite, breakdown } = calcCompositeScore(signals)
   const risk = getRiskLevel(composite)
 
@@ -449,27 +549,57 @@ export default function MarketAlertPage() {
               {/* Historical Chart */}
               <Card>
                 <CardHeader className="pb-2">
-<CardTitle className="text-base">リスクスコア vs USS成約単価 vs 新車登録（12週先行）2021-2026</CardTitle>
-  <p className="text-xs text-muted-foreground">
-  緑の新車登録が約3ヶ月先行して動く。新車登録増加→中古車相場下落、減少→上昇の傾向。
-  </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-base">リスクスコア vs USS成約単価 vs 新車登録（12週先行）2016-2026</CardTitle>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        緑の新車登録が約3ヶ月先行して動く。新車登録増加→中古車相場下落、減少→上昇の傾向。
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+                      <Button 
+                        variant={chartInterval === "monthly" ? "default" : "ghost"} 
+                        size="sm" 
+                        className="h-7 px-3 text-xs"
+                        onClick={() => setChartInterval("monthly")}
+                      >
+                        月次
+                      </Button>
+                      <Button 
+                        variant={chartInterval === "weekly" ? "default" : "ghost"} 
+                        size="sm" 
+                        className="h-7 px-3 text-xs"
+                        onClick={() => setChartInterval("weekly")}
+                      >
+                        週次
+                      </Button>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-[280px]">
+                  <div className="h-[320px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <ComposedChart data={historicalScores} margin={{top:5,right:60,left:0,bottom:5}}>
+                      <ComposedChart data={chartData} margin={{top:5,right:60,left:0,bottom:5}}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5}/>
-                        <XAxis dataKey="month" tick={{fill:"hsl(var(--muted-foreground))",fontSize:10}} interval={4} tickLine={false}/>
+                        <XAxis 
+                          dataKey="month" 
+                          tick={{fill:"hsl(var(--muted-foreground))",fontSize:9}} 
+                          interval={chartInterval === "monthly" ? 11 : 47} 
+                          tickLine={false}
+                          angle={-45}
+                          textAnchor="end"
+                          height={50}
+                        />
                         <YAxis yAxisId="score" domain={[0,100]} tick={{fill:"#f97316",fontSize:10}}
                           tickFormatter={v=>`${v}`} tickLine={false} axisLine={false}/>
                         <YAxis yAxisId="price" orientation="right" domain={[45,135]}
                           tick={{fill:"#3b82f6",fontSize:10}} tickFormatter={v=>`${v}万`} tickLine={false} axisLine={false}/>
-                        <YAxis yAxisId="newcar" orientation="right" domain={[40,140]} hide/>
+                        <YAxis yAxisId="newcar" orientation="right" domain={[40,150]} hide/>
                         <Tooltip content={<CustomTooltip />}/>
                         <ReferenceLine yAxisId="score" y={60} stroke="#ef4444" strokeDasharray="4 4" strokeOpacity={0.6}/>
                         <ReferenceLine yAxisId="score" y={30} stroke="#22c55e" strokeDasharray="3 3" strokeOpacity={0.4}/>
                         <Line yAxisId="newcar" type="monotone" dataKey="newCarReg" name="新車登録（12週先行）"
-                          stroke="#22c55e" strokeWidth={2} dot={false} strokeDasharray="5 3"/>
+                          stroke="#22c55e" strokeWidth={1.5} dot={false} strokeDasharray="5 3"/>
                         <Area yAxisId="score" type="monotone" dataKey="score" name="リスクスコア"
                           stroke="#f97316" fill="rgba(249,115,22,0.1)" strokeWidth={2}/>
                         <Line yAxisId="price" type="monotone" dataKey="ussPrice" name="USS成約単価"
@@ -550,7 +680,7 @@ export default function MarketAlertPage() {
                     <strong className="text-orange-500">M1（小売成約率30%）</strong>が最大なのは、
                     Insight独自データかつr=0.94の最強精度を持ち、7週先行という最長リードタイムを持つから。
                     <strong className="text-emerald-500">M2（成約率20%）</strong>は既存USSデータで完結する実装容易性と3週先行を評価。
-                    <strong className="text-red-500">M3（輸出圧力20%）</strong>は2023年の「台数増だが相場下落」という逆説を説明できる唯一の指標。
+                    <strong className="text-red-500">M3（輸出圧力20%）</strong>は2023年の「台数増だが相場下落」という逆説を説明できる唯���の指標。
                     M6（規制）はイベント系で頻度は低いが発動時のインパクトが極めて大きい（r=0.92）。
                   </p>
                 </CardContent>
@@ -665,7 +795,7 @@ export default function MarketAlertPage() {
                   {label:"全体精度",value:`${backtestAccuracy.overall}%`,color:"text-blue-500",sub:"2015Q1-2025Q4"},
                   {label:"急落検知精度",value:`${backtestAccuracy.crashes}%`,color:"text-red-500",sub:"DOWN予測の的中率"},
                   {label:"急騰検知精度",value:`${backtestAccuracy.surges}%`,color:"text-emerald-500",sub:"UP予測の的中率"},
-                  {label:"検証期間",value:"60ヶ月",color:"text-orange-500",sub:"2021年4月〜2026年3月"},
+                  {label:"検証期間",value:"120ヶ月",color:"text-orange-500",sub:"2016年4月〜2026年3月"},
                 ].map((k,i)=>(
                   <Card key={i}>
                     <CardContent className="pt-4">
@@ -687,8 +817,8 @@ export default function MarketAlertPage() {
                     <div>実際の変化</div>
                     <div>判定</div>
                   </div>
-                  <ScrollArea className="h-[400px]">
-                    {historicalScores.map((row, i) => {
+<ScrollArea className="h-[400px]">
+  {monthlyData.map((row, i) => {
                       const r = getRiskLevel(row.score)
                       return (
 <div key={i} className={`grid grid-cols-6 gap-4 p-3 border-t border-border text-sm ${row.event ? 'bg-amber-500/5' : ''}`}>
