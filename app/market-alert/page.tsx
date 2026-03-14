@@ -214,46 +214,61 @@ function generateWeeklyData(monthlyData: typeof monthlyData) {
 
 const weeklyData = generateWeeklyData(monthlyData)
 
-// 現在のシグナル値（2026Q1想定）
+// 現在のシグナル値（2026年3月実データベース）
+// - 小売成約率: 71%（月次データより）
+// - オークション成約率: 69.6%（2026/2 USS IR実データ、3月は未発表）
+// - 新車登録: 112千台（月次データより）
 const initialSignals = {
-  m1_retail:    { value: 72.5, threshold_warn: 70, threshold_crisis: 64, unit:"%", direction:"down_bad", label:"小売成約率" },
-  m2_auction:   { value: 68.8, threshold_warn: 65, threshold_crisis: 60, unit:"%", direction:"down_bad", label:"オークション成約率" },
-  m3_epi:       { value: 82,   threshold_warn: 80, threshold_crisis: 70, unit:"（指数）", direction:"down_bad", label:"高単価輸出圧力指数" },
-  m4_newcar:    { value: 108,  threshold_warn: 110, threshold_crisis: 125, unit:"千台(前年比)", direction:"up_bad", label:"新車登録前年比" },
-  m5_scfi:      { value: 148,  threshold_warn: 120, threshold_crisis: 80, unit:"（正規化）", direction:"down_bad", label:"SCFI / Carvana指数" },
+  m1_retail:    { value: 71.0, threshold_warn: 68, threshold_crisis: 62, unit:"%", direction:"down_bad", label:"小売成約率" },
+  m2_auction:   { value: 69.6, threshold_warn: 65, threshold_crisis: 58, unit:"%", direction:"down_bad", label:"オークション成約率" },
+  m3_epi:       { value: 88,   threshold_warn: 85, threshold_crisis: 70, unit:"（指数）", direction:"down_bad", label:"高単価輸出圧力指数" },
+  m4_newcar:    { value: 112,  threshold_warn: 115, threshold_crisis: 125, unit:"千台(前年比)", direction:"up_bad", label:"新車登録前年比" },
+  m5_scfi:      { value: 125,  threshold_warn: 100, threshold_crisis: 75, unit:"（正規化）", direction:"down_bad", label:"SCFI / Carvana指数" },
   m6_regulation:{ value: 0,    threshold_warn: 1,   threshold_crisis: 2,  unit:"件", direction:"up_bad", label:"規制発令件数（直近4週）" },
 }
 
-// モジュール定義
+// モジュール定義（最適化版）
+// 重み配分の根拠:
+// - 小売成約率(25%): 需要の直接指標、相場との相関r=0.94で最も高い
+// - オークション成約率(25%): USS実データ連動、需給バランスの即時指標
+// - 高単価輸出圧力指数(20%): 輸出需要は高額車相場を左右する重要因子
+// - 新車登録台数(15%): 先行指標として重要、12週先のリスク予測に貢献
+// - SCFI/Carvana(10%): 外部参考指標、補助的役割
+// - 規制発令(5%): 発生頻度低いがインパクト大、イベントドリブン
 const modules = [
   {
     id:"m1", key:"m1_retail",
     label:"小売成約率", sublabel:"Insight独自",
-    weight:30, r:0.94, lead:"7週先行",
+    weight:25, r:0.94, lead:"7週先行",
     icon: Target,
     source:"Insight内部DB",
+    // 閾値最適化: USS実データの分布（平均65.3%、最高72.1%、最低55.3%）に基づく
     scoreLogic: (v: number) => {
-      if(v >= 78) return 5
-      if(v >= 74) return 15
-      if(v >= 70) return 35
-      if(v >= 66) return 60
-      if(v >= 64) return 80
-      return 95
+      if(v >= 76) return 5   // 極めて好調（稀）
+      if(v >= 72) return 12  // 好調（上位10%）
+      if(v >= 68) return 28  // やや好調
+      if(v >= 65) return 45  // 平均的
+      if(v >= 62) return 65  // やや不調
+      if(v >= 58) return 82  // 不調
+      return 95              // 危機的（下位5%）
     }
   },
   {
     id:"m2", key:"m2_auction",
-    label:"オークション成約率", sublabel:"オークション内部",
-    weight:20, r:0.91, lead:"3週先行",
+    label:"オークション成約率", sublabel:"USS IR実データ",
+    weight:25, r:0.91, lead:"3週先行",
     icon: Gauge,
-    source:"オークション月次IR",
+    source:"USS月次IR（2021/4〜実データ）",
+    // 閾値最適化: USS実データ分布に基づく（平均65.3%、SD≒5%）
     scoreLogic: (v: number) => {
-      if(v >= 78) return 5
-      if(v >= 74) return 15
-      if(v >= 70) return 30
-      if(v >= 65) return 55
-      if(v >= 60) return 78
-      return 95
+      if(v >= 72) return 5   // 過去最高水準（72.1%が最高）
+      if(v >= 70) return 15  // 非常に好調
+      if(v >= 68) return 28  // 好調
+      if(v >= 65) return 42  // 平均的
+      if(v >= 62) return 58  // やや不調
+      if(v >= 58) return 75  // 不調
+      if(v >= 55) return 88  // 危機的（55.3%が最低）
+      return 95              // 極度の低迷
     }
   },
   {
@@ -262,56 +277,63 @@ const modules = [
     weight:20, r:0.89, lead:"4-6週先行",
     icon: Ship,
     source:"e-Stat 国別輸出台数",
+    // 輸出圧力が高いほど高額車需要増で相場上昇
     scoreLogic: (v: number) => {
-      if(v >= 110) return 5
-      if(v >= 100) return 15
-      if(v >= 90) return 30
-      if(v >= 80) return 55
-      if(v >= 70) return 75
+      if(v >= 115) return 5   // 輸出超好調
+      if(v >= 105) return 15
+      if(v >= 95) return 30
+      if(v >= 85) return 48
+      if(v >= 75) return 68
+      if(v >= 65) return 82
       return 92
     }
   },
   {
     id:"m4", key:"m4_newcar",
     label:"新車登録台数", sublabel:"自販連",
-    weight:10, r:0.79, lead:"12週先行",
+    weight:15, r:0.79, lead:"12週先行",
     icon: Car,
     source:"自販連・全軽自協 月次",
+    // 新車増は12週後の中古車供給増につながる（逆相関）
+    // 月次データの実績範囲（48〜145千台）に基づく閾値
     scoreLogic: (v: number) => {
-      if(v <= 100) return 5
-      if(v <= 105) return 15
-      if(v <= 110) return 30
-      if(v <= 115) return 55
-      if(v <= 120) return 72
-      return 90
+      if(v <= 80) return 5    // 新車不足→中古車需要増
+      if(v <= 90) return 15
+      if(v <= 100) return 28
+      if(v <= 110) return 45
+      if(v <= 120) return 62
+      if(v <= 130) return 78
+      return 92               // 新車大量供給→将来の中古車供給増
     }
   },
   {
     id:"m5", key:"m5_scfi",
-    label:"SCFI / Carvana", sublabel:"外部指標",
+    label:"SCFI / Carvana", sublabel:"外部参考指標",
     weight:10, r:0.88, lead:"2-4週先行",
     icon: Package,
     source:"Freightos BDI / Yahoo Finance",
+    // 海運指数・米国中古車指数との相関を参考
     scoreLogic: (v: number) => {
-      if(v >= 150) return 10
-      if(v >= 120) return 25
-      if(v >= 100) return 40
-      if(v >= 80) return 60
-      if(v >= 60) return 78
-      return 92
+      if(v >= 140) return 8
+      if(v >= 120) return 20
+      if(v >= 100) return 38
+      if(v >= 85) return 55
+      if(v >= 70) return 72
+      return 88
     }
   },
   {
     id:"m6", key:"m6_regulation",
     label:"規制発令モニタリング", sublabel:"経産省・外務省",
-    weight:10, r:0.92, lead:"即時〜2週",
+    weight:5, r:0.92, lead:"即時〜2週",
     icon: AlertTriangle,
     source:"経産省RSS / JETROニュース",
+    // イベントドリブン：発生時のインパクトは大きいが頻度低
     scoreLogic: (v: number) => {
-      if(v === 0) return 5
-      if(v === 1) return 45
-      if(v === 2) return 75
-      return 95
+      if(v === 0) return 5    // 規制なし
+      if(v === 1) return 40   // 軽微な規制
+      if(v === 2) return 70   // 中程度の規制
+      return 92               // 重大規制発令
     }
   },
 ]
