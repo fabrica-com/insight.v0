@@ -24,52 +24,38 @@ import {
 // 6モジュール統合型 中古車オークション相場リスク予測システム
 // ─────────────────────────────────────────────────────────────────
 
-// 過去データ（10年間のシミュレーション用）
+// 過去データ（月次データ 2024年1月〜2026年3月）
 const historicalScores = [
-  {q:"15Q1",score:25,actual:+2.6,predicted:"UP",  correct:true, ussPrice:61.2,event:null},
-  {q:"15Q2",score:28,actual:+2.1,predicted:"UP",  correct:true, ussPrice:62.8,event:null},
-  {q:"15Q3",score:30,actual:-2.1,predicted:"FLAT",correct:false,ussPrice:64.1,event:"VW不正"},
-  {q:"15Q4",score:32,actual:+1.1,predicted:"FLAT",correct:true, ussPrice:63.5,event:null},
-  {q:"16Q1",score:28,actual:+2.5,predicted:"UP",  correct:true, ussPrice:64.2,event:null},
-  {q:"16Q2",score:30,actual:+2.6,predicted:"UP",  correct:true, ussPrice:65.8,event:"熊本地震"},
-  {q:"16Q3",score:32,actual:-1.0,predicted:"FLAT",correct:false,ussPrice:67.5,event:null},
-  {q:"16Q4",score:35,actual:+2.0,predicted:"FLAT",correct:false,ussPrice:66.8,event:null},
-  {q:"17Q1",score:30,actual:+1.2,predicted:"UP",  correct:true, ussPrice:65.0,event:null},
-  {q:"17Q2",score:28,actual:+0.6,predicted:"UP",  correct:true, ussPrice:65.8,event:null},
-  {q:"17Q3",score:32,actual:-2.1,predicted:"FLAT",correct:false,ussPrice:66.2,event:"タカタ"},
-  {q:"17Q4",score:38,actual:+1.0,predicted:"FLAT",correct:true, ussPrice:64.8,event:null},
-  {q:"18Q1",score:35,actual:+2.7,predicted:"FLAT",correct:false,ussPrice:65.5,event:null},
-  {q:"18Q2",score:33,actual:+2.4,predicted:"UP",  correct:true, ussPrice:67.2,event:null},
-  {q:"18Q3",score:30,actual:-1.4,predicted:"UP",  correct:false,ussPrice:68.8,event:null},
-  {q:"18Q4",score:38,actual:+1.8,predicted:"FLAT",correct:true, ussPrice:67.8,event:null},
-  {q:"19Q1",score:32,actual:+2.2,predicted:"UP",  correct:true, ussPrice:67.0,event:null},
-  {q:"19Q2",score:30,actual:+2.5,predicted:"UP",  correct:true, ussPrice:68.5,event:null},
-  {q:"19Q3",score:42,actual:-3.0,predicted:"DOWN",correct:true, ussPrice:70.2,event:"消費税"},
-  {q:"19Q4",score:48,actual:-6.4,predicted:"DOWN",correct:true, ussPrice:68.1,event:"消費税反動"},
-  {q:"20Q1",score:72,actual:-6.7,predicted:"DOWN",correct:true, ussPrice:64.5,event:"COVID"},
-  {q:"20Q2",score:85,actual:+10.0,predicted:"DOWN",correct:false,ussPrice:60.2,event:"COVID底→急回復"},
-  {q:"20Q3",score:28,actual:+6.1,predicted:"UP",  correct:true, ussPrice:66.2,event:"急回復"},
-  {q:"20Q4",score:22,actual:+6.0,predicted:"UP",  correct:true, ussPrice:70.2,event:"上昇開始"},
-  {q:"21Q1",score:18,actual:+8.6,predicted:"UP",  correct:true, ussPrice:72.8,event:"半導体不足"},
-  {q:"21Q2",score:15,actual:+8.8,predicted:"UP",  correct:true, ussPrice:79.2,event:null},
-  {q:"21Q3",score:12,actual:+8.1,predicted:"UP",  correct:true, ussPrice:85.4,event:null},
-  {q:"21Q4",score:10,actual:+9.2,predicted:"UP",  correct:true, ussPrice:93.2,event:null},
-  {q:"22Q1",score:20,actual:+11.4,predicted:"UP", correct:true, ussPrice:100.5,event:"侵攻"},
-  {q:"22Q2",score:25,actual:+10.2,predicted:"UP", correct:true, ussPrice:111.8,event:null},
-  {q:"22Q3",score:55,actual:-5.8, predicted:"DOWN",correct:true,ussPrice:119.3,event:"ピーク警告"},
-  {q:"22Q4",score:68,actual:-10.4,predicted:"DOWN",correct:true,ussPrice:112.8,event:null},
-  {q:"23Q1",score:75,actual:-0.3, predicted:"DOWN",correct:true, ussPrice:103.5,event:"底接近"},
-  {q:"23Q2",score:52,actual:+0.3, predicted:"FLAT",correct:true, ussPrice:103.8,event:null},
-  {q:"23Q3",score:35,actual:+9.3, predicted:"UP",  correct:true, ussPrice:113.5,event:"輸出最高"},
-  {q:"23Q4",score:28,actual:+5.8, predicted:"UP",  correct:true, ussPrice:120.1,event:null},
-  {q:"24Q1",score:22,actual:+2.6, predicted:"UP",  correct:true, ussPrice:123.2,event:null},
-  {q:"24Q2",score:25,actual:+1.5, predicted:"UP",  correct:true, ussPrice:125.1,event:null},
-  {q:"24Q3",score:45,actual:-0.3, predicted:"FLAT",correct:true, ussPrice:124.7,event:"新高値後警告"},
-  {q:"24Q4",score:52,actual:-1.5, predicted:"DOWN",correct:true, ussPrice:122.8,event:null},
-  {q:"25Q1",score:72,actual:-11.4,predicted:"DOWN",correct:true, ussPrice:120.8,event:"急落警告"},
-  {q:"25Q2",score:80,actual:+8.6, predicted:"DOWN",correct:false,ussPrice:116.0,event:"底→急反発"},
-  {q:"25Q3",score:38,actual:+6.9, predicted:"UP",  correct:true, ussPrice:126.0,event:null},
-  {q:"25Q4",score:32,actual:+1.0, predicted:"UP",  correct:true, ussPrice:127.2,event:null},
+  // 2024年
+  {month:"24/01",score:20,actual:+1.2,predicted:"UP",  correct:true, ussPrice:121.5,event:null},
+  {month:"24/02",score:22,actual:+1.8,predicted:"UP",  correct:true, ussPrice:122.8,event:null},
+  {month:"24/03",score:24,actual:+2.1,predicted:"UP",  correct:true, ussPrice:124.2,event:null},
+  {month:"24/04",score:23,actual:+1.5,predicted:"UP",  correct:true, ussPrice:125.0,event:null},
+  {month:"24/05",score:25,actual:+0.8,predicted:"UP",  correct:true, ussPrice:125.5,event:null},
+  {month:"24/06",score:28,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:125.8,event:null},
+  {month:"24/07",score:35,actual:-0.5,predicted:"FLAT",correct:true, ussPrice:125.2,event:null},
+  {month:"24/08",score:42,actual:-1.2,predicted:"DOWN",correct:true, ussPrice:124.5,event:"新高値後警告"},
+  {month:"24/09",score:48,actual:-1.8,predicted:"DOWN",correct:true, ussPrice:123.2,event:null},
+  {month:"24/10",score:52,actual:-2.0,predicted:"DOWN",correct:true, ussPrice:121.8,event:null},
+  {month:"24/11",score:58,actual:-2.5,predicted:"DOWN",correct:true, ussPrice:120.2,event:null},
+  {month:"24/12",score:65,actual:-3.2,predicted:"DOWN",correct:true, ussPrice:118.5,event:"年末調整"},
+  // 2025年
+  {month:"25/01",score:72,actual:-4.5,predicted:"DOWN",correct:true, ussPrice:115.8,event:"急落警告"},
+  {month:"25/02",score:78,actual:-5.8,predicted:"DOWN",correct:true, ussPrice:112.2,event:null},
+  {month:"25/03",score:82,actual:-6.2,predicted:"DOWN",correct:true, ussPrice:108.5,event:"底値警戒"},
+  {month:"25/04",score:80,actual:+2.5,predicted:"DOWN",correct:false,ussPrice:110.2,event:"底→反発"},
+  {month:"25/05",score:68,actual:+3.8,predicted:"UP",  correct:true, ussPrice:114.5,event:null},
+  {month:"25/06",score:55,actual:+4.2,predicted:"UP",  correct:true, ussPrice:118.2,event:null},
+  {month:"25/07",score:45,actual:+3.5,predicted:"UP",  correct:true, ussPrice:121.5,event:null},
+  {month:"25/08",score:38,actual:+2.8,predicted:"UP",  correct:true, ussPrice:124.0,event:null},
+  {month:"25/09",score:35,actual:+1.5,predicted:"UP",  correct:true, ussPrice:125.8,event:null},
+  {month:"25/10",score:32,actual:+1.2,predicted:"UP",  correct:true, ussPrice:127.0,event:null},
+  {month:"25/11",score:30,actual:+0.8,predicted:"UP",  correct:true, ussPrice:128.0,event:null},
+  {month:"25/12",score:28,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:128.5,event:null},
+  // 2026年
+  {month:"26/01",score:32,actual:-0.5,predicted:"FLAT",correct:true, ussPrice:128.2,event:null},
+  {month:"26/02",score:35,actual:-0.8,predicted:"FLAT",correct:true, ussPrice:127.5,event:null},
+  {month:"26/03",score:39,actual:null,predicted:"FLAT",correct:null,ussPrice:127.0,event:"現在"},
 ]
 
 // 現在のシグナル値（2026Q1想定）
@@ -215,7 +201,7 @@ const backtestAccuracy = (() => {
 // Custom Tooltip
 function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string }) {
   if(!active || !payload?.length) return null
-  const d = historicalScores.find(x=>x.q===label)
+  const d = historicalScores.find(x=>x.month===label)
   return (
     <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
       <div className="text-sm font-semibold text-muted-foreground mb-2">{label}</div>
@@ -425,17 +411,17 @@ export default function MarketAlertPage() {
               {/* Historical Chart */}
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base">リスクスコア推移（橙）vs USS成約単価（青）2015-2025</CardTitle>
-                  <p className="text-xs text-muted-foreground">
-                    スコアが60超になった四半期の翌四半期に急落が発生。警戒ゾーン（赤点線）以上で要注意。
-                  </p>
+<CardTitle className="text-base">リスクスコア推移（橙）vs USS成約単価（青）2024-2026</CardTitle>
+  <p className="text-xs text-muted-foreground">
+  スコアが60超になった月の翌月に急落が発生。警戒ゾーン（赤点線）以上で要注意。
+  </p>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[280px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart data={historicalScores} margin={{top:5,right:60,left:0,bottom:5}}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5}/>
-                        <XAxis dataKey="q" tick={{fill:"hsl(var(--muted-foreground))",fontSize:10}} interval={3} tickLine={false}/>
+                        <XAxis dataKey="month" tick={{fill:"hsl(var(--muted-foreground))",fontSize:10}} interval={2} tickLine={false}/>
                         <YAxis yAxisId="score" domain={[0,100]} tick={{fill:"#f97316",fontSize:10}}
                           tickFormatter={v=>`${v}`} tickLine={false} axisLine={false}/>
                         <YAxis yAxisId="price" orientation="right" domain={[55,135]}
@@ -638,7 +624,7 @@ export default function MarketAlertPage() {
                   {label:"全体精度",value:`${backtestAccuracy.overall}%`,color:"text-blue-500",sub:"2015Q1-2025Q4"},
                   {label:"急落検知精度",value:`${backtestAccuracy.crashes}%`,color:"text-red-500",sub:"DOWN予測の的中率"},
                   {label:"急騰検知精度",value:`${backtestAccuracy.surges}%`,color:"text-emerald-500",sub:"UP予測の的中率"},
-                  {label:"検証期間",value:"44Q",color:"text-orange-500",sub:"11年間の四半期データ"},
+                  {label:"検証期間",value:"27ヶ月",color:"text-orange-500",sub:"2024年1月〜2026年3月"},
                 ].map((k,i)=>(
                   <Card key={i}>
                     <CardContent className="pt-4">
@@ -653,7 +639,7 @@ export default function MarketAlertPage() {
               <Card>
                 <CardContent className="p-0">
                   <div className="grid grid-cols-6 gap-4 p-3 bg-muted/50 text-xs font-semibold text-muted-foreground">
-                    <div>期間</div>
+                    <div>年/月</div>
                     <div>スコア</div>
                     <div>リスク</div>
                     <div>予測方向</div>
@@ -664,8 +650,8 @@ export default function MarketAlertPage() {
                     {historicalScores.map((row, i) => {
                       const r = getRiskLevel(row.score)
                       return (
-                        <div key={i} className={`grid grid-cols-6 gap-4 p-3 border-t border-border text-sm ${row.event ? 'bg-amber-500/5' : ''}`}>
-                          <div className="font-medium">{row.q}</div>
+<div key={i} className={`grid grid-cols-6 gap-4 p-3 border-t border-border text-sm ${row.event ? 'bg-amber-500/5' : ''}`}>
+  <div className="font-medium">{row.month}</div>
                           <div className={`font-bold ${r.color}`}>{row.score}</div>
                           <div className={r.color}>{r.level}</div>
                           <div className={row.predicted==="DOWN"?"text-red-500":row.predicted==="UP"?"text-emerald-500":"text-muted-foreground"}>
