@@ -412,7 +412,28 @@ export default function MarketAlertPage() {
 const [signals, setSignals] = useState({...initialSignals})
 const [animScore, setAnimScore] = useState(0)
 const [chartInterval, setChartInterval] = useState<"monthly" | "weekly">("monthly")
-const chartData = chartInterval === "monthly" ? monthlyData : weeklyData
+const [chartPeriod, setChartPeriod] = useState<3 | 5 | 10>(10)
+const [visibleSeries, setVisibleSeries] = useState({
+  score: true,
+  ussPrice: true,
+  newCarReg: true,
+})
+
+// Filter data based on period and interval
+const getFilteredData = () => {
+  const baseData = chartInterval === "weekly" ? weeklyData : monthlyData
+  const currentYear = 26 // 2026
+  const startYear = currentYear - chartPeriod
+  const startMonth = `${startYear.toString().padStart(2, '0')}/04`
+  
+  return baseData.filter(d => {
+    const [year] = d.month.split('/')
+    const yearNum = parseInt(year)
+    return yearNum >= startYear
+  })
+}
+
+const chartData = getFilteredData()
   const { composite, breakdown } = calcCompositeScore(signals)
   const risk = getRiskLevel(composite)
 
@@ -549,34 +570,75 @@ const chartData = chartInterval === "monthly" ? monthlyData : weeklyData
               {/* Historical Chart */}
               <Card>
                 <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <div>
-                      <CardTitle className="text-base">リスクスコア vs USS成約単価 vs 新車登録（12週先行）2016-2026</CardTitle>
+                      <CardTitle className="text-base">リスクスコア vs USS成約単価 vs 新車登録（12週先行）</CardTitle>
                       <p className="text-xs text-muted-foreground mt-1">
-                        緑の新車登録が約3ヶ月先行して動く。新車登録増加→中古車相場下落、減少→上昇の傾向。
+                        緑の新車登録が約3ヶ月先行して動く。凡例クリックで表示切替可能。
                       </p>
                     </div>
-                    <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
-                      <Button 
-                        variant={chartInterval === "monthly" ? "default" : "ghost"} 
-                        size="sm" 
-                        className="h-7 px-3 text-xs"
-                        onClick={() => setChartInterval("monthly")}
-                      >
-                        月次
-                      </Button>
-                      <Button 
-                        variant={chartInterval === "weekly" ? "default" : "ghost"} 
-                        size="sm" 
-                        className="h-7 px-3 text-xs"
-                        onClick={() => setChartInterval("weekly")}
-                      >
-                        週次
-                      </Button>
+                    <div className="flex items-center gap-2">
+                      {/* Period selector */}
+                      <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+                        {([3, 5, 10] as const).map(period => (
+                          <Button 
+                            key={period}
+                            variant={chartPeriod === period ? "default" : "ghost"} 
+                            size="sm" 
+                            className="h-7 px-2 text-xs"
+                            onClick={() => setChartPeriod(period)}
+                          >
+                            {period}年
+                          </Button>
+                        ))}
+                      </div>
+                      {/* Interval selector */}
+                      <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+                        <Button 
+                          variant={chartInterval === "monthly" ? "default" : "ghost"} 
+                          size="sm" 
+                          className="h-7 px-3 text-xs"
+                          onClick={() => setChartInterval("monthly")}
+                        >
+                          月次
+                        </Button>
+                        <Button 
+                          variant={chartInterval === "weekly" ? "default" : "ghost"} 
+                          size="sm" 
+                          className="h-7 px-3 text-xs"
+                          onClick={() => setChartInterval("weekly")}
+                        >
+                          週次
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
+                  {/* Custom Legend */}
+                  <div className="flex items-center justify-center gap-6 mb-3">
+                    <button 
+                      className={`flex items-center gap-1.5 text-xs transition-opacity ${!visibleSeries.score ? 'opacity-40' : ''}`}
+                      onClick={() => setVisibleSeries(prev => ({ ...prev, score: !prev.score }))}
+                    >
+                      <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#f97316' }} />
+                      リスクスコア
+                    </button>
+                    <button 
+                      className={`flex items-center gap-1.5 text-xs transition-opacity ${!visibleSeries.ussPrice ? 'opacity-40' : ''}`}
+                      onClick={() => setVisibleSeries(prev => ({ ...prev, ussPrice: !prev.ussPrice }))}
+                    >
+                      <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#3b82f6' }} />
+                      USS成約単価
+                    </button>
+                    <button 
+                      className={`flex items-center gap-1.5 text-xs transition-opacity ${!visibleSeries.newCarReg ? 'opacity-40' : ''}`}
+                      onClick={() => setVisibleSeries(prev => ({ ...prev, newCarReg: !prev.newCarReg }))}
+                    >
+                      <span className="w-3 h-0.5 border-t-2 border-dashed" style={{ borderColor: '#22c55e', width: 12 }} />
+                      新車登録（12週先行）
+                    </button>
+                  </div>
                   <div className="h-[320px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart data={chartData} margin={{top:5,right:60,left:0,bottom:5}}>
@@ -584,7 +646,7 @@ const chartData = chartInterval === "monthly" ? monthlyData : weeklyData
                         <XAxis 
                           dataKey="month" 
                           tick={{fill:"hsl(var(--muted-foreground))",fontSize:9}} 
-                          interval={chartInterval === "monthly" ? 11 : 47} 
+                          interval={chartInterval === "monthly" ? Math.floor(chartData.length / 12) : Math.floor(chartData.length / 12)} 
                           tickLine={false}
                           angle={-45}
                           textAnchor="end"
@@ -598,13 +660,18 @@ const chartData = chartInterval === "monthly" ? monthlyData : weeklyData
                         <Tooltip content={<CustomTooltip />}/>
                         <ReferenceLine yAxisId="score" y={60} stroke="#ef4444" strokeDasharray="4 4" strokeOpacity={0.6}/>
                         <ReferenceLine yAxisId="score" y={30} stroke="#22c55e" strokeDasharray="3 3" strokeOpacity={0.4}/>
-                        <Line yAxisId="newcar" type="monotone" dataKey="newCarReg" name="新車登録（12週先行）"
-                          stroke="#22c55e" strokeWidth={1.5} dot={false} strokeDasharray="5 3"/>
-                        <Area yAxisId="score" type="monotone" dataKey="score" name="リスクスコア"
-                          stroke="#f97316" fill="rgba(249,115,22,0.1)" strokeWidth={2}/>
-                        <Line yAxisId="price" type="monotone" dataKey="ussPrice" name="USS成約単価"
-                          stroke="#3b82f6" strokeWidth={2.5} dot={false}/>
-                        <Legend wrapperStyle={{fontSize:11}}/>
+                        {visibleSeries.newCarReg && (
+                          <Line yAxisId="newcar" type="monotone" dataKey="newCarReg" name="新車登録（12週先行）"
+                            stroke="#22c55e" strokeWidth={1.5} dot={false} strokeDasharray="5 3"/>
+                        )}
+                        {visibleSeries.score && (
+                          <Area yAxisId="score" type="monotone" dataKey="score" name="リスクスコア"
+                            stroke="#f97316" fill="rgba(249,115,22,0.1)" strokeWidth={2}/>
+                        )}
+                        {visibleSeries.ussPrice && (
+                          <Line yAxisId="price" type="monotone" dataKey="ussPrice" name="USS成約単価"
+                            stroke="#3b82f6" strokeWidth={2.5} dot={false}/>
+                        )}
                       </ComposedChart>
                     </ResponsiveContainer>
                   </div>
