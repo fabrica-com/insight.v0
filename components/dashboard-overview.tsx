@@ -394,47 +394,49 @@ export function DashboardOverview() {
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Risk Score Gauge */}
-            <div className="flex items-center justify-center">
-              <div className="relative flex items-center justify-center">
-                <svg className="w-28 h-14 overflow-visible" viewBox="0 0 120 60">
-                  <defs>
-                    <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#22c55e" />
-                      <stop offset="50%" stopColor="#f59e0b" />
-                      <stop offset="100%" stopColor="#ef4444" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M 10 55 A 50 50 0 0 1 110 55"
-                    fill="none"
-                    stroke="url(#gaugeGradient)"
-                    strokeWidth="8"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M 10 55 A 50 50 0 0 1 110 55"
-                    fill="none"
-                    stroke="hsl(var(--muted))"
-                    strokeWidth="8"
-                    strokeLinecap="round"
-                    opacity="0.2"
-                  />
-                  {/* Needle */}
-                  <line
-                    x1="60"
-                    y1="55"
-                    x2={60 + 35 * Math.cos(Math.PI - (marketAlertData.riskScore / 100) * Math.PI)}
-                    y2={55 - 35 * Math.sin(Math.PI - (marketAlertData.riskScore / 100) * Math.PI)}
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    className="text-foreground"
-                  />
-                  <circle cx="60" cy="55" r="4" fill="currentColor" className="text-foreground" />
-                </svg>
-                <div className="absolute bottom-0 text-center">
-                  <div className="text-2xl font-bold">{marketAlertData.riskScore}</div>
-                </div>
+            <div className="flex flex-col items-center justify-center">
+              <svg className="w-24 h-14" viewBox="0 0 120 70">
+                <defs>
+                  <linearGradient id="gaugeGradientDash" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#22c55e" />
+                    <stop offset="50%" stopColor="#f59e0b" />
+                    <stop offset="100%" stopColor="#ef4444" />
+                  </linearGradient>
+                </defs>
+                {/* Background arc */}
+                <path
+                  d="M 10 60 A 50 50 0 0 1 110 60"
+                  fill="none"
+                  stroke="hsl(var(--muted))"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  opacity="0.3"
+                />
+                {/* Colored arc */}
+                <path
+                  d="M 10 60 A 50 50 0 0 1 110 60"
+                  fill="none"
+                  stroke="url(#gaugeGradientDash)"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                />
+                {/* Needle - 0 is left (PI), 100 is right (0) */}
+                <line
+                  x1="60"
+                  y1="60"
+                  x2={60 + 30 * Math.cos(Math.PI * (1 - marketAlertData.riskScore / 100))}
+                  y2={60 - 30 * Math.sin(Math.PI * (1 - marketAlertData.riskScore / 100))}
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  className="text-foreground"
+                />
+                <circle cx="60" cy="60" r="4" fill="currentColor" className="text-foreground" />
+              </svg>
+              {/* Score display below gauge */}
+              <div className="text-center mt-1">
+                <div className="text-2xl font-bold">{marketAlertData.riskScore}</div>
+                <div className="text-xs text-muted-foreground">/ 100</div>
               </div>
             </div>
             
