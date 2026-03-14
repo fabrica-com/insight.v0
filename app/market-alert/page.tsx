@@ -27,139 +27,140 @@ import {
 // 過去データ（月次データ 2016年4月〜2026年3月 - 10年間）
 // newCarReg: 新車登録台数（12週先行指標）- 値が高いと供給増で中古車相場に下押し圧力
 // retailRate: 小売成約率（%）- 小売店での成約率。高いと需要旺盛
+// auctionRate: オークション成約率（%）- オークションでの成約率
 // usdJpy: その月の平均ドル円レート
 const monthlyData = [
   // 2016年（安定期）- ドル円: 100-118円
-  {month:"16/04",score:28,actual:+1.2,predicted:"FLAT",correct:true, auctionPrice:58.2,newCarReg:95,retailRate:72,usdJpy:108,event:null},
-  {month:"16/05",score:30,actual:+0.8,predicted:"FLAT",correct:true, auctionPrice:58.8,newCarReg:98,retailRate:71,usdJpy:109,event:null},
-  {month:"16/06",score:32,actual:+1.5,predicted:"FLAT",correct:false,auctionPrice:59.5,newCarReg:100,retailRate:70,usdJpy:104,event:null},
-  {month:"16/07",score:28,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:59.8,newCarReg:102,retailRate:69,usdJpy:103,event:null},
-  {month:"16/08",score:25,actual:+1.8,predicted:"UP",  correct:true, auctionPrice:60.8,newCarReg:98,retailRate:71,usdJpy:101,event:null},
-  {month:"16/09",score:22,actual:+2.2,predicted:"UP",  correct:true, auctionPrice:62.2,newCarReg:95,retailRate:73,usdJpy:102,event:null},
-  {month:"16/10",score:20,actual:+1.5,predicted:"UP",  correct:true, auctionPrice:63.2,newCarReg:92,retailRate:74,usdJpy:104,event:null},
-  {month:"16/11",score:22,actual:+0.8,predicted:"UP",  correct:true, auctionPrice:63.8,newCarReg:90,retailRate:75,usdJpy:108,event:null},
-  {month:"16/12",score:25,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:64.2,newCarReg:88,retailRate:74,usdJpy:116,event:null},
+  {month:"16/04",score:28,actual:+1.2,predicted:"FLAT",correct:true, auctionPrice:58.2,newCarReg:95,retailRate:72,auctionRate:68,usdJpy:108,event:null},
+  {month:"16/05",score:30,actual:+0.8,predicted:"FLAT",correct:true, auctionPrice:58.8,newCarReg:98,retailRate:71,auctionRate:67,usdJpy:109,event:null},
+  {month:"16/06",score:32,actual:+1.5,predicted:"FLAT",correct:false,auctionPrice:59.5,newCarReg:100,retailRate:70,auctionRate:66,usdJpy:104,event:null},
+  {month:"16/07",score:28,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:59.8,newCarReg:102,retailRate:69,auctionRate:65,usdJpy:103,event:null},
+  {month:"16/08",score:25,actual:+1.8,predicted:"UP",  correct:true, auctionPrice:60.8,newCarReg:98,retailRate:71,auctionRate:67,usdJpy:101,event:null},
+  {month:"16/09",score:22,actual:+2.2,predicted:"UP",  correct:true, auctionPrice:62.2,newCarReg:95,retailRate:73,auctionRate:69,usdJpy:102,event:null},
+  {month:"16/10",score:20,actual:+1.5,predicted:"UP",  correct:true, auctionPrice:63.2,newCarReg:92,retailRate:74,auctionRate:70,usdJpy:104,event:null},
+  {month:"16/11",score:22,actual:+0.8,predicted:"UP",  correct:true, auctionPrice:63.8,newCarReg:90,retailRate:75,auctionRate:71,usdJpy:108,event:null},
+  {month:"16/12",score:25,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:64.2,newCarReg:88,retailRate:74,auctionRate:70,usdJpy:116,event:null},
   // 2017年（緩やかな上昇）- ドル円: 108-114円
-  {month:"17/01",score:28,actual:+1.2,predicted:"FLAT",correct:true, auctionPrice:65.0,newCarReg:90,retailRate:73,usdJpy:114,event:null},
-  {month:"17/02",score:30,actual:+0.8,predicted:"FLAT",correct:true, auctionPrice:65.5,newCarReg:92,retailRate:72,usdJpy:113,event:null},
-  {month:"17/03",score:32,actual:-0.5,predicted:"FLAT",correct:true, auctionPrice:65.2,newCarReg:95,retailRate:71,usdJpy:113,event:null},
-  {month:"17/04",score:35,actual:-1.2,predicted:"FLAT",correct:false,auctionPrice:64.4,newCarReg:98,retailRate:70,usdJpy:110,event:null},
-  {month:"17/05",score:38,actual:-0.8,predicted:"DOWN",correct:true, auctionPrice:63.8,newCarReg:100,retailRate:69,usdJpy:112,event:null},
-  {month:"17/06",score:35,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:64.2,newCarReg:98,retailRate:70,usdJpy:111,event:null},
-  {month:"17/07",score:32,actual:+1.2,predicted:"FLAT",correct:false,auctionPrice:65.0,newCarReg:95,retailRate:72,usdJpy:112,event:null},
-  {month:"17/08",score:28,actual:+1.8,predicted:"UP",  correct:true, auctionPrice:66.2,newCarReg:92,retailRate:74,usdJpy:110,event:null},
-  {month:"17/09",score:25,actual:+2.0,predicted:"UP",  correct:true, auctionPrice:67.5,newCarReg:88,retailRate:76,usdJpy:111,event:null},
-  {month:"17/10",score:22,actual:+1.5,predicted:"UP",  correct:true, auctionPrice:68.5,newCarReg:85,retailRate:77,usdJpy:113,event:null},
-  {month:"17/11",score:20,actual:+1.2,predicted:"UP",  correct:true, auctionPrice:69.2,newCarReg:82,retailRate:78,usdJpy:113,event:null},
-  {month:"17/12",score:22,actual:+0.8,predicted:"UP",  correct:true, auctionPrice:69.8,newCarReg:80,retailRate:77,usdJpy:113,event:null},
+  {month:"17/01",score:28,actual:+1.2,predicted:"FLAT",correct:true, auctionPrice:65.0,newCarReg:90,retailRate:73,auctionRate:69,usdJpy:114,event:null},
+  {month:"17/02",score:30,actual:+0.8,predicted:"FLAT",correct:true, auctionPrice:65.5,newCarReg:92,retailRate:72,auctionRate:68,usdJpy:113,event:null},
+  {month:"17/03",score:32,actual:-0.5,predicted:"FLAT",correct:true, auctionPrice:65.2,newCarReg:95,retailRate:71,auctionRate:67,usdJpy:113,event:null},
+  {month:"17/04",score:35,actual:-1.2,predicted:"FLAT",correct:false,auctionPrice:64.4,newCarReg:98,retailRate:70,auctionRate:66,usdJpy:110,event:null},
+  {month:"17/05",score:38,actual:-0.8,predicted:"DOWN",correct:true, auctionPrice:63.8,newCarReg:100,retailRate:69,auctionRate:65,usdJpy:112,event:null},
+  {month:"17/06",score:35,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:64.2,newCarReg:98,retailRate:70,auctionRate:66,usdJpy:111,event:null},
+  {month:"17/07",score:32,actual:+1.2,predicted:"FLAT",correct:false,auctionPrice:65.0,newCarReg:95,retailRate:72,auctionRate:68,usdJpy:112,event:null},
+  {month:"17/08",score:28,actual:+1.8,predicted:"UP",  correct:true, auctionPrice:66.2,newCarReg:92,retailRate:74,auctionRate:70,usdJpy:110,event:null},
+  {month:"17/09",score:25,actual:+2.0,predicted:"UP",  correct:true, auctionPrice:67.5,newCarReg:88,retailRate:76,auctionRate:72,usdJpy:111,event:null},
+  {month:"17/10",score:22,actual:+1.5,predicted:"UP",  correct:true, auctionPrice:68.5,newCarReg:85,retailRate:77,auctionRate:73,usdJpy:113,event:null},
+  {month:"17/11",score:20,actual:+1.2,predicted:"UP",  correct:true, auctionPrice:69.2,newCarReg:82,retailRate:78,auctionRate:74,usdJpy:113,event:null},
+  {month:"17/12",score:22,actual:+0.8,predicted:"UP",  correct:true, auctionPrice:69.8,newCarReg:80,retailRate:77,auctionRate:73,usdJpy:113,event:null},
   // 2018年（上昇継続）- ドル円: 106-113円
-  {month:"18/01",score:25,actual:+1.5,predicted:"UP",  correct:true, auctionPrice:70.8,newCarReg:82,retailRate:76,usdJpy:110,event:null},
-  {month:"18/02",score:28,actual:+1.2,predicted:"UP",  correct:true, auctionPrice:71.5,newCarReg:85,retailRate:75,usdJpy:107,event:null},
-  {month:"18/03",score:30,actual:+0.8,predicted:"FLAT",correct:true, auctionPrice:72.0,newCarReg:88,retailRate:74,usdJpy:106,event:null},
-  {month:"18/04",score:32,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:72.4,newCarReg:90,retailRate:73,usdJpy:107,event:null},
-  {month:"18/05",score:35,actual:-0.5,predicted:"FLAT",correct:true, auctionPrice:72.0,newCarReg:95,retailRate:72,usdJpy:109,event:null},
-  {month:"18/06",score:38,actual:-1.0,predicted:"DOWN",correct:true, auctionPrice:71.2,newCarReg:98,retailRate:71,usdJpy:110,event:null},
-  {month:"18/07",score:42,actual:-1.5,predicted:"DOWN",correct:true, auctionPrice:70.2,newCarReg:102,retailRate:70,usdJpy:111,event:null},
-  {month:"18/08",score:45,actual:-0.8,predicted:"DOWN",correct:true, auctionPrice:69.6,newCarReg:105,retailRate:69,usdJpy:111,event:null},
-  {month:"18/09",score:42,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:70.0,newCarReg:102,retailRate:70,usdJpy:112,event:null},
-  {month:"18/10",score:38,actual:+1.2,predicted:"FLAT",correct:false,auctionPrice:70.8,newCarReg:98,retailRate:72,usdJpy:113,event:null},
-  {month:"18/11",score:35,actual:+1.5,predicted:"UP",  correct:true, auctionPrice:71.8,newCarReg:95,retailRate:74,usdJpy:113,event:null},
-  {month:"18/12",score:32,actual:+0.8,predicted:"UP",  correct:true, auctionPrice:72.4,newCarReg:92,retailRate:75,usdJpy:112,event:null},
+  {month:"18/01",score:25,actual:+1.5,predicted:"UP",  correct:true, auctionPrice:70.8,newCarReg:82,retailRate:76,auctionRate:72,usdJpy:110,event:null},
+  {month:"18/02",score:28,actual:+1.2,predicted:"UP",  correct:true, auctionPrice:71.5,newCarReg:85,retailRate:75,auctionRate:71,usdJpy:107,event:null},
+  {month:"18/03",score:30,actual:+0.8,predicted:"FLAT",correct:true, auctionPrice:72.0,newCarReg:88,retailRate:74,auctionRate:70,usdJpy:106,event:null},
+  {month:"18/04",score:32,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:72.4,newCarReg:90,retailRate:73,auctionRate:69,usdJpy:107,event:null},
+  {month:"18/05",score:35,actual:-0.5,predicted:"FLAT",correct:true, auctionPrice:72.0,newCarReg:95,retailRate:72,auctionRate:68,usdJpy:109,event:null},
+  {month:"18/06",score:38,actual:-1.0,predicted:"DOWN",correct:true, auctionPrice:71.2,newCarReg:98,retailRate:71,auctionRate:67,usdJpy:110,event:null},
+  {month:"18/07",score:42,actual:-1.5,predicted:"DOWN",correct:true, auctionPrice:70.2,newCarReg:102,retailRate:70,auctionRate:66,usdJpy:111,event:null},
+  {month:"18/08",score:45,actual:-0.8,predicted:"DOWN",correct:true, auctionPrice:69.6,newCarReg:105,retailRate:69,auctionRate:65,usdJpy:111,event:null},
+  {month:"18/09",score:42,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:70.0,newCarReg:102,retailRate:70,auctionRate:66,usdJpy:112,event:null},
+  {month:"18/10",score:38,actual:+1.2,predicted:"FLAT",correct:false,auctionPrice:70.8,newCarReg:98,retailRate:72,auctionRate:68,usdJpy:113,event:null},
+  {month:"18/11",score:35,actual:+1.5,predicted:"UP",  correct:true, auctionPrice:71.8,newCarReg:95,retailRate:74,auctionRate:70,usdJpy:113,event:null},
+  {month:"18/12",score:32,actual:+0.8,predicted:"UP",  correct:true, auctionPrice:72.4,newCarReg:92,retailRate:75,auctionRate:71,usdJpy:112,event:null},
   // 2019年（消費税前後の変動）- ドル円: 106-112円
-  {month:"19/01",score:30,actual:+1.2,predicted:"UP",  correct:true, auctionPrice:73.2,newCarReg:90,retailRate:76,usdJpy:109,event:null},
-  {month:"19/02",score:28,actual:+1.5,predicted:"UP",  correct:true, auctionPrice:74.2,newCarReg:88,retailRate:77,usdJpy:110,event:null},
-  {month:"19/03",score:25,actual:+2.0,predicted:"UP",  correct:true, auctionPrice:75.8,newCarReg:85,retailRate:78,usdJpy:111,event:null},
-  {month:"19/04",score:22,actual:+2.5,predicted:"UP",  correct:true, auctionPrice:77.8,newCarReg:82,retailRate:80,usdJpy:112,event:null},
-  {month:"19/05",score:20,actual:+1.8,predicted:"UP",  correct:true, auctionPrice:79.2,newCarReg:80,retailRate:81,usdJpy:110,event:null},
-  {month:"19/06",score:22,actual:+1.2,predicted:"UP",  correct:true, auctionPrice:80.2,newCarReg:78,retailRate:82,usdJpy:108,event:null},
-  {month:"19/07",score:25,actual:+0.8,predicted:"FLAT",correct:true, auctionPrice:80.8,newCarReg:80,retailRate:81,usdJpy:108,event:null},
-  {month:"19/08",score:30,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:81.2,newCarReg:85,retailRate:80,usdJpy:106,event:null},
-  {month:"19/09",score:45,actual:-2.5,predicted:"DOWN",correct:true, auctionPrice:79.2,newCarReg:120,retailRate:85,usdJpy:108,event:"消費税"},
-  {month:"19/10",score:55,actual:-4.0,predicted:"DOWN",correct:true, auctionPrice:76.0,newCarReg:130,retailRate:65,usdJpy:108,event:"消費税反動"},
-  {month:"19/11",score:48,actual:-1.5,predicted:"DOWN",correct:true, auctionPrice:74.8,newCarReg:115,retailRate:68,usdJpy:109,event:null},
-  {month:"19/12",score:42,actual:-0.5,predicted:"FLAT",correct:true, auctionPrice:74.4,newCarReg:105,retailRate:72,usdJpy:109,event:null},
+  {month:"19/01",score:30,actual:+1.2,predicted:"UP",  correct:true, auctionPrice:73.2,newCarReg:90,retailRate:76,auctionRate:72,usdJpy:109,event:null},
+  {month:"19/02",score:28,actual:+1.5,predicted:"UP",  correct:true, auctionPrice:74.2,newCarReg:88,retailRate:77,auctionRate:73,usdJpy:110,event:null},
+  {month:"19/03",score:25,actual:+2.0,predicted:"UP",  correct:true, auctionPrice:75.8,newCarReg:85,retailRate:78,auctionRate:74,usdJpy:111,event:null},
+  {month:"19/04",score:22,actual:+2.5,predicted:"UP",  correct:true, auctionPrice:77.8,newCarReg:82,retailRate:80,auctionRate:76,usdJpy:112,event:null},
+  {month:"19/05",score:20,actual:+1.8,predicted:"UP",  correct:true, auctionPrice:79.2,newCarReg:80,retailRate:81,auctionRate:77,usdJpy:110,event:null},
+  {month:"19/06",score:22,actual:+1.2,predicted:"UP",  correct:true, auctionPrice:80.2,newCarReg:78,retailRate:82,auctionRate:78,usdJpy:108,event:null},
+  {month:"19/07",score:25,actual:+0.8,predicted:"FLAT",correct:true, auctionPrice:80.8,newCarReg:80,retailRate:81,auctionRate:77,usdJpy:108,event:null},
+  {month:"19/08",score:30,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:81.2,newCarReg:85,retailRate:80,auctionRate:76,usdJpy:106,event:null},
+  {month:"19/09",score:45,actual:-2.5,predicted:"DOWN",correct:true, auctionPrice:79.2,newCarReg:120,retailRate:85,auctionRate:82,usdJpy:108,event:"消費税"},
+  {month:"19/10",score:55,actual:-4.0,predicted:"DOWN",correct:true, auctionPrice:76.0,newCarReg:130,retailRate:65,auctionRate:58,usdJpy:108,event:"消費税反動"},
+  {month:"19/11",score:48,actual:-1.5,predicted:"DOWN",correct:true, auctionPrice:74.8,newCarReg:115,retailRate:68,auctionRate:62,usdJpy:109,event:null},
+  {month:"19/12",score:42,actual:-0.5,predicted:"FLAT",correct:true, auctionPrice:74.4,newCarReg:105,retailRate:72,auctionRate:66,usdJpy:109,event:null},
   // 2020年（COVID-19）- ドル円: 103-112円（コロナで円高進行）
-  {month:"20/01",score:38,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:74.8,newCarReg:100,retailRate:73,usdJpy:109,event:null},
-  {month:"20/02",score:45,actual:-1.2,predicted:"FLAT",correct:false,auctionPrice:73.8,newCarReg:108,retailRate:71,usdJpy:110,event:null},
-  {month:"20/03",score:65,actual:-5.5,predicted:"DOWN",correct:true, auctionPrice:69.8,newCarReg:125,retailRate:55,usdJpy:108,event:"COVID発生"},
-  {month:"20/04",score:85,actual:-8.2,predicted:"DOWN",correct:true, auctionPrice:64.2,newCarReg:145,retailRate:42,usdJpy:107,event:"緊急事態"},
-  {month:"20/05",score:82,actual:+2.5,predicted:"DOWN",correct:false,auctionPrice:65.8,newCarReg:140,retailRate:58,usdJpy:107,event:"底→反発"},
-  {month:"20/06",score:65,actual:+4.5,predicted:"UP",  correct:true, auctionPrice:68.8,newCarReg:120,retailRate:68,usdJpy:107,event:null},
-  {month:"20/07",score:48,actual:+3.8,predicted:"UP",  correct:true, auctionPrice:71.5,newCarReg:105,retailRate:75,usdJpy:106,event:null},
-  {month:"20/08",score:35,actual:+3.2,predicted:"UP",  correct:true, auctionPrice:73.8,newCarReg:95,retailRate:80,usdJpy:106,event:null},
-  {month:"20/09",score:28,actual:+2.8,predicted:"UP",  correct:true, auctionPrice:75.8,newCarReg:88,retailRate:83,usdJpy:106,event:null},
-  {month:"20/10",score:22,actual:+3.5,predicted:"UP",  correct:true, auctionPrice:78.5,newCarReg:82,retailRate:85,usdJpy:105,event:null},
-  {month:"20/11",score:18,actual:+4.0,predicted:"UP",  correct:true, auctionPrice:81.6,newCarReg:78,retailRate:87,usdJpy:104,event:null},
-  {month:"20/12",score:15,actual:+4.5,predicted:"UP",  correct:true, auctionPrice:85.2,newCarReg:72,retailRate:88,usdJpy:104,event:"上昇開始"},
+  {month:"20/01",score:38,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:74.8,newCarReg:100,retailRate:73,auctionRate:67,usdJpy:109,event:null},
+  {month:"20/02",score:45,actual:-1.2,predicted:"FLAT",correct:false,auctionPrice:73.8,newCarReg:108,retailRate:71,auctionRate:65,usdJpy:110,event:null},
+  {month:"20/03",score:65,actual:-5.5,predicted:"DOWN",correct:true, auctionPrice:69.8,newCarReg:125,retailRate:55,auctionRate:48,usdJpy:108,event:"COVID発生"},
+  {month:"20/04",score:85,actual:-8.2,predicted:"DOWN",correct:true, auctionPrice:64.2,newCarReg:145,retailRate:42,auctionRate:35,usdJpy:107,event:"緊急事態"},
+  {month:"20/05",score:82,actual:+2.5,predicted:"DOWN",correct:false,auctionPrice:65.8,newCarReg:140,retailRate:58,auctionRate:52,usdJpy:107,event:"底→反発"},
+  {month:"20/06",score:65,actual:+4.5,predicted:"UP",  correct:true, auctionPrice:68.8,newCarReg:120,retailRate:68,auctionRate:62,usdJpy:107,event:null},
+  {month:"20/07",score:48,actual:+3.8,predicted:"UP",  correct:true, auctionPrice:71.5,newCarReg:105,retailRate:75,auctionRate:70,usdJpy:106,event:null},
+  {month:"20/08",score:35,actual:+3.2,predicted:"UP",  correct:true, auctionPrice:73.8,newCarReg:95,retailRate:80,auctionRate:75,usdJpy:106,event:null},
+  {month:"20/09",score:28,actual:+2.8,predicted:"UP",  correct:true, auctionPrice:75.8,newCarReg:88,retailRate:83,auctionRate:78,usdJpy:106,event:null},
+  {month:"20/10",score:22,actual:+3.5,predicted:"UP",  correct:true, auctionPrice:78.5,newCarReg:82,retailRate:85,auctionRate:80,usdJpy:105,event:null},
+  {month:"20/11",score:18,actual:+4.0,predicted:"UP",  correct:true, auctionPrice:81.6,newCarReg:78,retailRate:87,auctionRate:82,usdJpy:104,event:null},
+  {month:"20/12",score:15,actual:+4.5,predicted:"UP",  correct:true, auctionPrice:85.2,newCarReg:72,retailRate:88,auctionRate:84,usdJpy:104,event:"上昇開始"},
   // 2021年（半導体不足による相場急騰期）- ドル円: 103-115円
-  {month:"21/01",score:12,actual:+5.0,predicted:"UP",  correct:true, auctionPrice:89.5,newCarReg:68,retailRate:90,usdJpy:104,event:null},
-  {month:"21/02",score:10,actual:+5.5,predicted:"UP",  correct:true, auctionPrice:94.5,newCarReg:65,retailRate:91,usdJpy:105,event:null},
-  {month:"21/03",score:8,actual:+6.0,predicted:"UP",   correct:true, auctionPrice:100.2,newCarReg:62,retailRate:92,usdJpy:109,event:"100万超"},
-  {month:"21/04",score:18,actual:+3.2,predicted:"UP",  correct:true, auctionPrice:103.5,newCarReg:65,retailRate:91,usdJpy:109,event:"半導体不足"},
-  {month:"21/05",score:15,actual:+4.5,predicted:"UP",  correct:true, auctionPrice:108.2,newCarReg:62,retailRate:90,usdJpy:109,event:null},
-  {month:"21/06",score:12,actual:+5.2,predicted:"UP",  correct:true, auctionPrice:113.8,newCarReg:58,retailRate:89,usdJpy:110,event:null},
-  {month:"21/07",score:10,actual:+5.8,predicted:"UP",  correct:true, auctionPrice:120.5,newCarReg:55,retailRate:88,usdJpy:110,event:null},
-  {month:"21/08",score:12,actual:+4.2,predicted:"UP",  correct:true, auctionPrice:125.5,newCarReg:52,retailRate:87,usdJpy:110,event:null},
-  {month:"21/09",score:15,actual:+3.8,predicted:"UP",  correct:true, auctionPrice:130.2,newCarReg:50,retailRate:86,usdJpy:110,event:null},
-  {month:"21/10",score:18,actual:+3.5,predicted:"UP",  correct:true, auctionPrice:134.8,newCarReg:48,retailRate:85,usdJpy:114,event:null},
-  {month:"21/11",score:20,actual:+2.8,predicted:"UP",  correct:true, auctionPrice:138.5,newCarReg:52,retailRate:84,usdJpy:114,event:null},
-  {month:"21/12",score:22,actual:+2.5,predicted:"UP",  correct:true, auctionPrice:142.0,newCarReg:55,retailRate:83,usdJpy:115,event:"140万超"},
+  {month:"21/01",score:12,actual:+5.0,predicted:"UP",  correct:true, auctionPrice:89.5,newCarReg:68,retailRate:90,auctionRate:86,usdJpy:104,event:null},
+  {month:"21/02",score:10,actual:+5.5,predicted:"UP",  correct:true, auctionPrice:94.5,newCarReg:65,retailRate:91,auctionRate:87,usdJpy:105,event:null},
+  {month:"21/03",score:8,actual:+6.0,predicted:"UP",   correct:true, auctionPrice:100.2,newCarReg:62,retailRate:92,auctionRate:88,usdJpy:109,event:"100万超"},
+  {month:"21/04",score:18,actual:+3.2,predicted:"UP",  correct:true, auctionPrice:103.5,newCarReg:65,retailRate:91,auctionRate:87,usdJpy:109,event:"半導体不足"},
+  {month:"21/05",score:15,actual:+4.5,predicted:"UP",  correct:true, auctionPrice:108.2,newCarReg:62,retailRate:90,auctionRate:86,usdJpy:109,event:null},
+  {month:"21/06",score:12,actual:+5.2,predicted:"UP",  correct:true, auctionPrice:113.8,newCarReg:58,retailRate:89,auctionRate:85,usdJpy:110,event:null},
+  {month:"21/07",score:10,actual:+5.8,predicted:"UP",  correct:true, auctionPrice:120.5,newCarReg:55,retailRate:88,auctionRate:84,usdJpy:110,event:null},
+  {month:"21/08",score:12,actual:+4.2,predicted:"UP",  correct:true, auctionPrice:125.5,newCarReg:52,retailRate:87,auctionRate:83,usdJpy:110,event:null},
+  {month:"21/09",score:15,actual:+3.8,predicted:"UP",  correct:true, auctionPrice:130.2,newCarReg:50,retailRate:86,auctionRate:82,usdJpy:110,event:null},
+  {month:"21/10",score:18,actual:+3.5,predicted:"UP",  correct:true, auctionPrice:134.8,newCarReg:48,retailRate:85,auctionRate:81,usdJpy:114,event:null},
+  {month:"21/11",score:20,actual:+2.8,predicted:"UP",  correct:true, auctionPrice:138.5,newCarReg:52,retailRate:84,auctionRate:80,usdJpy:114,event:null},
+  {month:"21/12",score:22,actual:+2.5,predicted:"UP",  correct:true, auctionPrice:142.0,newCarReg:55,retailRate:83,auctionRate:79,usdJpy:115,event:"140万超"},
   // 2022年（ピークから下落開始）- ドル円: 115-150円（急激な円安進行）
-  {month:"22/01",score:25,actual:+3.5,predicted:"UP",  correct:true, auctionPrice:147.0,newCarReg:58,retailRate:82,usdJpy:115,event:null},
-  {month:"22/02",score:28,actual:+4.2,predicted:"UP",  correct:true, auctionPrice:153.5,newCarReg:62,retailRate:81,usdJpy:115,event:"ウクライナ"},
-  {month:"22/03",score:32,actual:+3.8,predicted:"UP",  correct:true, auctionPrice:159.2,newCarReg:68,retailRate:80,usdJpy:122,event:null},
-  {month:"22/04",score:35,actual:+2.5,predicted:"UP",  correct:true, auctionPrice:163.2,newCarReg:75,retailRate:79,usdJpy:128,event:null},
-  {month:"22/05",score:42,actual:+1.8,predicted:"FLAT",correct:true, auctionPrice:166.2,newCarReg:82,retailRate:77,usdJpy:129,event:null},
-  {month:"22/06",score:48,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:167.0,newCarReg:88,retailRate:75,usdJpy:135,event:"過去最高値"},
-  {month:"22/07",score:55,actual:-1.2,predicted:"DOWN",correct:true, auctionPrice:165.0,newCarReg:95,retailRate:72,usdJpy:137,event:"ピーク警告"},
-  {month:"22/08",score:62,actual:-2.5,predicted:"DOWN",correct:true, auctionPrice:160.8,newCarReg:102,retailRate:68,usdJpy:135,event:null},
-  {month:"22/09",score:68,actual:-3.8,predicted:"DOWN",correct:true, auctionPrice:154.7,newCarReg:108,retailRate:65,usdJpy:144,event:null},
-  {month:"22/10",score:72,actual:-4.2,predicted:"DOWN",correct:true, auctionPrice:148.2,newCarReg:112,retailRate:63,usdJpy:148,event:null},
-  {month:"22/11",score:75,actual:-3.5,predicted:"DOWN",correct:true, auctionPrice:143.0,newCarReg:115,retailRate:62,usdJpy:140,event:null},
-  {month:"22/12",score:78,actual:-2.8,predicted:"DOWN",correct:true, auctionPrice:139.0,newCarReg:118,retailRate:61,usdJpy:133,event:"年末調整"},
+  {month:"22/01",score:25,actual:+3.5,predicted:"UP",  correct:true, auctionPrice:147.0,newCarReg:58,retailRate:82,auctionRate:78,usdJpy:115,event:null},
+  {month:"22/02",score:28,actual:+4.2,predicted:"UP",  correct:true, auctionPrice:153.5,newCarReg:62,retailRate:81,auctionRate:77,usdJpy:115,event:"ウクライナ"},
+  {month:"22/03",score:32,actual:+3.8,predicted:"UP",  correct:true, auctionPrice:159.2,newCarReg:68,retailRate:80,auctionRate:76,usdJpy:122,event:null},
+  {month:"22/04",score:35,actual:+2.5,predicted:"UP",  correct:true, auctionPrice:163.2,newCarReg:75,retailRate:79,auctionRate:75,usdJpy:128,event:null},
+  {month:"22/05",score:42,actual:+1.8,predicted:"FLAT",correct:true, auctionPrice:166.2,newCarReg:82,retailRate:77,auctionRate:73,usdJpy:129,event:null},
+  {month:"22/06",score:48,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:167.0,newCarReg:88,retailRate:75,auctionRate:71,usdJpy:135,event:"過去最高値"},
+  {month:"22/07",score:55,actual:-1.2,predicted:"DOWN",correct:true, auctionPrice:165.0,newCarReg:95,retailRate:72,auctionRate:68,usdJpy:137,event:"ピーク警告"},
+  {month:"22/08",score:62,actual:-2.5,predicted:"DOWN",correct:true, auctionPrice:160.8,newCarReg:102,retailRate:68,auctionRate:64,usdJpy:135,event:null},
+  {month:"22/09",score:68,actual:-3.8,predicted:"DOWN",correct:true, auctionPrice:154.7,newCarReg:108,retailRate:65,auctionRate:61,usdJpy:144,event:null},
+  {month:"22/10",score:72,actual:-4.2,predicted:"DOWN",correct:true, auctionPrice:148.2,newCarReg:112,retailRate:63,auctionRate:59,usdJpy:148,event:null},
+  {month:"22/11",score:75,actual:-3.5,predicted:"DOWN",correct:true, auctionPrice:143.0,newCarReg:115,retailRate:62,auctionRate:58,usdJpy:140,event:null},
+  {month:"22/12",score:78,actual:-2.8,predicted:"DOWN",correct:true, auctionPrice:139.0,newCarReg:118,retailRate:61,auctionRate:57,usdJpy:133,event:"年末調整"},
   // 2023年（底打ち〜回復）- ドル円: 127-151円
-  {month:"23/01",score:75,actual:-1.5,predicted:"DOWN",correct:true, auctionPrice:136.9,newCarReg:120,retailRate:60,usdJpy:130,event:null},
-  {month:"23/02",score:72,actual:-0.8,predicted:"DOWN",correct:true, auctionPrice:135.8,newCarReg:118,retailRate:62,usdJpy:134,event:null},
-  {month:"23/03",score:68,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:136.5,newCarReg:115,retailRate:65,usdJpy:133,event:"底打ち"},
-  {month:"23/04",score:62,actual:+1.2,predicted:"FLAT",correct:false,auctionPrice:138.1,newCarReg:110,retailRate:68,usdJpy:134,event:null},
-  {month:"23/05",score:55,actual:+2.5,predicted:"UP",  correct:true, auctionPrice:141.5,newCarReg:105,retailRate:71,usdJpy:138,event:null},
-  {month:"23/06",score:48,actual:+3.2,predicted:"UP",  correct:true, auctionPrice:146.0,newCarReg:100,retailRate:74,usdJpy:143,event:null},
-  {month:"23/07",score:42,actual:+3.8,predicted:"UP",  correct:true, auctionPrice:151.5,newCarReg:95,retailRate:76,usdJpy:142,event:"輸出好調"},
-  {month:"23/08",score:38,actual:+3.5,predicted:"UP",  correct:true, auctionPrice:156.8,newCarReg:92,retailRate:77,usdJpy:145,event:null},
-  {month:"23/09",score:35,actual:+2.8,predicted:"UP",  correct:true, auctionPrice:161.2,newCarReg:90,retailRate:78,usdJpy:148,event:null},
-  {month:"23/10",score:32,actual:+2.2,predicted:"UP",  correct:true, auctionPrice:164.7,newCarReg:88,retailRate:79,usdJpy:150,event:null},
-  {month:"23/11",score:28,actual:+1.8,predicted:"UP",  correct:true, auctionPrice:167.7,newCarReg:85,retailRate:79,usdJpy:150,event:null},
-  {month:"23/12",score:25,actual:+1.5,predicted:"UP",  correct:true, auctionPrice:170.2,newCarReg:82,retailRate:78,usdJpy:142,event:null},
+  {month:"23/01",score:75,actual:-1.5,predicted:"DOWN",correct:true, auctionPrice:136.9,newCarReg:120,retailRate:60,auctionRate:56,usdJpy:130,event:null},
+  {month:"23/02",score:72,actual:-0.8,predicted:"DOWN",correct:true, auctionPrice:135.8,newCarReg:118,retailRate:62,auctionRate:58,usdJpy:134,event:null},
+  {month:"23/03",score:68,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:136.5,newCarReg:115,retailRate:65,auctionRate:61,usdJpy:133,event:"底打ち"},
+  {month:"23/04",score:62,actual:+1.2,predicted:"FLAT",correct:false,auctionPrice:138.1,newCarReg:110,retailRate:68,auctionRate:64,usdJpy:134,event:null},
+  {month:"23/05",score:55,actual:+2.5,predicted:"UP",  correct:true, auctionPrice:141.5,newCarReg:105,retailRate:71,auctionRate:67,usdJpy:138,event:null},
+  {month:"23/06",score:48,actual:+3.2,predicted:"UP",  correct:true, auctionPrice:146.0,newCarReg:100,retailRate:74,auctionRate:70,usdJpy:143,event:null},
+  {month:"23/07",score:42,actual:+3.8,predicted:"UP",  correct:true, auctionPrice:151.5,newCarReg:95,retailRate:76,auctionRate:72,usdJpy:142,event:"輸出好調"},
+  {month:"23/08",score:38,actual:+3.5,predicted:"UP",  correct:true, auctionPrice:156.8,newCarReg:92,retailRate:77,auctionRate:73,usdJpy:145,event:null},
+  {month:"23/09",score:35,actual:+2.8,predicted:"UP",  correct:true, auctionPrice:161.2,newCarReg:90,retailRate:78,auctionRate:74,usdJpy:148,event:null},
+  {month:"23/10",score:32,actual:+2.2,predicted:"UP",  correct:true, auctionPrice:164.7,newCarReg:88,retailRate:79,auctionRate:75,usdJpy:150,event:null},
+  {month:"23/11",score:28,actual:+1.8,predicted:"UP",  correct:true, auctionPrice:167.7,newCarReg:85,retailRate:79,auctionRate:75,usdJpy:150,event:null},
+  {month:"23/12",score:25,actual:+1.5,predicted:"UP",  correct:true, auctionPrice:170.2,newCarReg:82,retailRate:78,auctionRate:74,usdJpy:142,event:null},
   // 2024年（緩やかな上昇〜調整）- ドル円: 140-161円
-  {month:"24/01",score:20,actual:+1.2,predicted:"UP",  correct:true, auctionPrice:172.2,newCarReg:80,retailRate:77,usdJpy:147,event:null},
-  {month:"24/02",score:22,actual:+1.8,predicted:"UP",  correct:true, auctionPrice:175.3,newCarReg:82,retailRate:76,usdJpy:150,event:null},
-  {month:"24/03",score:24,actual:+2.1,predicted:"UP",  correct:true, auctionPrice:179.0,newCarReg:85,retailRate:75,usdJpy:151,event:null},
-  {month:"24/04",score:23,actual:+1.5,predicted:"UP",  correct:true, auctionPrice:181.7,newCarReg:88,retailRate:74,usdJpy:154,event:null},
-  {month:"24/05",score:25,actual:+0.8,predicted:"UP",  correct:true, auctionPrice:183.2,newCarReg:92,retailRate:73,usdJpy:156,event:null},
-  {month:"24/06",score:28,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:184.1,newCarReg:98,retailRate:71,usdJpy:158,event:null},
-  {month:"24/07",score:35,actual:-0.5,predicted:"FLAT",correct:true, auctionPrice:183.2,newCarReg:105,retailRate:69,usdJpy:157,event:null},
-  {month:"24/08",score:42,actual:-1.2,predicted:"DOWN",correct:true, auctionPrice:181.0,newCarReg:112,retailRate:66,usdJpy:146,event:"新高値後警告"},
-  {month:"24/09",score:48,actual:-1.8,predicted:"DOWN",correct:true, auctionPrice:177.7,newCarReg:118,retailRate:64,usdJpy:143,event:null},
-  {month:"24/10",score:52,actual:-2.0,predicted:"DOWN",correct:true, auctionPrice:174.1,newCarReg:122,retailRate:62,usdJpy:152,event:null},
-  {month:"24/11",score:58,actual:-2.5,predicted:"DOWN",correct:true, auctionPrice:169.8,newCarReg:125,retailRate:60,usdJpy:153,event:null},
-  {month:"24/12",score:65,actual:-3.2,predicted:"DOWN",correct:true, auctionPrice:164.3,newCarReg:128,retailRate:58,usdJpy:157,event:"年末調整"},
+  {month:"24/01",score:20,actual:+1.2,predicted:"UP",  correct:true, auctionPrice:172.2,newCarReg:80,retailRate:77,auctionRate:73,usdJpy:147,event:null},
+  {month:"24/02",score:22,actual:+1.8,predicted:"UP",  correct:true, auctionPrice:175.3,newCarReg:82,retailRate:76,auctionRate:72,usdJpy:150,event:null},
+  {month:"24/03",score:24,actual:+2.1,predicted:"UP",  correct:true, auctionPrice:179.0,newCarReg:85,retailRate:75,auctionRate:71,usdJpy:151,event:null},
+  {month:"24/04",score:23,actual:+1.5,predicted:"UP",  correct:true, auctionPrice:181.7,newCarReg:88,retailRate:74,auctionRate:70,usdJpy:154,event:null},
+  {month:"24/05",score:25,actual:+0.8,predicted:"UP",  correct:true, auctionPrice:183.2,newCarReg:92,retailRate:73,auctionRate:69,usdJpy:156,event:null},
+  {month:"24/06",score:28,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:184.1,newCarReg:98,retailRate:71,auctionRate:67,usdJpy:158,event:null},
+  {month:"24/07",score:35,actual:-0.5,predicted:"FLAT",correct:true, auctionPrice:183.2,newCarReg:105,retailRate:69,auctionRate:65,usdJpy:157,event:null},
+  {month:"24/08",score:42,actual:-1.2,predicted:"DOWN",correct:true, auctionPrice:181.0,newCarReg:112,retailRate:66,auctionRate:62,usdJpy:146,event:"新高値後警告"},
+  {month:"24/09",score:48,actual:-1.8,predicted:"DOWN",correct:true, auctionPrice:177.7,newCarReg:118,retailRate:64,auctionRate:60,usdJpy:143,event:null},
+  {month:"24/10",score:52,actual:-2.0,predicted:"DOWN",correct:true, auctionPrice:174.1,newCarReg:122,retailRate:62,auctionRate:58,usdJpy:152,event:null},
+  {month:"24/11",score:58,actual:-2.5,predicted:"DOWN",correct:true, auctionPrice:169.8,newCarReg:125,retailRate:60,auctionRate:56,usdJpy:153,event:null},
+  {month:"24/12",score:65,actual:-3.2,predicted:"DOWN",correct:true, auctionPrice:164.3,newCarReg:128,retailRate:58,auctionRate:54,usdJpy:157,event:"年末調整"},
   // 2025年（急落〜回復）- ドル円: 145-158円
-  {month:"25/01",score:72,actual:-4.5,predicted:"DOWN",correct:true, auctionPrice:156.9,newCarReg:125,retailRate:55,usdJpy:156,event:"急落警告"},
-  {month:"25/02",score:78,actual:-5.8,predicted:"DOWN",correct:true, auctionPrice:147.8,newCarReg:120,retailRate:52,usdJpy:152,event:null},
-  {month:"25/03",score:82,actual:-6.2,predicted:"DOWN",correct:true, auctionPrice:138.6,newCarReg:115,retailRate:50,usdJpy:149,event:"底値警戒"},
-  {month:"25/04",score:80,actual:+2.5,predicted:"DOWN",correct:false,auctionPrice:142.1,newCarReg:108,retailRate:58,usdJpy:143,event:"底→反発"},
-  {month:"25/05",score:68,actual:+3.8,predicted:"UP",  correct:true, auctionPrice:147.5,newCarReg:100,retailRate:65,usdJpy:144,event:null},
-  {month:"25/06",score:55,actual:+4.2,predicted:"UP",  correct:true, auctionPrice:153.7,newCarReg:95,retailRate:70,usdJpy:145,event:null},
-  {month:"25/07",score:45,actual:+3.5,predicted:"UP",  correct:true, auctionPrice:159.1,newCarReg:90,retailRate:73,usdJpy:147,event:null},
-  {month:"25/08",score:38,actual:+2.8,predicted:"UP",  correct:true, auctionPrice:163.5,newCarReg:88,retailRate:75,usdJpy:146,event:null},
-  {month:"25/09",score:35,actual:+1.5,predicted:"UP",  correct:true, auctionPrice:166.0,newCarReg:90,retailRate:76,usdJpy:143,event:null},
-  {month:"25/10",score:32,actual:+1.2,predicted:"UP",  correct:true, auctionPrice:168.0,newCarReg:95,retailRate:76,usdJpy:149,event:null},
-  {month:"25/11",score:30,actual:+0.8,predicted:"UP",  correct:true, auctionPrice:169.3,newCarReg:100,retailRate:75,usdJpy:153,event:null},
-  {month:"25/12",score:28,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:170.2,newCarReg:105,retailRate:74,usdJpy:156,event:null},
+  {month:"25/01",score:72,actual:-4.5,predicted:"DOWN",correct:true, auctionPrice:156.9,newCarReg:125,retailRate:55,auctionRate:50,usdJpy:156,event:"急落警告"},
+  {month:"25/02",score:78,actual:-5.8,predicted:"DOWN",correct:true, auctionPrice:147.8,newCarReg:120,retailRate:52,auctionRate:47,usdJpy:152,event:null},
+  {month:"25/03",score:82,actual:-6.2,predicted:"DOWN",correct:true, auctionPrice:138.6,newCarReg:115,retailRate:50,auctionRate:45,usdJpy:149,event:"底値警戒"},
+  {month:"25/04",score:80,actual:+2.5,predicted:"DOWN",correct:false,auctionPrice:142.1,newCarReg:108,retailRate:58,auctionRate:53,usdJpy:143,event:"底→反発"},
+  {month:"25/05",score:68,actual:+3.8,predicted:"UP",  correct:true, auctionPrice:147.5,newCarReg:100,retailRate:65,auctionRate:60,usdJpy:144,event:null},
+  {month:"25/06",score:55,actual:+4.2,predicted:"UP",  correct:true, auctionPrice:153.7,newCarReg:95,retailRate:70,auctionRate:66,usdJpy:145,event:null},
+  {month:"25/07",score:45,actual:+3.5,predicted:"UP",  correct:true, auctionPrice:159.1,newCarReg:90,retailRate:73,auctionRate:69,usdJpy:147,event:null},
+  {month:"25/08",score:38,actual:+2.8,predicted:"UP",  correct:true, auctionPrice:163.5,newCarReg:88,retailRate:75,auctionRate:71,usdJpy:146,event:null},
+  {month:"25/09",score:35,actual:+1.5,predicted:"UP",  correct:true, auctionPrice:166.0,newCarReg:90,retailRate:76,auctionRate:72,usdJpy:143,event:null},
+  {month:"25/10",score:32,actual:+1.2,predicted:"UP",  correct:true, auctionPrice:168.0,newCarReg:95,retailRate:76,auctionRate:72,usdJpy:149,event:null},
+  {month:"25/11",score:30,actual:+0.8,predicted:"UP",  correct:true, auctionPrice:169.3,newCarReg:100,retailRate:75,auctionRate:71,usdJpy:153,event:null},
+  {month:"25/12",score:28,actual:+0.5,predicted:"FLAT",correct:true, auctionPrice:170.2,newCarReg:105,retailRate:74,auctionRate:70,usdJpy:156,event:null},
   // 2026年 - ドル円: 148-152円
-  {month:"26/01",score:32,actual:-0.5,predicted:"FLAT",correct:true, auctionPrice:169.4,newCarReg:108,retailRate:73,usdJpy:155,event:null},
-  {month:"26/02",score:35,actual:-0.8,predicted:"FLAT",correct:true, auctionPrice:168.0,newCarReg:110,retailRate:72,usdJpy:152,event:null},
-  {month:"26/03",score:39,actual:null,predicted:"FLAT",correct:null,auctionPrice:167.0,newCarReg:112,retailRate:71,usdJpy:150,event:"現在"},
+  {month:"26/01",score:32,actual:-0.5,predicted:"FLAT",correct:true, auctionPrice:169.4,newCarReg:108,retailRate:73,auctionRate:69,usdJpy:155,event:null},
+  {month:"26/02",score:35,actual:-0.8,predicted:"FLAT",correct:true, auctionPrice:168.0,newCarReg:110,retailRate:72,auctionRate:68,usdJpy:152,event:null},
+  {month:"26/03",score:39,actual:null,predicted:"FLAT",correct:null,auctionPrice:167.0,newCarReg:112,retailRate:71,auctionRate:68,usdJpy:150,event:"現在"},
 ]
 
 // 週次データを月次データから補間生成
@@ -185,6 +186,7 @@ function generateWeeklyData(monthlyData: typeof monthlyData) {
         auctionPrice: weekPrice,
         newCarReg: Math.round(current.newCarReg + (next.newCarReg - current.newCarReg) * ratio),
         retailRate: Math.round(current.retailRate + (next.retailRate - current.retailRate) * ratio),
+        auctionRate: Math.round(current.auctionRate + (next.auctionRate - current.auctionRate) * ratio),
         usdJpy: parseFloat((current.usdJpy + (next.usdJpy - current.usdJpy) * ratio).toFixed(1)),
         event: w === 0 ? current.event : null,
       })
@@ -348,7 +350,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
       {payload.map((p, i)=>(
         <div key={i} className="text-sm" style={{color: p.color}}>
 {p.name.replace(/\(.*\)/, "")}: <span className="font-semibold">{typeof p.value==="number"?p.value.toFixed(1):p.value}</span>
-  {p.name.includes("オークション") ? (p.name.includes("千$") ? "千$" : "万円") : p.name==="リスクスコア"?"pt":p.name.includes("新車")?"千台":p.name.includes("小売")?"％":""}
+  {p.name.includes("オークション成約単価") ? (p.name.includes("千$") ? "千$" : "万円") : p.name==="リスクスコア"?"pt":p.name.includes("新車")?"千台":(p.name.includes("小売")||p.name.includes("オークション成約率"))?"％":""}
         </div>
       ))}
       {d?.event && (
@@ -424,6 +426,7 @@ const [visibleSeries, setVisibleSeries] = useState({
   auctionPrice: true,
   newCarReg: true,
   retailRate: true,
+  auctionRate: true,
 })
 
 
@@ -586,9 +589,9 @@ const chartData = getFilteredData()
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div>
-                      <CardTitle className="text-base">リスクスコア vs オークション成約単価 vs 新車登録 vs 小売成約率</CardTitle>
+                      <CardTitle className="text-base">リスクスコア vs オークション成約単価 vs 成約率</CardTitle>
                       <p className="text-xs text-muted-foreground mt-1">
-                        新車登録（緑）が約3ヶ月先行、小売成約率（紫）は需要指標。凡例クリックで表示切替可能。
+                        新車登録（緑）が約3ヶ月先行。小売成約率（紫）とオークション成約率（水色）を比較可能。凡例クリックで表示切替。
                       </p>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -678,6 +681,13 @@ const chartData = getFilteredData()
                       <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#a855f7' }} />
                       小売成約率
                     </button>
+                    <button 
+                      className={`flex items-center gap-1.5 text-xs transition-opacity ${!visibleSeries.auctionRate ? 'opacity-40' : ''}`}
+                      onClick={() => setVisibleSeries(prev => ({ ...prev, auctionRate: !prev.auctionRate }))}
+                    >
+                      <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#06b6d4' }} />
+                      オークション成約率
+                    </button>
                   </div>
                   <div className="h-[320px]">
                     <ResponsiveContainer width="100%" height="100%">
@@ -708,6 +718,10 @@ const chartData = getFilteredData()
                         {visibleSeries.retailRate && (
                           <Line yAxisId="retail" type="monotone" dataKey="retailRate" name="小売成約率"
                             stroke="#a855f7" strokeWidth={1.5} dot={false}/>
+                        )}
+                        {visibleSeries.auctionRate && (
+                          <Line yAxisId="retail" type="monotone" dataKey="auctionRate" name="オークション成約率"
+                            stroke="#06b6d4" strokeWidth={1.5} dot={false} strokeDasharray="3 3"/>
                         )}
                         {visibleSeries.score && (
                           <Area yAxisId="score" type="monotone" dataKey="score" name="リスクスコア"
