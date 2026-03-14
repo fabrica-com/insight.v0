@@ -15,7 +15,6 @@ import {
   Trophy,
   BarChart3,
   MessageSquare,
-  QrCode,
   Newspaper,
   AlertTriangle,
 } from "lucide-react"
@@ -35,7 +34,6 @@ const navigation = [
   { name: "レポート", icon: FileText, href: "/reports" },
   { name: "店舗ランキング", icon: Trophy, href: "/rankings" },
   { name: "業界ニュース", icon: Newspaper, href: "/news" },
-  { name: "QRコード生成", icon: QrCode, href: "/qr-generator" },
   { name: "相場リスクエンジン", icon: AlertTriangle, href: "/market-alert" },
 ]
 
