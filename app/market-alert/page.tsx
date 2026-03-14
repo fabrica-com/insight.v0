@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import {
   LineChart, Line, ComposedChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  ReferenceLine, Legend
+  ReferenceLine, Legend, Bar
 } from "recharts"
 import { DashboardSidebar } from "@/components/dashboard-sidebar"
 import { DashboardHeader } from "@/components/dashboard-header"
@@ -26,138 +26,139 @@ import {
 
 // 過去データ（月次データ 2016年4月〜2026年3月 - 10年間）
 // newCarReg: 新車登録台数（12週先行指標）- 値が高いと供給増で中古車相場に下押し圧力
+// OHLC: open(月初), high(月高値), low(月安値), close(月末) - ussPrice は close と同値
 const monthlyData = [
   // 2016年（安定期）
-  {month:"16/04",score:28,actual:+1.2,predicted:"FLAT",correct:true, ussPrice:58.2,newCarReg:95,event:null},
-  {month:"16/05",score:30,actual:+0.8,predicted:"FLAT",correct:true, ussPrice:58.8,newCarReg:98,event:null},
-  {month:"16/06",score:32,actual:+1.5,predicted:"FLAT",correct:false,ussPrice:59.5,newCarReg:100,event:null},
-  {month:"16/07",score:28,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:59.8,newCarReg:102,event:null},
-  {month:"16/08",score:25,actual:+1.8,predicted:"UP",  correct:true, ussPrice:60.8,newCarReg:98,event:null},
-  {month:"16/09",score:22,actual:+2.2,predicted:"UP",  correct:true, ussPrice:62.2,newCarReg:95,event:null},
-  {month:"16/10",score:20,actual:+1.5,predicted:"UP",  correct:true, ussPrice:63.2,newCarReg:92,event:null},
-  {month:"16/11",score:22,actual:+0.8,predicted:"UP",  correct:true, ussPrice:63.8,newCarReg:90,event:null},
-  {month:"16/12",score:25,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:64.2,newCarReg:88,event:null},
+  {month:"16/04",score:28,actual:+1.2,predicted:"FLAT",correct:true, ussPrice:58.2,open:57.8,high:59.0,low:57.2,close:58.2,newCarReg:95,event:null},
+  {month:"16/05",score:30,actual:+0.8,predicted:"FLAT",correct:true, ussPrice:58.8,open:58.2,high:59.5,low:57.8,close:58.8,newCarReg:98,event:null},
+  {month:"16/06",score:32,actual:+1.5,predicted:"FLAT",correct:false,ussPrice:59.5,open:58.8,high:60.2,low:58.5,close:59.5,newCarReg:100,event:null},
+  {month:"16/07",score:28,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:59.8,open:59.5,high:60.5,low:59.0,close:59.8,newCarReg:102,event:null},
+  {month:"16/08",score:25,actual:+1.8,predicted:"UP",  correct:true, ussPrice:60.8,open:59.8,high:61.5,low:59.5,close:60.8,newCarReg:98,event:null},
+  {month:"16/09",score:22,actual:+2.2,predicted:"UP",  correct:true, ussPrice:62.2,open:60.8,high:63.0,low:60.5,close:62.2,newCarReg:95,event:null},
+  {month:"16/10",score:20,actual:+1.5,predicted:"UP",  correct:true, ussPrice:63.2,open:62.2,high:64.0,low:62.0,close:63.2,newCarReg:92,event:null},
+  {month:"16/11",score:22,actual:+0.8,predicted:"UP",  correct:true, ussPrice:63.8,open:63.2,high:64.5,low:63.0,close:63.8,newCarReg:90,event:null},
+  {month:"16/12",score:25,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:64.2,open:63.8,high:65.0,low:63.5,close:64.2,newCarReg:88,event:null},
   // 2017年（緩やかな上昇）
-  {month:"17/01",score:28,actual:+1.2,predicted:"FLAT",correct:true, ussPrice:65.0,newCarReg:90,event:null},
-  {month:"17/02",score:30,actual:+0.8,predicted:"FLAT",correct:true, ussPrice:65.5,newCarReg:92,event:null},
-  {month:"17/03",score:32,actual:-0.5,predicted:"FLAT",correct:true, ussPrice:65.2,newCarReg:95,event:null},
-  {month:"17/04",score:35,actual:-1.2,predicted:"FLAT",correct:false,ussPrice:64.4,newCarReg:98,event:null},
-  {month:"17/05",score:38,actual:-0.8,predicted:"DOWN",correct:true, ussPrice:63.8,newCarReg:100,event:null},
-  {month:"17/06",score:35,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:64.2,newCarReg:98,event:null},
-  {month:"17/07",score:32,actual:+1.2,predicted:"FLAT",correct:false,ussPrice:65.0,newCarReg:95,event:null},
-  {month:"17/08",score:28,actual:+1.8,predicted:"UP",  correct:true, ussPrice:66.2,newCarReg:92,event:null},
-  {month:"17/09",score:25,actual:+2.0,predicted:"UP",  correct:true, ussPrice:67.5,newCarReg:88,event:null},
-  {month:"17/10",score:22,actual:+1.5,predicted:"UP",  correct:true, ussPrice:68.5,newCarReg:85,event:null},
-  {month:"17/11",score:20,actual:+1.2,predicted:"UP",  correct:true, ussPrice:69.2,newCarReg:82,event:null},
-  {month:"17/12",score:22,actual:+0.8,predicted:"UP",  correct:true, ussPrice:69.8,newCarReg:80,event:null},
+  {month:"17/01",score:28,actual:+1.2,predicted:"FLAT",correct:true, ussPrice:65.0,open:64.2,high:65.8,low:64.0,close:65.0,newCarReg:90,event:null},
+  {month:"17/02",score:30,actual:+0.8,predicted:"FLAT",correct:true, ussPrice:65.5,open:65.0,high:66.2,low:64.8,close:65.5,newCarReg:92,event:null},
+  {month:"17/03",score:32,actual:-0.5,predicted:"FLAT",correct:true, ussPrice:65.2,open:65.5,high:66.0,low:64.8,close:65.2,newCarReg:95,event:null},
+  {month:"17/04",score:35,actual:-1.2,predicted:"FLAT",correct:false,ussPrice:64.4,open:65.2,high:65.5,low:64.0,close:64.4,newCarReg:98,event:null},
+  {month:"17/05",score:38,actual:-0.8,predicted:"DOWN",correct:true, ussPrice:63.8,open:64.4,high:64.8,low:63.5,close:63.8,newCarReg:100,event:null},
+  {month:"17/06",score:35,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:64.2,open:63.8,high:64.8,low:63.5,close:64.2,newCarReg:98,event:null},
+  {month:"17/07",score:32,actual:+1.2,predicted:"FLAT",correct:false,ussPrice:65.0,open:64.2,high:65.5,low:64.0,close:65.0,newCarReg:95,event:null},
+  {month:"17/08",score:28,actual:+1.8,predicted:"UP",  correct:true, ussPrice:66.2,open:65.0,high:66.8,low:64.8,close:66.2,newCarReg:92,event:null},
+  {month:"17/09",score:25,actual:+2.0,predicted:"UP",  correct:true, ussPrice:67.5,open:66.2,high:68.2,low:66.0,close:67.5,newCarReg:88,event:null},
+  {month:"17/10",score:22,actual:+1.5,predicted:"UP",  correct:true, ussPrice:68.5,open:67.5,high:69.2,low:67.2,close:68.5,newCarReg:85,event:null},
+  {month:"17/11",score:20,actual:+1.2,predicted:"UP",  correct:true, ussPrice:69.2,open:68.5,high:70.0,low:68.2,close:69.2,newCarReg:82,event:null},
+  {month:"17/12",score:22,actual:+0.8,predicted:"UP",  correct:true, ussPrice:69.8,open:69.2,high:70.5,low:69.0,close:69.8,newCarReg:80,event:null},
   // 2018年（上昇継続）
-  {month:"18/01",score:25,actual:+1.5,predicted:"UP",  correct:true, ussPrice:70.8,newCarReg:82,event:null},
-  {month:"18/02",score:28,actual:+1.2,predicted:"UP",  correct:true, ussPrice:71.5,newCarReg:85,event:null},
-  {month:"18/03",score:30,actual:+0.8,predicted:"FLAT",correct:true, ussPrice:72.0,newCarReg:88,event:null},
-  {month:"18/04",score:32,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:72.4,newCarReg:90,event:null},
-  {month:"18/05",score:35,actual:-0.5,predicted:"FLAT",correct:true, ussPrice:72.0,newCarReg:95,event:null},
-  {month:"18/06",score:38,actual:-1.0,predicted:"DOWN",correct:true, ussPrice:71.2,newCarReg:98,event:null},
-  {month:"18/07",score:42,actual:-1.5,predicted:"DOWN",correct:true, ussPrice:70.2,newCarReg:102,event:null},
-  {month:"18/08",score:45,actual:-0.8,predicted:"DOWN",correct:true, ussPrice:69.6,newCarReg:105,event:null},
-  {month:"18/09",score:42,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:70.0,newCarReg:102,event:null},
-  {month:"18/10",score:38,actual:+1.2,predicted:"FLAT",correct:false,ussPrice:70.8,newCarReg:98,event:null},
-  {month:"18/11",score:35,actual:+1.5,predicted:"UP",  correct:true, ussPrice:71.8,newCarReg:95,event:null},
-  {month:"18/12",score:32,actual:+0.8,predicted:"UP",  correct:true, ussPrice:72.4,newCarReg:92,event:null},
+  {month:"18/01",score:25,actual:+1.5,predicted:"UP",  correct:true, ussPrice:70.8,open:69.8,high:71.5,low:69.5,close:70.8,newCarReg:82,event:null},
+  {month:"18/02",score:28,actual:+1.2,predicted:"UP",  correct:true, ussPrice:71.5,open:70.8,high:72.2,low:70.5,close:71.5,newCarReg:85,event:null},
+  {month:"18/03",score:30,actual:+0.8,predicted:"FLAT",correct:true, ussPrice:72.0,open:71.5,high:72.8,low:71.2,close:72.0,newCarReg:88,event:null},
+  {month:"18/04",score:32,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:72.4,open:72.0,high:73.0,low:71.8,close:72.4,newCarReg:90,event:null},
+  {month:"18/05",score:35,actual:-0.5,predicted:"FLAT",correct:true, ussPrice:72.0,open:72.4,high:72.8,low:71.5,close:72.0,newCarReg:95,event:null},
+  {month:"18/06",score:38,actual:-1.0,predicted:"DOWN",correct:true, ussPrice:71.2,open:72.0,high:72.5,low:70.8,close:71.2,newCarReg:98,event:null},
+  {month:"18/07",score:42,actual:-1.5,predicted:"DOWN",correct:true, ussPrice:70.2,open:71.2,high:71.8,low:69.8,close:70.2,newCarReg:102,event:null},
+  {month:"18/08",score:45,actual:-0.8,predicted:"DOWN",correct:true, ussPrice:69.6,open:70.2,high:70.8,low:69.2,close:69.6,newCarReg:105,event:null},
+  {month:"18/09",score:42,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:70.0,open:69.6,high:70.5,low:69.2,close:70.0,newCarReg:102,event:null},
+  {month:"18/10",score:38,actual:+1.2,predicted:"FLAT",correct:false,ussPrice:70.8,open:70.0,high:71.5,low:69.8,close:70.8,newCarReg:98,event:null},
+  {month:"18/11",score:35,actual:+1.5,predicted:"UP",  correct:true, ussPrice:71.8,open:70.8,high:72.5,low:70.5,close:71.8,newCarReg:95,event:null},
+  {month:"18/12",score:32,actual:+0.8,predicted:"UP",  correct:true, ussPrice:72.4,open:71.8,high:73.0,low:71.5,close:72.4,newCarReg:92,event:null},
   // 2019年（消費税前後の変動）
-  {month:"19/01",score:30,actual:+1.2,predicted:"UP",  correct:true, ussPrice:73.2,newCarReg:90,event:null},
-  {month:"19/02",score:28,actual:+1.5,predicted:"UP",  correct:true, ussPrice:74.2,newCarReg:88,event:null},
-  {month:"19/03",score:25,actual:+2.0,predicted:"UP",  correct:true, ussPrice:75.8,newCarReg:85,event:null},
-  {month:"19/04",score:22,actual:+2.5,predicted:"UP",  correct:true, ussPrice:77.8,newCarReg:82,event:null},
-  {month:"19/05",score:20,actual:+1.8,predicted:"UP",  correct:true, ussPrice:79.2,newCarReg:80,event:null},
-  {month:"19/06",score:22,actual:+1.2,predicted:"UP",  correct:true, ussPrice:80.2,newCarReg:78,event:null},
-  {month:"19/07",score:25,actual:+0.8,predicted:"FLAT",correct:true, ussPrice:80.8,newCarReg:80,event:null},
-  {month:"19/08",score:30,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:81.2,newCarReg:85,event:null},
-  {month:"19/09",score:45,actual:-2.5,predicted:"DOWN",correct:true, ussPrice:79.2,newCarReg:120,event:"消費税"},
-  {month:"19/10",score:55,actual:-4.0,predicted:"DOWN",correct:true, ussPrice:76.0,newCarReg:130,event:"消費税反動"},
-  {month:"19/11",score:48,actual:-1.5,predicted:"DOWN",correct:true, ussPrice:74.8,newCarReg:115,event:null},
-  {month:"19/12",score:42,actual:-0.5,predicted:"FLAT",correct:true, ussPrice:74.4,newCarReg:105,event:null},
+  {month:"19/01",score:30,actual:+1.2,predicted:"UP",  correct:true, ussPrice:73.2,open:72.4,high:74.0,low:72.2,close:73.2,newCarReg:90,event:null},
+  {month:"19/02",score:28,actual:+1.5,predicted:"UP",  correct:true, ussPrice:74.2,open:73.2,high:75.0,low:73.0,close:74.2,newCarReg:88,event:null},
+  {month:"19/03",score:25,actual:+2.0,predicted:"UP",  correct:true, ussPrice:75.8,open:74.2,high:76.5,low:74.0,close:75.8,newCarReg:85,event:null},
+  {month:"19/04",score:22,actual:+2.5,predicted:"UP",  correct:true, ussPrice:77.8,open:75.8,high:78.5,low:75.5,close:77.8,newCarReg:82,event:null},
+  {month:"19/05",score:20,actual:+1.8,predicted:"UP",  correct:true, ussPrice:79.2,open:77.8,high:80.0,low:77.5,close:79.2,newCarReg:80,event:null},
+  {month:"19/06",score:22,actual:+1.2,predicted:"UP",  correct:true, ussPrice:80.2,open:79.2,high:81.0,low:79.0,close:80.2,newCarReg:78,event:null},
+  {month:"19/07",score:25,actual:+0.8,predicted:"FLAT",correct:true, ussPrice:80.8,open:80.2,high:81.5,low:80.0,close:80.8,newCarReg:80,event:null},
+  {month:"19/08",score:30,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:81.2,open:80.8,high:82.0,low:80.5,close:81.2,newCarReg:85,event:null},
+  {month:"19/09",score:45,actual:-2.5,predicted:"DOWN",correct:true, ussPrice:79.2,open:81.2,high:82.5,low:78.5,close:79.2,newCarReg:120,event:"消費税"},
+  {month:"19/10",score:55,actual:-4.0,predicted:"DOWN",correct:true, ussPrice:76.0,open:79.2,high:80.0,low:75.0,close:76.0,newCarReg:130,event:"消費税反動"},
+  {month:"19/11",score:48,actual:-1.5,predicted:"DOWN",correct:true, ussPrice:74.8,open:76.0,high:76.8,low:74.2,close:74.8,newCarReg:115,event:null},
+  {month:"19/12",score:42,actual:-0.5,predicted:"FLAT",correct:true, ussPrice:74.4,open:74.8,high:75.5,low:74.0,close:74.4,newCarReg:105,event:null},
   // 2020年（COVID-19）
-  {month:"20/01",score:38,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:74.8,newCarReg:100,event:null},
-  {month:"20/02",score:45,actual:-1.2,predicted:"FLAT",correct:false,ussPrice:73.8,newCarReg:108,event:null},
-  {month:"20/03",score:65,actual:-5.5,predicted:"DOWN",correct:true, ussPrice:69.8,newCarReg:125,event:"COVID発生"},
-  {month:"20/04",score:85,actual:-8.2,predicted:"DOWN",correct:true, ussPrice:64.2,newCarReg:145,event:"緊急事態"},
-  {month:"20/05",score:82,actual:+2.5,predicted:"DOWN",correct:false,ussPrice:65.8,newCarReg:140,event:"底→反発"},
-  {month:"20/06",score:65,actual:+4.5,predicted:"UP",  correct:true, ussPrice:68.8,newCarReg:120,event:null},
-  {month:"20/07",score:48,actual:+3.8,predicted:"UP",  correct:true, ussPrice:71.5,newCarReg:105,event:null},
-  {month:"20/08",score:35,actual:+3.2,predicted:"UP",  correct:true, ussPrice:73.8,newCarReg:95,event:null},
-  {month:"20/09",score:28,actual:+2.8,predicted:"UP",  correct:true, ussPrice:75.8,newCarReg:88,event:null},
-  {month:"20/10",score:22,actual:+3.5,predicted:"UP",  correct:true, ussPrice:78.5,newCarReg:82,event:null},
-  {month:"20/11",score:18,actual:+4.0,predicted:"UP",  correct:true, ussPrice:81.6,newCarReg:78,event:null},
-  {month:"20/12",score:15,actual:+4.5,predicted:"UP",  correct:true, ussPrice:85.2,newCarReg:72,event:"上昇開始"},
+  {month:"20/01",score:38,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:74.8,open:74.4,high:75.5,low:74.2,close:74.8,newCarReg:100,event:null},
+  {month:"20/02",score:45,actual:-1.2,predicted:"FLAT",correct:false,ussPrice:73.8,open:74.8,high:75.2,low:73.2,close:73.8,newCarReg:108,event:null},
+  {month:"20/03",score:65,actual:-5.5,predicted:"DOWN",correct:true, ussPrice:69.8,open:73.8,high:74.5,low:68.5,close:69.8,newCarReg:125,event:"COVID発生"},
+  {month:"20/04",score:85,actual:-8.2,predicted:"DOWN",correct:true, ussPrice:64.2,open:69.8,high:70.5,low:62.0,close:64.2,newCarReg:145,event:"緊急事態"},
+  {month:"20/05",score:82,actual:+2.5,predicted:"DOWN",correct:false,ussPrice:65.8,open:64.2,high:66.5,low:63.5,close:65.8,newCarReg:140,event:"底→反発"},
+  {month:"20/06",score:65,actual:+4.5,predicted:"UP",  correct:true, ussPrice:68.8,open:65.8,high:69.5,low:65.5,close:68.8,newCarReg:120,event:null},
+  {month:"20/07",score:48,actual:+3.8,predicted:"UP",  correct:true, ussPrice:71.5,open:68.8,high:72.2,low:68.5,close:71.5,newCarReg:105,event:null},
+  {month:"20/08",score:35,actual:+3.2,predicted:"UP",  correct:true, ussPrice:73.8,open:71.5,high:74.5,low:71.2,close:73.8,newCarReg:95,event:null},
+  {month:"20/09",score:28,actual:+2.8,predicted:"UP",  correct:true, ussPrice:75.8,open:73.8,high:76.5,low:73.5,close:75.8,newCarReg:88,event:null},
+  {month:"20/10",score:22,actual:+3.5,predicted:"UP",  correct:true, ussPrice:78.5,open:75.8,high:79.2,low:75.5,close:78.5,newCarReg:82,event:null},
+  {month:"20/11",score:18,actual:+4.0,predicted:"UP",  correct:true, ussPrice:81.6,open:78.5,high:82.5,low:78.2,close:81.6,newCarReg:78,event:null},
+  {month:"20/12",score:15,actual:+4.5,predicted:"UP",  correct:true, ussPrice:85.2,open:81.6,high:86.0,low:81.2,close:85.2,newCarReg:72,event:"上昇開始"},
   // 2021年（半導体不足による相場急騰期）
-  {month:"21/01",score:12,actual:+5.0,predicted:"UP",  correct:true, ussPrice:89.5,newCarReg:68,event:null},
-  {month:"21/02",score:10,actual:+5.5,predicted:"UP",  correct:true, ussPrice:94.5,newCarReg:65,event:null},
-  {month:"21/03",score:8,actual:+6.0,predicted:"UP",   correct:true, ussPrice:100.2,newCarReg:62,event:"100万超"},
-  {month:"21/04",score:18,actual:+3.2,predicted:"UP",  correct:true, ussPrice:72.5,newCarReg:65,event:"半導体不足"},
-  {month:"21/05",score:15,actual:+4.5,predicted:"UP",  correct:true, ussPrice:75.8,newCarReg:62,event:null},
-  {month:"21/06",score:12,actual:+5.2,predicted:"UP",  correct:true, ussPrice:79.8,newCarReg:58,event:null},
-  {month:"21/07",score:10,actual:+5.8,predicted:"UP",  correct:true, ussPrice:84.5,newCarReg:55,event:null},
-  {month:"21/08",score:12,actual:+4.2,predicted:"UP",  correct:true, ussPrice:88.0,newCarReg:52,event:null},
-  {month:"21/09",score:15,actual:+3.8,predicted:"UP",  correct:true, ussPrice:91.5,newCarReg:50,event:null},
-  {month:"21/10",score:18,actual:+3.5,predicted:"UP",  correct:true, ussPrice:94.8,newCarReg:48,event:null},
-  {month:"21/11",score:20,actual:+2.8,predicted:"UP",  correct:true, ussPrice:97.5,newCarReg:52,event:null},
-  {month:"21/12",score:22,actual:+2.5,predicted:"UP",  correct:true, ussPrice:100.0,newCarReg:55,event:"100万超"},
+  {month:"21/01",score:12,actual:+5.0,predicted:"UP",  correct:true, ussPrice:89.5,open:85.2,high:90.5,low:85.0,close:89.5,newCarReg:68,event:null},
+  {month:"21/02",score:10,actual:+5.5,predicted:"UP",  correct:true, ussPrice:94.5,open:89.5,high:95.5,low:89.0,close:94.5,newCarReg:65,event:null},
+  {month:"21/03",score:8,actual:+6.0,predicted:"UP",   correct:true, ussPrice:100.2,open:94.5,high:101.5,low:94.0,close:100.2,newCarReg:62,event:"100万超"},
+  {month:"21/04",score:18,actual:+3.2,predicted:"UP",  correct:true, ussPrice:103.5,open:100.2,high:104.5,low:100.0,close:103.5,newCarReg:65,event:"半導体不足"},
+  {month:"21/05",score:15,actual:+4.5,predicted:"UP",  correct:true, ussPrice:108.2,open:103.5,high:109.5,low:103.0,close:108.2,newCarReg:62,event:null},
+  {month:"21/06",score:12,actual:+5.2,predicted:"UP",  correct:true, ussPrice:113.8,open:108.2,high:115.0,low:108.0,close:113.8,newCarReg:58,event:null},
+  {month:"21/07",score:10,actual:+5.8,predicted:"UP",  correct:true, ussPrice:120.5,open:113.8,high:122.0,low:113.5,close:120.5,newCarReg:55,event:null},
+  {month:"21/08",score:12,actual:+4.2,predicted:"UP",  correct:true, ussPrice:125.5,open:120.5,high:127.0,low:120.0,close:125.5,newCarReg:52,event:null},
+  {month:"21/09",score:15,actual:+3.8,predicted:"UP",  correct:true, ussPrice:130.2,open:125.5,high:132.0,low:125.0,close:130.2,newCarReg:50,event:null},
+  {month:"21/10",score:18,actual:+3.5,predicted:"UP",  correct:true, ussPrice:134.8,open:130.2,high:136.5,low:130.0,close:134.8,newCarReg:48,event:null},
+  {month:"21/11",score:20,actual:+2.8,predicted:"UP",  correct:true, ussPrice:138.5,open:134.8,high:140.0,low:134.5,close:138.5,newCarReg:52,event:null},
+  {month:"21/12",score:22,actual:+2.5,predicted:"UP",  correct:true, ussPrice:142.0,open:138.5,high:144.0,low:138.0,close:142.0,newCarReg:55,event:"140万超"},
   // 2022年（ピークから下落開始）
-  {month:"22/01",score:25,actual:+3.5,predicted:"UP",  correct:true, ussPrice:103.5,newCarReg:58,event:null},
-  {month:"22/02",score:28,actual:+4.2,predicted:"UP",  correct:true, ussPrice:107.8,newCarReg:62,event:"ウクライナ"},
-  {month:"22/03",score:32,actual:+3.8,predicted:"UP",  correct:true, ussPrice:111.8,newCarReg:68,event:null},
-  {month:"22/04",score:35,actual:+2.5,predicted:"UP",  correct:true, ussPrice:114.5,newCarReg:75,event:null},
-  {month:"22/05",score:42,actual:+1.8,predicted:"FLAT",correct:true, ussPrice:116.5,newCarReg:82,event:null},
-  {month:"22/06",score:48,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:117.2,newCarReg:88,event:null},
-  {month:"22/07",score:55,actual:-1.2,predicted:"DOWN",correct:true, ussPrice:115.8,newCarReg:95,event:"ピーク警告"},
-  {month:"22/08",score:62,actual:-2.5,predicted:"DOWN",correct:true, ussPrice:113.0,newCarReg:102,event:null},
-  {month:"22/09",score:68,actual:-3.8,predicted:"DOWN",correct:true, ussPrice:108.8,newCarReg:108,event:null},
-  {month:"22/10",score:72,actual:-4.2,predicted:"DOWN",correct:true, ussPrice:104.2,newCarReg:112,event:null},
-  {month:"22/11",score:75,actual:-3.5,predicted:"DOWN",correct:true, ussPrice:100.5,newCarReg:115,event:null},
-  {month:"22/12",score:78,actual:-2.8,predicted:"DOWN",correct:true, ussPrice:97.8,newCarReg:118,event:"年末調整"},
+  {month:"22/01",score:25,actual:+3.5,predicted:"UP",  correct:true, ussPrice:147.0,open:142.0,high:149.0,low:141.5,close:147.0,newCarReg:58,event:null},
+  {month:"22/02",score:28,actual:+4.2,predicted:"UP",  correct:true, ussPrice:153.5,open:147.0,high:156.0,low:146.5,close:153.5,newCarReg:62,event:"ウクライナ"},
+  {month:"22/03",score:32,actual:+3.8,predicted:"UP",  correct:true, ussPrice:159.2,open:153.5,high:162.0,low:153.0,close:159.2,newCarReg:68,event:null},
+  {month:"22/04",score:35,actual:+2.5,predicted:"UP",  correct:true, ussPrice:163.2,open:159.2,high:166.0,low:158.5,close:163.2,newCarReg:75,event:null},
+  {month:"22/05",score:42,actual:+1.8,predicted:"FLAT",correct:true, ussPrice:166.2,open:163.2,high:168.5,low:162.0,close:166.2,newCarReg:82,event:null},
+  {month:"22/06",score:48,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:167.0,open:166.2,high:170.0,low:165.0,close:167.0,newCarReg:88,event:"過去最高値"},
+  {month:"22/07",score:55,actual:-1.2,predicted:"DOWN",correct:true, ussPrice:165.0,open:167.0,high:168.5,low:163.0,close:165.0,newCarReg:95,event:"ピーク警告"},
+  {month:"22/08",score:62,actual:-2.5,predicted:"DOWN",correct:true, ussPrice:160.8,open:165.0,high:166.0,low:158.0,close:160.8,newCarReg:102,event:null},
+  {month:"22/09",score:68,actual:-3.8,predicted:"DOWN",correct:true, ussPrice:154.7,open:160.8,high:162.0,low:152.0,close:154.7,newCarReg:108,event:null},
+  {month:"22/10",score:72,actual:-4.2,predicted:"DOWN",correct:true, ussPrice:148.2,open:154.7,high:156.0,low:145.0,close:148.2,newCarReg:112,event:null},
+  {month:"22/11",score:75,actual:-3.5,predicted:"DOWN",correct:true, ussPrice:143.0,open:148.2,high:150.0,low:140.0,close:143.0,newCarReg:115,event:null},
+  {month:"22/12",score:78,actual:-2.8,predicted:"DOWN",correct:true, ussPrice:139.0,open:143.0,high:145.0,low:136.0,close:139.0,newCarReg:118,event:"年末調整"},
   // 2023年（底打ち〜回復）
-  {month:"23/01",score:75,actual:-1.5,predicted:"DOWN",correct:true, ussPrice:96.2,newCarReg:120,event:null},
-  {month:"23/02",score:72,actual:-0.8,predicted:"DOWN",correct:true, ussPrice:95.5,newCarReg:118,event:null},
-  {month:"23/03",score:68,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:96.0,newCarReg:115,event:"底打ち"},
-  {month:"23/04",score:62,actual:+1.2,predicted:"FLAT",correct:false,ussPrice:97.2,newCarReg:110,event:null},
-  {month:"23/05",score:55,actual:+2.5,predicted:"UP",  correct:true, ussPrice:99.5,newCarReg:105,event:null},
-  {month:"23/06",score:48,actual:+3.2,predicted:"UP",  correct:true, ussPrice:102.8,newCarReg:100,event:null},
-  {month:"23/07",score:42,actual:+3.8,predicted:"UP",  correct:true, ussPrice:106.8,newCarReg:95,event:"輸出好調"},
-  {month:"23/08",score:38,actual:+3.5,predicted:"UP",  correct:true, ussPrice:110.5,newCarReg:92,event:null},
-  {month:"23/09",score:35,actual:+2.8,predicted:"UP",  correct:true, ussPrice:113.5,newCarReg:90,event:null},
-  {month:"23/10",score:32,actual:+2.2,predicted:"UP",  correct:true, ussPrice:116.0,newCarReg:88,event:null},
-  {month:"23/11",score:28,actual:+1.8,predicted:"UP",  correct:true, ussPrice:118.2,newCarReg:85,event:null},
-  {month:"23/12",score:25,actual:+1.5,predicted:"UP",  correct:true, ussPrice:120.0,newCarReg:82,event:null},
+  {month:"23/01",score:75,actual:-1.5,predicted:"DOWN",correct:true, ussPrice:136.9,open:139.0,high:140.5,low:134.0,close:136.9,newCarReg:120,event:null},
+  {month:"23/02",score:72,actual:-0.8,predicted:"DOWN",correct:true, ussPrice:135.8,open:136.9,high:138.5,low:133.0,close:135.8,newCarReg:118,event:null},
+  {month:"23/03",score:68,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:136.5,open:135.8,high:138.0,low:134.0,close:136.5,newCarReg:115,event:"底打ち"},
+  {month:"23/04",score:62,actual:+1.2,predicted:"FLAT",correct:false,ussPrice:138.1,open:136.5,high:140.0,low:136.0,close:138.1,newCarReg:110,event:null},
+  {month:"23/05",score:55,actual:+2.5,predicted:"UP",  correct:true, ussPrice:141.5,open:138.1,high:143.0,low:137.5,close:141.5,newCarReg:105,event:null},
+  {month:"23/06",score:48,actual:+3.2,predicted:"UP",  correct:true, ussPrice:146.0,open:141.5,high:148.0,low:141.0,close:146.0,newCarReg:100,event:null},
+  {month:"23/07",score:42,actual:+3.8,predicted:"UP",  correct:true, ussPrice:151.5,open:146.0,high:153.5,low:145.5,close:151.5,newCarReg:95,event:"輸出好調"},
+  {month:"23/08",score:38,actual:+3.5,predicted:"UP",  correct:true, ussPrice:156.8,open:151.5,high:158.5,low:151.0,close:156.8,newCarReg:92,event:null},
+  {month:"23/09",score:35,actual:+2.8,predicted:"UP",  correct:true, ussPrice:161.2,open:156.8,high:163.0,low:156.0,close:161.2,newCarReg:90,event:null},
+  {month:"23/10",score:32,actual:+2.2,predicted:"UP",  correct:true, ussPrice:164.7,open:161.2,high:166.5,low:160.5,close:164.7,newCarReg:88,event:null},
+  {month:"23/11",score:28,actual:+1.8,predicted:"UP",  correct:true, ussPrice:167.7,open:164.7,high:169.5,low:164.0,close:167.7,newCarReg:85,event:null},
+  {month:"23/12",score:25,actual:+1.5,predicted:"UP",  correct:true, ussPrice:170.2,open:167.7,high:172.0,low:167.0,close:170.2,newCarReg:82,event:null},
   // 2024年（緩やかな上昇〜調整）
-  {month:"24/01",score:20,actual:+1.2,predicted:"UP",  correct:true, ussPrice:121.5,newCarReg:80,event:null},
-  {month:"24/02",score:22,actual:+1.8,predicted:"UP",  correct:true, ussPrice:122.8,newCarReg:82,event:null},
-  {month:"24/03",score:24,actual:+2.1,predicted:"UP",  correct:true, ussPrice:124.2,newCarReg:85,event:null},
-  {month:"24/04",score:23,actual:+1.5,predicted:"UP",  correct:true, ussPrice:125.0,newCarReg:88,event:null},
-  {month:"24/05",score:25,actual:+0.8,predicted:"UP",  correct:true, ussPrice:125.5,newCarReg:92,event:null},
-  {month:"24/06",score:28,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:125.8,newCarReg:98,event:null},
-  {month:"24/07",score:35,actual:-0.5,predicted:"FLAT",correct:true, ussPrice:125.2,newCarReg:105,event:null},
-  {month:"24/08",score:42,actual:-1.2,predicted:"DOWN",correct:true, ussPrice:124.5,newCarReg:112,event:"新高値後警告"},
-  {month:"24/09",score:48,actual:-1.8,predicted:"DOWN",correct:true, ussPrice:123.2,newCarReg:118,event:null},
-  {month:"24/10",score:52,actual:-2.0,predicted:"DOWN",correct:true, ussPrice:121.8,newCarReg:122,event:null},
-  {month:"24/11",score:58,actual:-2.5,predicted:"DOWN",correct:true, ussPrice:120.2,newCarReg:125,event:null},
-  {month:"24/12",score:65,actual:-3.2,predicted:"DOWN",correct:true, ussPrice:118.5,newCarReg:128,event:"年末調整"},
+  {month:"24/01",score:20,actual:+1.2,predicted:"UP",  correct:true, ussPrice:172.2,open:170.2,high:174.0,low:169.5,close:172.2,newCarReg:80,event:null},
+  {month:"24/02",score:22,actual:+1.8,predicted:"UP",  correct:true, ussPrice:175.3,open:172.2,high:177.0,low:171.5,close:175.3,newCarReg:82,event:null},
+  {month:"24/03",score:24,actual:+2.1,predicted:"UP",  correct:true, ussPrice:179.0,open:175.3,high:181.0,low:174.5,close:179.0,newCarReg:85,event:null},
+  {month:"24/04",score:23,actual:+1.5,predicted:"UP",  correct:true, ussPrice:181.7,open:179.0,high:183.5,low:178.0,close:181.7,newCarReg:88,event:null},
+  {month:"24/05",score:25,actual:+0.8,predicted:"UP",  correct:true, ussPrice:183.2,open:181.7,high:185.0,low:180.5,close:183.2,newCarReg:92,event:null},
+  {month:"24/06",score:28,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:184.1,open:183.2,high:186.5,low:182.0,close:184.1,newCarReg:98,event:null},
+  {month:"24/07",score:35,actual:-0.5,predicted:"FLAT",correct:true, ussPrice:183.2,open:184.1,high:186.0,low:181.0,close:183.2,newCarReg:105,event:null},
+  {month:"24/08",score:42,actual:-1.2,predicted:"DOWN",correct:true, ussPrice:181.0,open:183.2,high:184.5,low:179.0,close:181.0,newCarReg:112,event:"新高値後警告"},
+  {month:"24/09",score:48,actual:-1.8,predicted:"DOWN",correct:true, ussPrice:177.7,open:181.0,high:182.0,low:175.0,close:177.7,newCarReg:118,event:null},
+  {month:"24/10",score:52,actual:-2.0,predicted:"DOWN",correct:true, ussPrice:174.1,open:177.7,high:179.0,low:172.0,close:174.1,newCarReg:122,event:null},
+  {month:"24/11",score:58,actual:-2.5,predicted:"DOWN",correct:true, ussPrice:169.8,open:174.1,high:175.5,low:167.0,close:169.8,newCarReg:125,event:null},
+  {month:"24/12",score:65,actual:-3.2,predicted:"DOWN",correct:true, ussPrice:164.3,open:169.8,high:171.0,low:161.0,close:164.3,newCarReg:128,event:"年末調整"},
   // 2025年（急落〜回復）
-  {month:"25/01",score:72,actual:-4.5,predicted:"DOWN",correct:true, ussPrice:115.8,newCarReg:125,event:"急落警告"},
-  {month:"25/02",score:78,actual:-5.8,predicted:"DOWN",correct:true, ussPrice:112.2,newCarReg:120,event:null},
-  {month:"25/03",score:82,actual:-6.2,predicted:"DOWN",correct:true, ussPrice:108.5,newCarReg:115,event:"底値警戒"},
-  {month:"25/04",score:80,actual:+2.5,predicted:"DOWN",correct:false,ussPrice:110.2,newCarReg:108,event:"底→反発"},
-  {month:"25/05",score:68,actual:+3.8,predicted:"UP",  correct:true, ussPrice:114.5,newCarReg:100,event:null},
-  {month:"25/06",score:55,actual:+4.2,predicted:"UP",  correct:true, ussPrice:118.2,newCarReg:95,event:null},
-  {month:"25/07",score:45,actual:+3.5,predicted:"UP",  correct:true, ussPrice:121.5,newCarReg:90,event:null},
-  {month:"25/08",score:38,actual:+2.8,predicted:"UP",  correct:true, ussPrice:124.0,newCarReg:88,event:null},
-  {month:"25/09",score:35,actual:+1.5,predicted:"UP",  correct:true, ussPrice:125.8,newCarReg:90,event:null},
-  {month:"25/10",score:32,actual:+1.2,predicted:"UP",  correct:true, ussPrice:127.0,newCarReg:95,event:null},
-  {month:"25/11",score:30,actual:+0.8,predicted:"UP",  correct:true, ussPrice:128.0,newCarReg:100,event:null},
-  {month:"25/12",score:28,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:128.5,newCarReg:105,event:null},
+  {month:"25/01",score:72,actual:-4.5,predicted:"DOWN",correct:true, ussPrice:156.9,open:164.3,high:166.0,low:153.0,close:156.9,newCarReg:125,event:"急落警告"},
+  {month:"25/02",score:78,actual:-5.8,predicted:"DOWN",correct:true, ussPrice:147.8,open:156.9,high:158.0,low:144.0,close:147.8,newCarReg:120,event:null},
+  {month:"25/03",score:82,actual:-6.2,predicted:"DOWN",correct:true, ussPrice:138.6,open:147.8,high:150.0,low:135.0,close:138.6,newCarReg:115,event:"底値警戒"},
+  {month:"25/04",score:80,actual:+2.5,predicted:"DOWN",correct:false,ussPrice:142.1,open:138.6,high:145.0,low:137.0,close:142.1,newCarReg:108,event:"底→反発"},
+  {month:"25/05",score:68,actual:+3.8,predicted:"UP",  correct:true, ussPrice:147.5,open:142.1,high:149.5,low:141.5,close:147.5,newCarReg:100,event:null},
+  {month:"25/06",score:55,actual:+4.2,predicted:"UP",  correct:true, ussPrice:153.7,open:147.5,high:155.5,low:147.0,close:153.7,newCarReg:95,event:null},
+  {month:"25/07",score:45,actual:+3.5,predicted:"UP",  correct:true, ussPrice:159.1,open:153.7,high:161.0,low:153.0,close:159.1,newCarReg:90,event:null},
+  {month:"25/08",score:38,actual:+2.8,predicted:"UP",  correct:true, ussPrice:163.5,open:159.1,high:165.5,low:158.5,close:163.5,newCarReg:88,event:null},
+  {month:"25/09",score:35,actual:+1.5,predicted:"UP",  correct:true, ussPrice:166.0,open:163.5,high:168.0,low:163.0,close:166.0,newCarReg:90,event:null},
+  {month:"25/10",score:32,actual:+1.2,predicted:"UP",  correct:true, ussPrice:168.0,open:166.0,high:170.0,low:165.5,close:168.0,newCarReg:95,event:null},
+  {month:"25/11",score:30,actual:+0.8,predicted:"UP",  correct:true, ussPrice:169.3,open:168.0,high:171.5,low:167.5,close:169.3,newCarReg:100,event:null},
+  {month:"25/12",score:28,actual:+0.5,predicted:"FLAT",correct:true, ussPrice:170.2,open:169.3,high:172.0,low:168.5,close:170.2,newCarReg:105,event:null},
   // 2026年
-  {month:"26/01",score:32,actual:-0.5,predicted:"FLAT",correct:true, ussPrice:128.2,newCarReg:108,event:null},
-  {month:"26/02",score:35,actual:-0.8,predicted:"FLAT",correct:true, ussPrice:127.5,newCarReg:110,event:null},
-  {month:"26/03",score:39,actual:null,predicted:"FLAT",correct:null,ussPrice:127.0,newCarReg:112,event:"現在"},
+  {month:"26/01",score:32,actual:-0.5,predicted:"FLAT",correct:true, ussPrice:169.4,open:170.2,high:172.0,low:168.0,close:169.4,newCarReg:108,event:null},
+  {month:"26/02",score:35,actual:-0.8,predicted:"FLAT",correct:true, ussPrice:168.0,open:169.4,high:171.0,low:166.5,close:168.0,newCarReg:110,event:null},
+  {month:"26/03",score:39,actual:null,predicted:"FLAT",correct:null,ussPrice:167.0,open:168.0,high:170.0,low:165.0,close:167.0,newCarReg:112,event:"現在"},
 ]
 
 // 週次データを月次データから補間生成
@@ -171,6 +172,7 @@ function generateWeeklyData(monthlyData: typeof monthlyData) {
       const ratio = w / 4
       const [year, month] = current.month.split("/")
       const weekNum = w + 1
+      const weekPrice = parseFloat((current.ussPrice + (next.ussPrice - current.ussPrice) * ratio).toFixed(1))
       weeklyData.push({
         month: `${year}/${month}W${weekNum}`,
         score: Math.round(current.score + (next.score - current.score) * ratio),
@@ -179,7 +181,11 @@ function generateWeeklyData(monthlyData: typeof monthlyData) {
           : current.actual,
         predicted: current.predicted,
         correct: current.correct,
-        ussPrice: parseFloat((current.ussPrice + (next.ussPrice - current.ussPrice) * ratio).toFixed(1)),
+        ussPrice: weekPrice,
+        open: weekPrice - (Math.random() * 2 - 0.5),
+        high: weekPrice + Math.random() * 3,
+        low: weekPrice - Math.random() * 3,
+        close: weekPrice,
         newCarReg: Math.round(current.newCarReg + (next.newCarReg - current.newCarReg) * ratio),
         event: w === 0 ? current.event : null,
       })
@@ -413,6 +419,7 @@ const [signals, setSignals] = useState({...initialSignals})
 const [animScore, setAnimScore] = useState(0)
 const [chartInterval, setChartInterval] = useState<"monthly" | "weekly">("monthly")
 const [chartPeriod, setChartPeriod] = useState<3 | 5 | 10>(10)
+const [chartType, setChartType] = useState<"line" | "candlestick">("line")
 const [visibleSeries, setVisibleSeries] = useState({
   score: true,
   ussPrice: true,
@@ -577,7 +584,26 @@ const chartData = getFilteredData()
                         緑の新車登録が約3ヶ月先行して動く。凡例クリックで表示切替可能。
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* Chart type selector */}
+                      <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+                        <Button 
+                          variant={chartType === "line" ? "default" : "ghost"} 
+                          size="sm" 
+                          className="h-7 px-2 text-xs"
+                          onClick={() => setChartType("line")}
+                        >
+                          ライン
+                        </Button>
+                        <Button 
+                          variant={chartType === "candlestick" ? "default" : "ghost"} 
+                          size="sm" 
+                          className="h-7 px-2 text-xs"
+                          onClick={() => setChartType("candlestick")}
+                        >
+                          4本値
+                        </Button>
+                      </div>
                       {/* Period selector */}
                       <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
                         {([3, 5, 10] as const).map(period => (
@@ -616,7 +642,7 @@ const chartData = getFilteredData()
                 </CardHeader>
                 <CardContent>
                   {/* Custom Legend */}
-                  <div className="flex items-center justify-center gap-6 mb-3">
+                  <div className="flex items-center justify-center gap-6 mb-3 flex-wrap">
                     <button 
                       className={`flex items-center gap-1.5 text-xs transition-opacity ${!visibleSeries.score ? 'opacity-40' : ''}`}
                       onClick={() => setVisibleSeries(prev => ({ ...prev, score: !prev.score }))}
@@ -629,7 +655,7 @@ const chartData = getFilteredData()
                       onClick={() => setVisibleSeries(prev => ({ ...prev, ussPrice: !prev.ussPrice }))}
                     >
                       <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#3b82f6' }} />
-                      USS成約単価
+                      USS成約単価 {chartType === "candlestick" && "(4本値)"}
                     </button>
                     <button 
                       className={`flex items-center gap-1.5 text-xs transition-opacity ${!visibleSeries.newCarReg ? 'opacity-40' : ''}`}
@@ -654,7 +680,7 @@ const chartData = getFilteredData()
                         />
                         <YAxis yAxisId="score" domain={[0,100]} tick={{fill:"#f97316",fontSize:10}}
                           tickFormatter={v=>`${v}`} tickLine={false} axisLine={false}/>
-                        <YAxis yAxisId="price" orientation="right" domain={[45,135]}
+                        <YAxis yAxisId="price" orientation="right" domain={['auto','auto']}
                           tick={{fill:"#3b82f6",fontSize:10}} tickFormatter={v=>`${v}万`} tickLine={false} axisLine={false}/>
                         <YAxis yAxisId="newcar" orientation="right" domain={[40,150]} hide/>
                         <Tooltip content={<CustomTooltip />}/>
@@ -668,9 +694,53 @@ const chartData = getFilteredData()
                           <Area yAxisId="score" type="monotone" dataKey="score" name="リスクスコア"
                             stroke="#f97316" fill="rgba(249,115,22,0.1)" strokeWidth={2}/>
                         )}
-                        {visibleSeries.ussPrice && (
-                          <Line yAxisId="price" type="monotone" dataKey="ussPrice" name="USS成約単価"
+                        {visibleSeries.ussPrice && chartType === "line" && (
+                          <Line yAxisId="price" type="monotone" dataKey="close" name="USS成約単価"
                             stroke="#3b82f6" strokeWidth={2.5} dot={false}/>
+                        )}
+                        {visibleSeries.ussPrice && chartType === "candlestick" && (
+                          <>
+                            {/* Candlestick - High-Low range as thin line */}
+                            <Bar yAxisId="price" dataKey={(d: typeof chartData[0]) => [d.low, d.high]} 
+                              fill="transparent" stroke="#3b82f6" strokeWidth={1} barSize={1} />
+                            {/* Candlestick body - custom rendering */}
+                            <Bar 
+                              yAxisId="price" 
+                              dataKey={(d: typeof chartData[0]) => Math.abs(d.close - d.open)} 
+                              fill="#3b82f6"
+                              barSize={chartInterval === "weekly" ? 2 : 6}
+                              shape={(props: { x: number; y: number; width: number; height: number; payload: typeof chartData[0] }) => {
+                                const { x, width, payload } = props
+                                if (!payload) return null
+                                const isUp = payload.close >= payload.open
+                                const yMin = Math.min(payload.open, payload.close)
+                                const yMax = Math.max(payload.open, payload.close)
+                                const yScale = props.height / Math.abs(payload.close - payload.open) || 1
+                                return (
+                                  <g>
+                                    {/* High-Low wick */}
+                                    <line 
+                                      x1={x + width/2} 
+                                      y1={props.y - (payload.high - yMax) * yScale}
+                                      x2={x + width/2} 
+                                      y2={props.y + props.height + (yMin - payload.low) * yScale}
+                                      stroke={isUp ? "#22c55e" : "#ef4444"}
+                                      strokeWidth={1}
+                                    />
+                                    {/* Body */}
+                                    <rect 
+                                      x={x} 
+                                      y={props.y}
+                                      width={width} 
+                                      height={Math.max(props.height, 2)}
+                                      fill={isUp ? "#22c55e" : "#ef4444"}
+                                      stroke={isUp ? "#22c55e" : "#ef4444"}
+                                    />
+                                  </g>
+                                )
+                              }}
+                            />
+                          </>
                         )}
                       </ComposedChart>
                     </ResponsiveContainer>
