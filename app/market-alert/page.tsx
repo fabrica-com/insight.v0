@@ -31,6 +31,7 @@ import {
 // usdJpy: その月の平均ドル円レート
 // nextage: ネクステージ(3186)株価 週平均終値（円）- 2021/4〜 IRBANK実データ
 // idom: IDOM(7599)株価 週平均終値（円）- 2021/4〜 IRBANK実データ
+// caaPrice: CAA東京 成約単価（万円）- グーネット自動車流通 週次データの月平均
 const monthlyData = [
   // 2016年（安定期）- ドル円: 100-118円
   {month:"16/04",score:28,actual:+1.2,predicted:"FLAT",correct:true, auctionPrice:58.2,newCarReg:95,retailRate:72,auctionRate:68,usdJpy:108,event:null},
@@ -95,80 +96,80 @@ const monthlyData = [
   {month:"20/11",score:18,actual:+4.0,predicted:"UP",  correct:true, auctionPrice:81.6,newCarReg:78,retailRate:87,auctionRate:82,usdJpy:104,event:null},
   {month:"20/12",score:15,actual:+4.5,predicted:"UP",  correct:true, auctionPrice:85.2,newCarReg:72,retailRate:88,auctionRate:84,usdJpy:104,event:"上昇開始"},
   // 2021年（半導体不足による相場急騰期）- ドル円: 103-115円
-  // FY2022（21/04〜22/03）のオークション成約率・成約単価はUSS IR実データ、株価はIRBANK週平均
-  {month:"21/01",score:12,actual:+3.8,predicted:"UP",  correct:true, auctionPrice:54.0,newCarReg:68,retailRate:90,auctionRate:86,usdJpy:104,nextage:null,idom:null,event:null},
-  {month:"21/02",score:10,actual:+1.9,predicted:"UP",  correct:true, auctionPrice:55.0,newCarReg:65,retailRate:91,auctionRate:87,usdJpy:105,nextage:null,idom:null,event:null},
-  {month:"21/03",score:8,actual:+1.8,predicted:"UP",   correct:true, auctionPrice:56.0,newCarReg:62,retailRate:92,auctionRate:88,usdJpy:109,nextage:null,idom:null,event:null},
-  {month:"21/04",score:18,actual:+1.8,predicted:"UP",  correct:true, auctionPrice:57.0,newCarReg:65,retailRate:91,auctionRate:61.0,usdJpy:109,nextage:1350,idom:520,event:"半導体不足"},
-  {month:"21/05",score:15,actual:+10.5,predicted:"UP", correct:true, auctionPrice:63.0,newCarReg:62,retailRate:90,auctionRate:64.0,usdJpy:109,nextage:1520,idom:560,event:null},
-  {month:"21/06",score:12,actual:+14.3,predicted:"UP", correct:true, auctionPrice:72.0,newCarReg:58,retailRate:89,auctionRate:65.0,usdJpy:110,nextage:1780,idom:610,event:null},
-  {month:"21/07",score:10,actual:+12.5,predicted:"UP", correct:true, auctionPrice:81.0,newCarReg:55,retailRate:88,auctionRate:71.0,usdJpy:110,nextage:2050,idom:680,event:null},
-  {month:"21/08",score:12,actual:-4.9,predicted:"UP",  correct:false,auctionPrice:77.0,newCarReg:52,retailRate:87,auctionRate:72.1,usdJpy:110,nextage:2200,idom:750,event:"成約率最高"},
-  {month:"21/09",score:15,actual:+2.6,predicted:"UP",  correct:true, auctionPrice:79.0,newCarReg:50,retailRate:86,auctionRate:68.0,usdJpy:110,nextage:2455,idom:920,event:null},
-  {month:"21/10",score:18,actual:+6.3,predicted:"UP",  correct:true, auctionPrice:84.0,newCarReg:48,retailRate:85,auctionRate:68.0,usdJpy:114,nextage:2100,idom:850,event:null},
-  {month:"21/11",score:20,actual:-3.6,predicted:"UP",  correct:false,auctionPrice:81.0,newCarReg:52,retailRate:84,auctionRate:70.0,usdJpy:114,nextage:2350,idom:920,event:null},
-  {month:"21/12",score:22,actual:-4.9,predicted:"UP",  correct:false,auctionPrice:77.0,newCarReg:55,retailRate:83,auctionRate:61.0,usdJpy:115,nextage:2250,idom:870,event:null},
+  // FY2022（21/04〜22/03）のオークション成約率・成約単価はUSS IR実データ、株価はIRBANK週平均、CAA単価はグーネット週次平均
+  {month:"21/01",score:12,actual:+3.8,predicted:"UP",  correct:true, auctionPrice:54.0,newCarReg:68,retailRate:90,auctionRate:86,usdJpy:104,nextage:null,idom:null,caaPrice:null,event:null},
+  {month:"21/02",score:10,actual:+1.9,predicted:"UP",  correct:true, auctionPrice:55.0,newCarReg:65,retailRate:91,auctionRate:87,usdJpy:105,nextage:null,idom:null,caaPrice:null,event:null},
+  {month:"21/03",score:8,actual:+1.8,predicted:"UP",   correct:true, auctionPrice:56.0,newCarReg:62,retailRate:92,auctionRate:88,usdJpy:109,nextage:null,idom:null,caaPrice:null,event:null},
+  {month:"21/04",score:18,actual:+1.8,predicted:"UP",  correct:true, auctionPrice:57.0,newCarReg:65,retailRate:91,auctionRate:61.0,usdJpy:109,nextage:1350,idom:520,caaPrice:49.5,event:"半導体不足"},
+  {month:"21/05",score:15,actual:+10.5,predicted:"UP", correct:true, auctionPrice:63.0,newCarReg:62,retailRate:90,auctionRate:64.0,usdJpy:109,nextage:1520,idom:560,caaPrice:52.5,event:null},
+  {month:"21/06",score:12,actual:+14.3,predicted:"UP", correct:true, auctionPrice:72.0,newCarReg:58,retailRate:89,auctionRate:65.0,usdJpy:110,nextage:1780,idom:610,caaPrice:53.0,event:null},
+  {month:"21/07",score:10,actual:+12.5,predicted:"UP", correct:true, auctionPrice:81.0,newCarReg:55,retailRate:88,auctionRate:71.0,usdJpy:110,nextage:2050,idom:680,caaPrice:52.5,event:null},
+  {month:"21/08",score:12,actual:-4.9,predicted:"UP",  correct:false,auctionPrice:77.0,newCarReg:52,retailRate:87,auctionRate:72.1,usdJpy:110,nextage:2200,idom:750,caaPrice:52.0,event:"成約率最高"},
+  {month:"21/09",score:15,actual:+2.6,predicted:"UP",  correct:true, auctionPrice:79.0,newCarReg:50,retailRate:86,auctionRate:68.0,usdJpy:110,nextage:2455,idom:920,caaPrice:54.5,event:null},
+  {month:"21/10",score:18,actual:+6.3,predicted:"UP",  correct:true, auctionPrice:84.0,newCarReg:48,retailRate:85,auctionRate:68.0,usdJpy:114,nextage:2100,idom:850,caaPrice:53.5,event:null},
+  {month:"21/11",score:20,actual:-3.6,predicted:"UP",  correct:false,auctionPrice:81.0,newCarReg:52,retailRate:84,auctionRate:70.0,usdJpy:114,nextage:2350,idom:920,caaPrice:54.5,event:null},
+  {month:"21/12",score:22,actual:-4.9,predicted:"UP",  correct:false,auctionPrice:77.0,newCarReg:55,retailRate:83,auctionRate:61.0,usdJpy:115,nextage:2250,idom:870,caaPrice:54.5,event:null},
   // 2022年（相場上昇継続）- ドル円: 115-150円（急激な円安進行）
-  // FY2022（22/01〜22/03）とFY2023（22/04〜23/03）のオークション成約率・成約単価はUSS IR実データ、株価はIRBANK週平均
-  {month:"22/01",score:25,actual:+6.5,predicted:"UP",  correct:true, auctionPrice:82.0,newCarReg:58,retailRate:82,auctionRate:67.0,usdJpy:115,nextage:2800,idom:920,event:null},
-  {month:"22/02",score:28,actual:+2.4,predicted:"UP",  correct:true, auctionPrice:84.0,newCarReg:62,retailRate:81,auctionRate:66.0,usdJpy:115,nextage:2650,idom:880,event:"ウクライナ"},
-  {month:"22/03",score:32,actual:-11.9,predicted:"FLAT",correct:false,auctionPrice:74.0,newCarReg:68,retailRate:80,auctionRate:63.0,usdJpy:122,nextage:2200,idom:790,event:"年度末調整"},
-  {month:"22/04",score:35,actual:+5.4,predicted:"UP",  correct:true, auctionPrice:78.0,newCarReg:75,retailRate:79,auctionRate:59.0,usdJpy:128,nextage:1950,idom:620,event:null},
-  {month:"22/05",score:42,actual:+9.0,predicted:"UP",  correct:true, auctionPrice:85.0,newCarReg:82,retailRate:77,auctionRate:66.0,usdJpy:129,nextage:2100,idom:610,event:null},
-  {month:"22/06",score:48,actual:+1.2,predicted:"FLAT",correct:true, auctionPrice:86.0,newCarReg:88,retailRate:75,auctionRate:64.0,usdJpy:135,nextage:2400,idom:720,event:null},
-  {month:"22/07",score:55,actual:+7.0,predicted:"UP",  correct:true, auctionPrice:92.0,newCarReg:95,retailRate:72,auctionRate:63.0,usdJpy:137,nextage:2850,idom:900,event:null},
-  {month:"22/08",score:62,actual:-6.5,predicted:"DOWN",correct:true, auctionPrice:86.0,newCarReg:102,retailRate:68,auctionRate:70.0,usdJpy:135,nextage:3100,idom:1000,event:null},
-  {month:"22/09",score:68,actual:+7.0,predicted:"UP",  correct:true, auctionPrice:92.0,newCarReg:108,retailRate:65,auctionRate:69.0,usdJpy:144,nextage:3360,idom:1090,event:null},
-  {month:"22/10",score:72,actual:+2.2,predicted:"FLAT",correct:true, auctionPrice:94.0,newCarReg:112,retailRate:63,auctionRate:69.0,usdJpy:148,nextage:2900,idom:950,event:null},
-  {month:"22/11",score:75,actual:+0.0,predicted:"FLAT",correct:true, auctionPrice:94.0,newCarReg:115,retailRate:62,auctionRate:61.0,usdJpy:140,nextage:2700,idom:850,event:null},
-  {month:"22/12",score:78,actual:-1.1,predicted:"FLAT",correct:true, auctionPrice:93.0,newCarReg:118,retailRate:61,auctionRate:57.0,usdJpy:133,nextage:2550,idom:820,event:"年末調整"},
+  // FY2022（22/01〜22/03）とFY2023（22/04〜23/03）のオークション成約率・成約単価はUSS IR実データ、株価はIRBANK週平均、CAA単価はグーネット週次平均
+  {month:"22/01",score:25,actual:+6.5,predicted:"UP",  correct:true, auctionPrice:82.0,newCarReg:58,retailRate:82,auctionRate:67.0,usdJpy:115,nextage:2800,idom:920,caaPrice:55.5,event:null},
+  {month:"22/02",score:28,actual:+2.4,predicted:"UP",  correct:true, auctionPrice:84.0,newCarReg:62,retailRate:81,auctionRate:66.0,usdJpy:115,nextage:2650,idom:880,caaPrice:57.5,event:"ウクライナ"},
+  {month:"22/03",score:32,actual:-11.9,predicted:"FLAT",correct:false,auctionPrice:74.0,newCarReg:68,retailRate:80,auctionRate:63.0,usdJpy:122,nextage:2200,idom:790,caaPrice:56.0,event:"年度末調整"},
+  {month:"22/04",score:35,actual:+5.4,predicted:"UP",  correct:true, auctionPrice:78.0,newCarReg:75,retailRate:79,auctionRate:59.0,usdJpy:128,nextage:1950,idom:620,caaPrice:56.5,event:null},
+  {month:"22/05",score:42,actual:+9.0,predicted:"UP",  correct:true, auctionPrice:85.0,newCarReg:82,retailRate:77,auctionRate:66.0,usdJpy:129,nextage:2100,idom:610,caaPrice:58.0,event:null},
+  {month:"22/06",score:48,actual:+1.2,predicted:"FLAT",correct:true, auctionPrice:86.0,newCarReg:88,retailRate:75,auctionRate:64.0,usdJpy:135,nextage:2400,idom:720,caaPrice:66.5,event:null},
+  {month:"22/07",score:55,actual:+7.0,predicted:"UP",  correct:true, auctionPrice:92.0,newCarReg:95,retailRate:72,auctionRate:63.0,usdJpy:137,nextage:2850,idom:900,caaPrice:73.5,event:null},
+  {month:"22/08",score:62,actual:-6.5,predicted:"DOWN",correct:true, auctionPrice:86.0,newCarReg:102,retailRate:68,auctionRate:70.0,usdJpy:135,nextage:3100,idom:1000,caaPrice:71.5,event:null},
+  {month:"22/09",score:68,actual:+7.0,predicted:"UP",  correct:true, auctionPrice:92.0,newCarReg:108,retailRate:65,auctionRate:69.0,usdJpy:144,nextage:3360,idom:1090,caaPrice:72.5,event:null},
+  {month:"22/10",score:72,actual:+2.2,predicted:"FLAT",correct:true, auctionPrice:94.0,newCarReg:112,retailRate:63,auctionRate:69.0,usdJpy:148,nextage:2900,idom:950,caaPrice:74.5,event:null},
+  {month:"22/11",score:75,actual:+0.0,predicted:"FLAT",correct:true, auctionPrice:94.0,newCarReg:115,retailRate:62,auctionRate:61.0,usdJpy:140,nextage:2700,idom:850,caaPrice:67.5,event:null},
+  {month:"22/12",score:78,actual:-1.1,predicted:"FLAT",correct:true, auctionPrice:93.0,newCarReg:118,retailRate:61,auctionRate:57.0,usdJpy:133,nextage:2550,idom:820,caaPrice:67.0,event:"年末調整"},
   // 2023年（相場上昇継続）- ドル円: 127-151円
-  // FY2023（23/01〜23/03）とFY2024（23/04〜24/03）のオークション成約率・成約単価はUSS IR実データ、株価はIRBANK週平均
-  {month:"23/01",score:75,actual:+5.4,predicted:"UP",  correct:true, auctionPrice:98.0,newCarReg:120,retailRate:60,auctionRate:65.0,usdJpy:130,nextage:2900,idom:900,event:null},
-  {month:"23/02",score:72,actual:+3.1,predicted:"UP",  correct:true, auctionPrice:101.0,newCarReg:118,retailRate:62,auctionRate:57.0,usdJpy:134,nextage:2750,idom:870,event:null},
-  {month:"23/03",score:68,actual:-9.9,predicted:"DOWN",correct:true, auctionPrice:91.0,newCarReg:115,retailRate:65,auctionRate:58.0,usdJpy:133,nextage:2600,idom:820,event:"年度末調整"},
-  {month:"23/04",score:62,actual:+2.2,predicted:"FLAT",correct:false,auctionPrice:93.0,newCarReg:110,retailRate:68,auctionRate:55.3,usdJpy:134,nextage:2800,idom:850,event:"成約率最低"},
-  {month:"23/05",score:55,actual:+6.5,predicted:"UP",  correct:true, auctionPrice:99.0,newCarReg:105,retailRate:71,auctionRate:62.0,usdJpy:138,nextage:3055,idom:920,event:null},
-  {month:"23/06",score:48,actual:+9.1,predicted:"UP",  correct:true, auctionPrice:108.0,newCarReg:100,retailRate:74,auctionRate:62.0,usdJpy:143,nextage:3400,idom:980,event:null},
-  {month:"23/07",score:42,actual:+7.4,predicted:"UP",  correct:true, auctionPrice:116.0,newCarReg:95,retailRate:76,auctionRate:63.0,usdJpy:142,nextage:3820,idom:1050,event:"輸出好調"},
-  {month:"23/08",score:38,actual:-3.4,predicted:"DOWN",correct:true, auctionPrice:112.0,newCarReg:92,retailRate:77,auctionRate:65.0,usdJpy:145,nextage:3600,idom:1020,event:null},
-  {month:"23/09",score:35,actual:+8.9,predicted:"UP",  correct:true, auctionPrice:122.0,newCarReg:90,retailRate:78,auctionRate:70.0,usdJpy:148,nextage:1709,idom:680,event:"ネクステージ急落"},
-  {month:"23/10",score:32,actual:-7.4,predicted:"DOWN",correct:true, auctionPrice:113.0,newCarReg:88,retailRate:79,auctionRate:70.0,usdJpy:150,nextage:2200,idom:780,event:null},
-  {month:"23/11",score:28,actual:-6.2,predicted:"DOWN",correct:true, auctionPrice:106.0,newCarReg:85,retailRate:79,auctionRate:64.0,usdJpy:150,nextage:2450,idom:850,event:null},
-  {month:"23/12",score:25,actual:-5.7,predicted:"DOWN",correct:true, auctionPrice:100.0,newCarReg:82,retailRate:78,auctionRate:61.0,usdJpy:142,nextage:2600,idom:890,event:"年末調整"},
+  // FY2023（23/01〜23/03）とFY2024（23/04〜24/03）のオークション成約率・成約単価はUSS IR実データ、株価はIRBANK週平均、CAA単価はグーネット週次平均
+  {month:"23/01",score:75,actual:+5.4,predicted:"UP",  correct:true, auctionPrice:98.0,newCarReg:120,retailRate:60,auctionRate:65.0,usdJpy:130,nextage:2900,idom:900,caaPrice:69.5,event:null},
+  {month:"23/02",score:72,actual:+3.1,predicted:"UP",  correct:true, auctionPrice:101.0,newCarReg:118,retailRate:62,auctionRate:57.0,usdJpy:134,nextage:2750,idom:870,caaPrice:73.5,event:null},
+  {month:"23/03",score:68,actual:-9.9,predicted:"DOWN",correct:true, auctionPrice:91.0,newCarReg:115,retailRate:65,auctionRate:58.0,usdJpy:133,nextage:2600,idom:820,caaPrice:58.5,event:"年度末調整"},
+  {month:"23/04",score:62,actual:+2.2,predicted:"FLAT",correct:false,auctionPrice:93.0,newCarReg:110,retailRate:68,auctionRate:55.3,usdJpy:134,nextage:2800,idom:850,caaPrice:60.0,event:"成約率最低"},
+  {month:"23/05",score:55,actual:+6.5,predicted:"UP",  correct:true, auctionPrice:99.0,newCarReg:105,retailRate:71,auctionRate:62.0,usdJpy:138,nextage:3055,idom:920,caaPrice:66.5,event:null},
+  {month:"23/06",score:48,actual:+9.1,predicted:"UP",  correct:true, auctionPrice:108.0,newCarReg:100,retailRate:74,auctionRate:62.0,usdJpy:143,nextage:3400,idom:980,caaPrice:64.0,event:null},
+  {month:"23/07",score:42,actual:+7.4,predicted:"UP",  correct:true, auctionPrice:116.0,newCarReg:95,retailRate:76,auctionRate:63.0,usdJpy:142,nextage:3820,idom:1050,caaPrice:64.5,event:"輸出好調"},
+  {month:"23/08",score:38,actual:-3.4,predicted:"DOWN",correct:true, auctionPrice:112.0,newCarReg:92,retailRate:77,auctionRate:65.0,usdJpy:145,nextage:3600,idom:1020,caaPrice:62.0,event:null},
+  {month:"23/09",score:35,actual:+8.9,predicted:"UP",  correct:true, auctionPrice:122.0,newCarReg:90,retailRate:78,auctionRate:70.0,usdJpy:148,nextage:1709,idom:680,caaPrice:66.5,event:"ネクステージ急落"},
+  {month:"23/10",score:32,actual:-7.4,predicted:"DOWN",correct:true, auctionPrice:113.0,newCarReg:88,retailRate:79,auctionRate:70.0,usdJpy:150,nextage:2200,idom:780,caaPrice:69.5,event:null},
+  {month:"23/11",score:28,actual:-6.2,predicted:"DOWN",correct:true, auctionPrice:106.0,newCarReg:85,retailRate:79,auctionRate:64.0,usdJpy:150,nextage:2450,idom:850,caaPrice:66.0,event:null},
+  {month:"23/12",score:25,actual:-5.7,predicted:"DOWN",correct:true, auctionPrice:100.0,newCarReg:82,retailRate:78,auctionRate:61.0,usdJpy:142,nextage:2600,idom:890,caaPrice:66.0,event:"年末調整"},
   // 2024年（安定推移）- ドル円: 140-161円
-  // FY2024（24/01〜24/03）とFY2025（24/04〜25/03）のオークション成約率・成約単価はUSS IR実データ、株価はIRBANK週平均
-  {month:"24/01",score:20,actual:+2.0,predicted:"UP",  correct:true, auctionPrice:102.0,newCarReg:80,retailRate:77,auctionRate:70.0,usdJpy:147,nextage:2650,idom:1000,event:null},
-  {month:"24/02",score:22,actual:-2.0,predicted:"FLAT",correct:true, auctionPrice:100.0,newCarReg:82,retailRate:76,auctionRate:70.0,usdJpy:150,nextage:2800,idom:950,event:null},
-  {month:"24/03",score:24,actual:-10.0,predicted:"DOWN",correct:true, auctionPrice:90.0,newCarReg:85,retailRate:75,auctionRate:71.0,usdJpy:151,nextage:2900,idom:920,event:"年度末調整"},
-  {month:"24/04",score:23,actual:-2.2,predicted:"FLAT",correct:true, auctionPrice:88.0,newCarReg:88,retailRate:74,auctionRate:69.0,usdJpy:154,nextage:2700,idom:1100,event:null},
-  {month:"24/05",score:25,actual:+8.0,predicted:"UP",  correct:true, auctionPrice:95.0,newCarReg:92,retailRate:73,auctionRate:72.0,usdJpy:156,nextage:3055,idom:1200,event:null},
-  {month:"24/06",score:28,actual:+13.7,predicted:"UP", correct:true, auctionPrice:108.0,newCarReg:98,retailRate:71,auctionRate:71.0,usdJpy:158,nextage:2850,idom:1150,event:null},
-  {month:"24/07",score:35,actual:-0.9,predicted:"FLAT",correct:true, auctionPrice:107.0,newCarReg:105,retailRate:69,auctionRate:71.0,usdJpy:157,nextage:2600,idom:1250,event:null},
-  {month:"24/08",score:42,actual:-2.8,predicted:"DOWN",correct:true, auctionPrice:104.0,newCarReg:112,retailRate:66,auctionRate:68.0,usdJpy:146,nextage:1650,idom:1050,event:null},
-  {month:"24/09",score:48,actual:+2.9,predicted:"UP",  correct:true, auctionPrice:107.0,newCarReg:118,retailRate:64,auctionRate:68.0,usdJpy:143,nextage:1800,idom:1100,event:null},
-  {month:"24/10",score:52,actual:-0.9,predicted:"FLAT",correct:true, auctionPrice:106.0,newCarReg:122,retailRate:62,auctionRate:70.0,usdJpy:152,nextage:1356,idom:890,event:null},
-  {month:"24/11",score:58,actual:+0.0,predicted:"FLAT",correct:true, auctionPrice:106.0,newCarReg:125,retailRate:60,auctionRate:70.0,usdJpy:153,nextage:1420,idom:970,event:null},
-  {month:"24/12",score:65,actual:-3.8,predicted:"DOWN",correct:true, auctionPrice:102.0,newCarReg:128,retailRate:58,auctionRate:65.0,usdJpy:157,nextage:1430,idom:1130,event:"年末調整"},
+  // FY2024（24/01〜24/03）とFY2025（24/04〜25/03）のオークション成約率・成約単価はUSS IR実データ、株価はIRBANK週平均、CAA単価はグーネット週次平均
+  {month:"24/01",score:20,actual:+2.0,predicted:"UP",  correct:true, auctionPrice:102.0,newCarReg:80,retailRate:77,auctionRate:70.0,usdJpy:147,nextage:2650,idom:1000,caaPrice:66.0,event:null},
+  {month:"24/02",score:22,actual:-2.0,predicted:"FLAT",correct:true, auctionPrice:100.0,newCarReg:82,retailRate:76,auctionRate:70.0,usdJpy:150,nextage:2800,idom:950,caaPrice:70.0,event:null},
+  {month:"24/03",score:24,actual:-10.0,predicted:"DOWN",correct:true, auctionPrice:90.0,newCarReg:85,retailRate:75,auctionRate:71.0,usdJpy:151,nextage:2900,idom:920,caaPrice:70.5,event:"年度末調整"},
+  {month:"24/04",score:23,actual:-2.2,predicted:"FLAT",correct:true, auctionPrice:88.0,newCarReg:88,retailRate:74,auctionRate:69.0,usdJpy:154,nextage:2700,idom:1100,caaPrice:67.0,event:null},
+  {month:"24/05",score:25,actual:+8.0,predicted:"UP",  correct:true, auctionPrice:95.0,newCarReg:92,retailRate:73,auctionRate:72.0,usdJpy:156,nextage:3055,idom:1200,caaPrice:72.5,event:null},
+  {month:"24/06",score:28,actual:+13.7,predicted:"UP", correct:true, auctionPrice:108.0,newCarReg:98,retailRate:71,auctionRate:71.0,usdJpy:158,nextage:2850,idom:1150,caaPrice:72.5,event:null},
+  {month:"24/07",score:35,actual:-0.9,predicted:"FLAT",correct:true, auctionPrice:107.0,newCarReg:105,retailRate:69,auctionRate:71.0,usdJpy:157,nextage:2600,idom:1250,caaPrice:69.5,event:null},
+  {month:"24/08",score:42,actual:-2.8,predicted:"DOWN",correct:true, auctionPrice:104.0,newCarReg:112,retailRate:66,auctionRate:68.0,usdJpy:146,nextage:1650,idom:1050,caaPrice:67.0,event:null},
+  {month:"24/09",score:48,actual:+2.9,predicted:"UP",  correct:true, auctionPrice:107.0,newCarReg:118,retailRate:64,auctionRate:68.0,usdJpy:143,nextage:1800,idom:1100,caaPrice:70.5,event:null},
+  {month:"24/10",score:52,actual:-0.9,predicted:"FLAT",correct:true, auctionPrice:106.0,newCarReg:122,retailRate:62,auctionRate:70.0,usdJpy:152,nextage:1356,idom:890,caaPrice:68.0,event:null},
+  {month:"24/11",score:58,actual:+0.0,predicted:"FLAT",correct:true, auctionPrice:106.0,newCarReg:125,retailRate:60,auctionRate:70.0,usdJpy:153,nextage:1420,idom:970,caaPrice:66.5,event:null},
+  {month:"24/12",score:65,actual:-3.8,predicted:"DOWN",correct:true, auctionPrice:102.0,newCarReg:128,retailRate:58,auctionRate:65.0,usdJpy:157,nextage:1430,idom:1130,caaPrice:61.5,event:"年末調整"},
   // 2025年（上昇基調）- ドル円: 145-158円
-  // FY2025（25/01〜25/03）とFY2026（25/04〜26/02）のオークション成約率・成約単価はUSS IR実データ、株価はIRBANK週平均
-  {month:"25/01",score:72,actual:+5.9,predicted:"UP",  correct:true, auctionPrice:108.0,newCarReg:125,retailRate:55,auctionRate:66.0,usdJpy:156,nextage:1430,idom:1130,event:null},
-  {month:"25/02",score:78,actual:+9.3,predicted:"UP",  correct:true, auctionPrice:118.0,newCarReg:120,retailRate:52,auctionRate:66.0,usdJpy:152,nextage:1450,idom:1200,event:null},
-  {month:"25/03",score:82,actual:-6.8,predicted:"DOWN",correct:true, auctionPrice:110.0,newCarReg:115,retailRate:50,auctionRate:63.0,usdJpy:149,nextage:1251,idom:891,event:"年度末調整"},
-  {month:"25/04",score:80,actual:+1.8,predicted:"UP",  correct:true, auctionPrice:112.0,newCarReg:108,retailRate:58,auctionRate:55.0,usdJpy:143,nextage:1380,idom:1050,event:null},
-  {month:"25/05",score:68,actual:+7.1,predicted:"UP",  correct:true, auctionPrice:120.0,newCarReg:100,retailRate:65,auctionRate:65.0,usdJpy:144,nextage:1520,idom:1100,event:null},
-  {month:"25/06",score:55,actual:+3.3,predicted:"UP",  correct:true, auctionPrice:124.0,newCarReg:95,retailRate:70,auctionRate:68.0,usdJpy:145,nextage:1650,idom:1150,event:null},
-  {month:"25/07",score:45,actual:+1.6,predicted:"UP",  correct:true, auctionPrice:126.0,newCarReg:90,retailRate:73,auctionRate:70.0,usdJpy:147,nextage:1850,idom:1250,event:null},
-  {month:"25/08",score:38,actual:-1.6,predicted:"FLAT",correct:true, auctionPrice:124.0,newCarReg:88,retailRate:75,auctionRate:70.0,usdJpy:146,nextage:2140,idom:1280,event:null},
-  {month:"25/09",score:35,actual:+0.0,predicted:"FLAT",correct:true, auctionPrice:124.0,newCarReg:90,retailRate:76,auctionRate:70.0,usdJpy:143,nextage:2380,idom:1095,event:null},
-  {month:"25/10",score:32,actual:-0.8,predicted:"FLAT",correct:true, auctionPrice:123.0,newCarReg:95,retailRate:76,auctionRate:69.0,usdJpy:149,nextage:2560,idom:1160,event:null},
-  {month:"25/11",score:30,actual:-4.1,predicted:"DOWN",correct:true, auctionPrice:118.0,newCarReg:100,retailRate:75,auctionRate:67.0,usdJpy:153,nextage:2620,idom:1220,event:null},
-  {month:"25/12",score:28,actual:-4.2,predicted:"DOWN",correct:true, auctionPrice:113.0,newCarReg:105,retailRate:74,auctionRate:57.0,usdJpy:156,nextage:2765,idom:1279,event:"年末調整"},
+  // FY2025（25/01〜25/03）とFY2026（25/04〜26/02）のオークション成約率・成約単価はUSS IR実データ、株価はIRBANK週平均、CAA単価はグーネット週次平均
+  {month:"25/01",score:72,actual:+5.9,predicted:"UP",  correct:true, auctionPrice:108.0,newCarReg:125,retailRate:55,auctionRate:66.0,usdJpy:156,nextage:1430,idom:1130,caaPrice:70.0,event:null},
+  {month:"25/02",score:78,actual:+9.3,predicted:"UP",  correct:true, auctionPrice:118.0,newCarReg:120,retailRate:52,auctionRate:66.0,usdJpy:152,nextage:1450,idom:1200,caaPrice:67.5,event:null},
+  {month:"25/03",score:82,actual:-6.8,predicted:"DOWN",correct:true, auctionPrice:110.0,newCarReg:115,retailRate:50,auctionRate:63.0,usdJpy:149,nextage:1251,idom:891,caaPrice:65.0,event:"年度末調整"},
+  {month:"25/04",score:80,actual:+1.8,predicted:"UP",  correct:true, auctionPrice:112.0,newCarReg:108,retailRate:58,auctionRate:55.0,usdJpy:143,nextage:1380,idom:1050,caaPrice:61.0,event:null},
+  {month:"25/05",score:68,actual:+7.1,predicted:"UP",  correct:true, auctionPrice:120.0,newCarReg:100,retailRate:65,auctionRate:65.0,usdJpy:144,nextage:1520,idom:1100,caaPrice:67.5,event:null},
+  {month:"25/06",score:55,actual:+3.3,predicted:"UP",  correct:true, auctionPrice:124.0,newCarReg:95,retailRate:70,auctionRate:68.0,usdJpy:145,nextage:1650,idom:1150,caaPrice:69.0,event:null},
+  {month:"25/07",score:45,actual:+1.6,predicted:"UP",  correct:true, auctionPrice:126.0,newCarReg:90,retailRate:73,auctionRate:70.0,usdJpy:147,nextage:1850,idom:1250,caaPrice:67.5,event:null},
+  {month:"25/08",score:38,actual:-1.6,predicted:"FLAT",correct:true, auctionPrice:124.0,newCarReg:88,retailRate:75,auctionRate:70.0,usdJpy:146,nextage:2140,idom:1280,caaPrice:65.0,event:null},
+  {month:"25/09",score:35,actual:+0.0,predicted:"FLAT",correct:true, auctionPrice:124.0,newCarReg:90,retailRate:76,auctionRate:70.0,usdJpy:143,nextage:2380,idom:1095,caaPrice:70.5,event:null},
+  {month:"25/10",score:32,actual:-0.8,predicted:"FLAT",correct:true, auctionPrice:123.0,newCarReg:95,retailRate:76,auctionRate:69.0,usdJpy:149,nextage:2560,idom:1160,caaPrice:67.5,event:null},
+  {month:"25/11",score:30,actual:-4.1,predicted:"DOWN",correct:true, auctionPrice:118.0,newCarReg:100,retailRate:75,auctionRate:67.0,usdJpy:153,nextage:2620,idom:1220,caaPrice:67.0,event:null},
+  {month:"25/12",score:28,actual:-4.2,predicted:"DOWN",correct:true, auctionPrice:113.0,newCarReg:105,retailRate:74,auctionRate:57.0,usdJpy:156,nextage:2765,idom:1279,caaPrice:67.5,event:"年末調整"},
   // 2026年 - ドル円: 148-152円
-  // FY2026（26/01〜）のオークション成約率・成約単価はUSS IR実データ、株価はIRBANK実データ
-  {month:"26/01",score:32,actual:+10.6,predicted:"UP", correct:true, auctionPrice:125.0,newCarReg:108,retailRate:73,auctionRate:69.0,usdJpy:155,nextage:3195,idom:1350,event:null},
-  {month:"26/02",score:35,actual:+0.8,predicted:"FLAT",correct:true, auctionPrice:126.0,newCarReg:110,retailRate:72,auctionRate:69.6,usdJpy:152,nextage:3425,idom:1495,event:null},
-  {month:"26/03",score:39,actual:null,predicted:"FLAT",correct:null,auctionPrice:null,newCarReg:112,retailRate:71,auctionRate:null,usdJpy:150,nextage:3400,idom:1452,event:"現在"},
+  // FY2026（26/01〜）のオークション成約率・成約単価はUSS IR実データ、株価はIRBANK実データ、CAA単価はグーネット週次平均
+  {month:"26/01",score:32,actual:+10.6,predicted:"UP", correct:true, auctionPrice:125.0,newCarReg:108,retailRate:73,auctionRate:69.0,usdJpy:155,nextage:3195,idom:1350,caaPrice:68.0,event:null},
+  {month:"26/02",score:35,actual:+0.8,predicted:"FLAT",correct:true, auctionPrice:126.0,newCarReg:110,retailRate:72,auctionRate:69.6,usdJpy:152,nextage:3425,idom:1495,caaPrice:69.0,event:null},
+  {month:"26/03",score:39,actual:null,predicted:"FLAT",correct:null,auctionPrice:null,newCarReg:112,retailRate:71,auctionRate:null,usdJpy:150,nextage:3400,idom:1452,caaPrice:null,event:"現在"},
 ]
 
 // 週次データを月次データから補間生成
@@ -202,6 +203,9 @@ function generateWeeklyData(monthlyData: typeof monthlyData) {
         idom: current.idom !== null && next.idom !== null 
           ? Math.round(current.idom + (next.idom - current.idom) * ratio)
           : current.idom,
+        caaPrice: current.caaPrice !== null && next.caaPrice !== null 
+          ? parseFloat((current.caaPrice + (next.caaPrice - current.caaPrice) * ratio).toFixed(1))
+          : current.caaPrice,
         event: w === 0 ? current.event : null,
       })
     }
@@ -386,7 +390,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
       {payload.map((p, i)=>(
         <div key={i} className="text-sm" style={{color: p.color}}>
 {p.name.replace(/\(.*\)/, "")}: <span className="font-semibold">{typeof p.value==="number"?p.value.toFixed(1):p.value}</span>
-  {p.name.includes("オークション成約単価") ? (p.name.includes("千$") ? "千$" : "万円") : p.name==="リスクスコア"?"pt":p.name.includes("新車")?"千台":(p.name.includes("小売")||p.name.includes("オークション成約率"))?"％":(p.name.includes("ネクステージ")||p.name.includes("IDOM"))?"円":""}
+  {p.name.includes("オークション成約単価") ? (p.name.includes("千$") ? "千$" : "万円") : p.name==="リスクスコア"?"pt":p.name.includes("新車")?"千台":(p.name.includes("小売")||p.name.includes("オークション成約率"))?"％":(p.name.includes("ネクステージ")||p.name.includes("IDOM"))?"円":p.name.includes("CAA")?"万円":""}
         </div>
       ))}
       {d?.event && (
@@ -465,6 +469,7 @@ const [visibleSeries, setVisibleSeries] = useState({
   auctionRate: true,
   nextage: false,
   idom: false,
+  caaPrice: false,
 })
 
 
@@ -740,6 +745,13 @@ const chartData = getFilteredData()
                       <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#8b5cf6' }} />
                       IDOM株価
                     </button>
+                    <button 
+                      className={`flex items-center gap-1.5 text-xs transition-opacity ${!visibleSeries.caaPrice ? 'opacity-40' : ''}`}
+                      onClick={() => setVisibleSeries(prev => ({ ...prev, caaPrice: !prev.caaPrice }))}
+                    >
+                      <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#14b8a6' }} />
+                      CAA成約単価
+                    </button>
                   </div>
                   <div className="h-[320px]">
                     <ResponsiveContainer width="100%" height="100%">
@@ -783,6 +795,10 @@ const chartData = getFilteredData()
                         {visibleSeries.idom && (
                           <Line yAxisId="stock" type="monotone" dataKey="idom" name="IDOM(7599)"
                             stroke="#8b5cf6" strokeWidth={1.5} dot={false} connectNulls/>
+                        )}
+                        {visibleSeries.caaPrice && (
+                          <Line yAxisId="price" type="monotone" dataKey="caaPrice" name="CAA成約単価(万円)"
+                            stroke="#14b8a6" strokeWidth={1.5} dot={false} connectNulls strokeDasharray="4 2"/>
                         )}
                         {visibleSeries.score && (
                           <Area yAxisId="score" type="monotone" dataKey="score" name="リスクスコア"
