@@ -539,10 +539,10 @@ const chartData = getFilteredData()
           <div className="flex items-start justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold tracking-tight">
-                Symphony Insight — 相場リスクエンジン v1.0
+                Symphony Insight — オークション相場監視エンジン v1.0
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
-                6モジュール統合型 中古車オークション相場リスク予測システム / バックテスト精度 {backtestAccuracy.overall}%（急落検知 {backtestAccuracy.crashes}%）
+                6モジュール統合型 中古車オークション相場監視システム / バックテスト精度 {backtestAccuracy.overall}%（急落検知 {backtestAccuracy.crashes}%）
               </p>
             </div>
             <div className={`px-4 py-2 rounded-lg border ${risk.bgColor} ${risk.borderColor}`}>

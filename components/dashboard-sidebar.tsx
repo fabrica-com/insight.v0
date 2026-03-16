@@ -34,7 +34,7 @@ const navigation = [
   { name: "レポート", icon: FileText, href: "/reports" },
   { name: "店舗ランキング", icon: Trophy, href: "/rankings" },
   { name: "業界ニュース", icon: Newspaper, href: "/news" },
-  { name: "相場リスクエンジン", icon: AlertTriangle, href: "/market-alert" },
+  { name: "オークション相場監視エンジン", icon: AlertTriangle, href: "/market-alert" },
 ]
 
 export function DashboardSidebar({ defaultCollapsed = false }: { defaultCollapsed?: boolean }) {
