@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   BarChart3,
   Trophy,
+  Gauge,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -85,6 +86,21 @@ const pricingAlerts = {
   optimal: 5,
   underpriced: 1,
   longTerm: 3,
+}
+
+// Market alert data
+const marketAlertData = {
+  riskScore: 39,
+  riskLevel: "注意",
+  riskColor: "text-amber-500",
+  trend: "横ばい",
+  indicators: [
+    { name: "小売成約率", value: 72.5, weight: 30, status: "良好" },
+    { name: "オークション成約率", value: 68.8, weight: 20, status: "注意" },
+    { name: "輸出圧力指数", value: 82, weight: 20, status: "警戒" },
+    { name: "新車登録台数", value: 108, weight: 10, status: "良好" },
+  ],
+  recommendation: "相場は安定傾向。現状維持で問題なし。",
 }
 
 // Trending vehicles for dashboard
@@ -222,8 +238,8 @@ export function DashboardOverview() {
               <p className="text-xs text-muted-foreground mt-0.5">直近6ヶ月の月間推移</p>
           </CardHeader>
           <CardContent>
-            <div className="h-[220px]">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-[220px] min-h-[220px]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                 <AreaChart data={salesTrendData} margin={{ top: 5, right: 5, bottom: 0, left: -15 }}>
                   <defs>
                     <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
@@ -258,8 +274,8 @@ export function DashboardOverview() {
                   <span className="text-muted-foreground">台数</span>
                 </div>
               </div>
-              <div className="h-[80px]">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-[80px] min-h-[80px]">
+                <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={60}>
                   <BarChart data={salesTrendData} margin={{ top: 0, right: 5, bottom: 0, left: -15 }}>
                     <XAxis dataKey="month" fontSize={10} tickLine={false} axisLine={false} stroke="#9ca3af" />
                     <YAxis fontSize={10} tickLine={false} axisLine={false} stroke="#9ca3af" />
@@ -295,8 +311,8 @@ export function DashboardOverview() {
             </Link>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-center h-[170px]">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="flex items-center justify-center h-[170px] min-h-[170px]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={150} minHeight={150}>
                 <PieChart>
                   <Pie
                     data={inventoryAgeData}
@@ -359,8 +375,90 @@ export function DashboardOverview() {
         </Card>
       </div>
 
-      {/* Row 3: Pricing + Competitor + AI */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      {/* Row 3: Market Alert + Pricing + Competitor + AI */}
+      <div className="grid gap-6 lg:grid-cols-4">
+        {/* Market Alert Summary */}
+        <Card className="border-amber-500/20">
+          <CardHeader className="flex flex-row items-center justify-between pb-3 bg-gradient-to-r from-amber-500/5 to-transparent">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-600">
+                <Gauge className="h-4 w-4 text-white" />
+              </div>
+              <CardTitle className="text-base font-semibold">相場リスク</CardTitle>
+            </div>
+            <Link href="/market-alert">
+              <Button variant="ghost" size="sm" className="gap-1 text-xs text-primary hover:text-primary">
+                詳細 <ArrowUpRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Risk Score Gauge */}
+            <div className="flex flex-col items-center justify-center">
+              <svg className="w-24 h-14" viewBox="0 0 120 70">
+                <defs>
+                  <linearGradient id="gaugeGradientDash" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#22c55e" />
+                    <stop offset="50%" stopColor="#f59e0b" />
+                    <stop offset="100%" stopColor="#ef4444" />
+                  </linearGradient>
+                </defs>
+                {/* Background arc */}
+                <path
+                  d="M 10 60 A 50 50 0 0 1 110 60"
+                  fill="none"
+                  stroke="hsl(var(--muted))"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  opacity="0.3"
+                />
+                {/* Colored arc */}
+                <path
+                  d="M 10 60 A 50 50 0 0 1 110 60"
+                  fill="none"
+                  stroke="url(#gaugeGradientDash)"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                />
+                {/* Needle - 0 is left (PI), 100 is right (0) */}
+                <line
+                  x1="60"
+                  y1="60"
+                  x2={60 + 30 * Math.cos(Math.PI * (1 - marketAlertData.riskScore / 100))}
+                  y2={60 - 30 * Math.sin(Math.PI * (1 - marketAlertData.riskScore / 100))}
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  className="text-foreground"
+                />
+                <circle cx="60" cy="60" r="4" fill="currentColor" className="text-foreground" />
+              </svg>
+              {/* Score display below gauge */}
+              <div className="text-center mt-1">
+                <div className="text-2xl font-bold">{marketAlertData.riskScore}</div>
+                <div className="text-xs text-muted-foreground">/ 100</div>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <Badge className={cn(
+                "text-xs px-3 py-1",
+                marketAlertData.riskScore < 30 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
+                marketAlertData.riskScore < 60 ? "bg-amber-500/10 text-amber-600 border-amber-500/20" :
+                "bg-red-500/10 text-red-600 border-red-500/20"
+              )}>
+                {marketAlertData.riskLevel}
+              </Badge>
+              <p className="text-xs text-muted-foreground mt-1">USS予測: {marketAlertData.trend}</p>
+            </div>
+
+            {/* Recommendation */}
+            <div className="p-3 rounded-lg bg-muted/50 border border-border">
+              <p className="text-xs text-muted-foreground">{marketAlertData.recommendation}</p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Pricing Alerts Summary */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-3">
@@ -538,8 +636,8 @@ export function DashboardOverview() {
                   STR (%)
                 </div>
               </div>
-              <div className="h-[200px]">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-[200px] min-h-[200px]">
+                <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={180}>
                   <BarChart data={strChartData} layout="vertical" margin={{ left: 0, right: 10 }}>
                     <XAxis type="number" fontSize={10} tickLine={false} axisLine={false} stroke="#9ca3af" domain={[0, 35]} />
                     <YAxis type="category" dataKey="name" fontSize={11} tickLine={false} axisLine={false} stroke="#9ca3af" width={80} />
