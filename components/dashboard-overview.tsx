@@ -238,8 +238,8 @@ export function DashboardOverview() {
               <p className="text-xs text-muted-foreground mt-0.5">直近6ヶ月の月間推移</p>
           </CardHeader>
           <CardContent>
-            <div className="h-[220px]">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-[220px] min-h-[220px]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                 <AreaChart data={salesTrendData} margin={{ top: 5, right: 5, bottom: 0, left: -15 }}>
                   <defs>
                     <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
@@ -274,8 +274,8 @@ export function DashboardOverview() {
                   <span className="text-muted-foreground">台数</span>
                 </div>
               </div>
-              <div className="h-[80px]">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-[80px] min-h-[80px]">
+                <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={60}>
                   <BarChart data={salesTrendData} margin={{ top: 0, right: 5, bottom: 0, left: -15 }}>
                     <XAxis dataKey="month" fontSize={10} tickLine={false} axisLine={false} stroke="#9ca3af" />
                     <YAxis fontSize={10} tickLine={false} axisLine={false} stroke="#9ca3af" />
@@ -311,8 +311,8 @@ export function DashboardOverview() {
             </Link>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-center h-[170px]">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="flex items-center justify-center h-[170px] min-h-[170px]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={150} minHeight={150}>
                 <PieChart>
                   <Pie
                     data={inventoryAgeData}
@@ -636,8 +636,8 @@ export function DashboardOverview() {
                   STR (%)
                 </div>
               </div>
-              <div className="h-[200px]">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-[200px] min-h-[200px]">
+                <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={180}>
                   <BarChart data={strChartData} layout="vertical" margin={{ left: 0, right: 10 }}>
                     <XAxis type="number" fontSize={10} tickLine={false} axisLine={false} stroke="#9ca3af" domain={[0, 35]} />
                     <YAxis type="category" dataKey="name" fontSize={11} tickLine={false} axisLine={false} stroke="#9ca3af" width={80} />
