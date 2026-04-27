@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import { MarketMonthlyReport } from "@/components/market-monthly-report"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -233,7 +234,7 @@ const trendingRankingData = [
 ]
 
 export function ReportsDashboard() {
-  const [activeTab, setActiveTab] = useState<"market" | "company" | "export">("market")
+  const [activeTab, setActiveTab] = useState<"monthly" | "market" | "company" | "export">("monthly")
   const [selectedExportCountry, setSelectedExportCountry] = useState("NZ")
   const [exportRankingType, setExportRankingType] = useState<"destination" | "model" | "change">("destination")
   const [expandedExportModel, setExpandedExportModel] = useState<string | null>(null)
@@ -246,10 +247,14 @@ export function ReportsDashboard() {
     <div className="space-y-6">
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as "market" | "company" | "export")}
+        onValueChange={(value) => setActiveTab(value as "monthly" | "market" | "company" | "export")}
         className="space-y-6"
       >
-        <TabsList className="grid w-full max-w-lg grid-cols-3 h-11">
+        <TabsList className="grid w-full max-w-2xl grid-cols-4 h-11">
+          <TabsTrigger value="monthly" className="gap-2 text-sm">
+            <Calendar className="h-4 w-4" />
+            月次レポート
+          </TabsTrigger>
           <TabsTrigger value="market" className="gap-2 text-sm">
             <Globe className="h-4 w-4" />
             市場動向
@@ -258,7 +263,15 @@ export function ReportsDashboard() {
             <Ship className="h-4 w-4" />
             輸出動向
           </TabsTrigger>
+          <TabsTrigger value="company" className="gap-2 text-sm">
+            <Building2 className="h-4 w-4" />
+            自社分析
+          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="monthly" className="space-y-6 data-[state=inactive]:hidden">
+          <MarketMonthlyReport />
+        </TabsContent>
 
         <TabsContent value="market" className="space-y-6 data-[state=inactive]:hidden">
           <div className="grid gap-4 md:grid-cols-3">
@@ -956,6 +969,136 @@ export function ReportsDashboard() {
                 title: "輸出予測レポート",
                 desc: "為替・需要予測分析",
                 color: "from-orange-500 to-orange-600",
+              },
+            ].map((report, i) => (
+              <Card key={i} className="border-border/50 hover:border-primary/30 transition-colors cursor-pointer group">
+                <CardContent className="flex items-center gap-4 p-4">
+                  <div
+                    className={`flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br ${report.color} text-white`}
+                  >
+                    <report.icon className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-sm">{report.title}</div>
+                    <div className="text-xs text-muted-foreground">{report.desc}</div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Download className="h-4 w-4" />
+                    PDF
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="company" className="space-y-6 data-[state=inactive]:hidden">
+          {/* Company Stats */}
+          <div className="grid gap-4 md:grid-cols-4">
+            {[
+              { label: "月間販売台数", value: "118台", change: "+18%", positive: true },
+              { label: "目標達成率", value: "118%", change: "+8pt", positive: true },
+              { label: "月間売上", value: "¥356M", change: "+14.1%", positive: true },
+              { label: "平均販売単価", value: "¥3.02M", change: "+3.2%", positive: true },
+            ].map((stat, i) => (
+              <Card key={i} className="border-border/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    {stat.label}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stat.value}</div>
+                  <div className="flex items-center gap-1 text-xs mt-1">
+                    {stat.positive ? (
+                      <ArrowUpRight className="h-3 w-3 text-green-500" />
+                    ) : (
+                      <ArrowDownRight className="h-3 w-3 text-red-500" />
+                    )}
+                    <span className={stat.positive ? "text-green-500" : "text-red-500"}>{stat.change}</span>
+                    <span className="text-muted-foreground">前月比</span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Performance Chart */}
+          <Card className="border-border/50">
+            <CardHeader>
+              <CardTitle className="text-base">自社パフォーマンス推移</CardTitle>
+              <CardDescription className="text-xs">販売実績 vs 目標</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={companyPerformanceData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="month" tick={{ fill: "#6b7280", fontSize: 12 }} />
+                    <YAxis tick={{ fill: "#6b7280", fontSize: 12 }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#fff",
+                        border: "1px solid #e5e7eb",
+                        borderRadius: "8px",
+                        fontSize: "12px",
+                      }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: "12px" }} />
+                    <Bar dataKey="sales" name="販売実績" fill={CHART_COLORS.primary} radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="target" name="目標" fill={CHART_COLORS.accent} opacity={0.5} radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Competitor Comparison */}
+          <Card className="border-border/50">
+            <CardHeader>
+              <CardTitle className="text-base">競合比較分析</CardTitle>
+              <CardDescription className="text-xs">主要指標の相対評価</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart data={competitorComparisonData}>
+                    <PolarGrid stroke="#e5e7eb" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: "#6b7280", fontSize: 11 }} />
+                    <PolarRadiusAxis angle={30} domain={[0, 150]} tick={{ fill: "#6b7280", fontSize: 10 }} />
+                    <Radar name="自社" dataKey="A" stroke={CHART_COLORS.primary} fill={CHART_COLORS.primary} fillOpacity={0.3} />
+                    <Radar name="競合平均" dataKey="B" stroke={CHART_COLORS.accent} fill={CHART_COLORS.accent} fillOpacity={0.3} />
+                    <Legend wrapperStyle={{ fontSize: "12px" }} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Download Reports */}
+          <div className="grid gap-4 md:grid-cols-3">
+            {[
+              {
+                icon: Building2,
+                title: "自社分析レポート",
+                desc: "パフォーマンス詳細",
+                color: "from-blue-500 to-blue-600",
+              },
+              {
+                icon: Target,
+                title: "競合分析レポート",
+                desc: "市場ポジション分析",
+                color: "from-green-500 to-green-600",
+              },
+              {
+                icon: Activity,
+                title: "KPI推移レポート",
+                desc: "月次・四半期比較",
+                color: "from-purple-500 to-purple-600",
               },
             ].map((report, i) => (
               <Card key={i} className="border-border/50 hover:border-primary/30 transition-colors cursor-pointer group">
