@@ -111,10 +111,12 @@ export interface RetailSalesRecord {
   id: string
   manufacturer: Manufacturer
   model: string
+  modelCode: string
   grade: string
+  color: string
   year: number
   mileage: number
-  color: string
+  inspectionValid: boolean
   region: RegionId
   soldPrice: number
   listingDays: number
@@ -126,27 +128,38 @@ export interface AuctionRecord {
   id: string
   manufacturer: Manufacturer
   model: string
+  modelCode: string
   grade: string
+  color: string
   year: number
   mileage: number
-  color: string
+  inspectionValid: boolean
   region: RegionId
   auctionPrice: number
   auctionDate: string
   auctionName: string
 }
 
-// 業販価格計算（オークション価格 × 1.1 + 15,000円）
-export function calculateWholesalePrice(auctionPrice: number): number {
+// 業販価格計算（税抜）= オークション価格 × 1.1 + 15,000円
+export function calculateWholesalePriceExcludingTax(auctionPrice: number): number {
   return Math.round(auctionPrice * 1.1 + 15000)
+}
+
+// 業販価格計算（税込）= 業販価格（税抜）× 1.1
+export function calculateWholesalePriceIncludingTax(auctionPrice: number): number {
+  const priceExcludingTax = calculateWholesalePriceExcludingTax(auctionPrice)
+  return Math.round(priceExcludingTax * 1.1)
 }
 
 // 小売実績集計データの型定義
 export interface RetailSalesSummary {
   manufacturer: Manufacturer
   model: string
+  modelCode: string
   grade: string
+  color: string
   yearRange: string
+  inspectionValid: boolean
   avgPrice: number
   minPrice: number
   maxPrice: number
@@ -159,12 +172,14 @@ export interface RetailSalesSummary {
 export interface WholesalePriceSummary {
   manufacturer: Manufacturer
   model: string
+  modelCode: string
   grade: string
+  color: string
   yearRange: string
+  inspectionValid: boolean
   avgAuctionPrice: number
-  calculatedWholesalePrice: number
-  estimatedProfit: number
-  totalRecords: number
+  wholesalePriceExcludingTax: number
+  wholesalePriceIncludingTax: number
   region: RegionId
 }
 
@@ -211,15 +226,20 @@ function generateRetailSalesData(): RetailSalesRecord[] {
           const basePrice = getBasePrice(manufacturer, modelData.name, grade, year, rand)
           const priceVariation = (rand() - 0.5) * basePrice * 0.15
           const soldPrice = Math.round((basePrice + priceVariation) / 10000) * 10000
+          const modelCode = `${modelData.name.substring(0, 2).toUpperCase()}-${String(Math.floor(rand() * 9999)).padStart(4, "0")}`
+          const color = COLORS[Math.floor(rand() * COLORS.length)]
+          const inspectionValid = rand() > 0.3 // 70%の確率で車検有効
 
           records.push({
             id: `RS${String(idCounter++).padStart(5, "0")}`,
             manufacturer,
             model: modelData.name,
+            modelCode,
             grade,
+            color,
             year,
             mileage: Math.floor(rand() * 80000) + 5000,
-            color: COLORS[Math.floor(rand() * COLORS.length)],
+            inspectionValid,
             region: REGIONS[Math.floor(rand() * REGIONS.length)].id,
             soldPrice,
             listingDays: Math.floor(rand() * 60) + 5,
@@ -249,15 +269,20 @@ function generateAuctionData(): AuctionRecord[] {
           const basePrice = getBasePrice(manufacturer, modelData.name, grade, year, rand)
           // オークション価格は小売価格より10-20%低い
           const auctionPrice = Math.round((basePrice * (0.75 + rand() * 0.1)) / 10000) * 10000
+          const modelCode = `${modelData.name.substring(0, 2).toUpperCase()}-${String(Math.floor(rand() * 9999)).padStart(4, "0")}`
+          const color = COLORS[Math.floor(rand() * COLORS.length)]
+          const inspectionValid = rand() > 0.3 // 70%の確率で車検有効
 
           records.push({
             id: `AU${String(idCounter++).padStart(5, "0")}`,
             manufacturer,
             model: modelData.name,
+            modelCode,
             grade,
+            color,
             year,
             mileage: Math.floor(rand() * 80000) + 5000,
-            color: COLORS[Math.floor(rand() * COLORS.length)],
+            inspectionValid,
             region: REGIONS[Math.floor(rand() * REGIONS.length)].id,
             auctionPrice,
             auctionDate: generateRandomDate(rand),
@@ -372,10 +397,11 @@ export function aggregateRetailSales(
     filtered = filtered.filter(r => r.region === filters.region)
   }
 
-  // グループ化キー: manufacturer + model + grade + region
+  // グループ化キー: manufacturer + model + grade + color + inspectionValid + region
+  // (年式は一意に決定される = 同じグレード・色・車検有無で年式は同じ)
   const groups = new Map<string, RetailSalesRecord[]>()
   for (const record of filtered) {
-    const key = `${record.manufacturer}|${record.model}|${record.grade}|${record.region}`
+    const key = `${record.manufacturer}|${record.model}|${record.grade}|${record.color}|${record.inspectionValid}|${record.region}`
     if (!groups.has(key)) {
       groups.set(key, [])
     }
@@ -384,18 +410,23 @@ export function aggregateRetailSales(
 
   const summaries: RetailSalesSummary[] = []
   for (const [key, group] of groups) {
-    const [manufacturer, model, grade, region] = key.split("|")
+    const [manufacturer, model, grade, color, inspectionValidStr, region] = key.split("|")
     const years = group.map(r => r.year)
     const minYear = Math.min(...years)
     const maxYear = Math.max(...years)
     const prices = group.map(r => r.soldPrice)
     const listingDays = group.map(r => r.listingDays)
+    const modelCode = group[0].modelCode // すべて同じ値
+    const inspectionValid = inspectionValidStr === "true"
 
     summaries.push({
       manufacturer: manufacturer as Manufacturer,
       model,
+      modelCode,
       grade,
+      color,
       yearRange: minYear === maxYear ? `${minYear}年` : `${minYear}-${maxYear}年`,
+      inspectionValid,
       avgPrice: Math.round(prices.reduce((a, b) => a + b, 0) / prices.length),
       minPrice: Math.min(...prices),
       maxPrice: Math.max(...prices),
@@ -429,9 +460,10 @@ export function aggregateWholesalePrices(
     filtered = filtered.filter(r => r.region === filters.region)
   }
 
+  // グループ化キー: manufacturer + model + grade + color + inspectionValid + region
   const groups = new Map<string, AuctionRecord[]>()
   for (const record of filtered) {
-    const key = `${record.manufacturer}|${record.model}|${record.grade}|${record.region}`
+    const key = `${record.manufacturer}|${record.model}|${record.grade}|${record.color}|${record.inspectionValid}|${record.region}`
     if (!groups.has(key)) {
       groups.set(key, [])
     }
@@ -440,31 +472,33 @@ export function aggregateWholesalePrices(
 
   const summaries: WholesalePriceSummary[] = []
   for (const [key, group] of groups) {
-    const [manufacturer, model, grade, region] = key.split("|")
+    const [manufacturer, model, grade, color, inspectionValidStr, region] = key.split("|")
     const years = group.map(r => r.year)
     const minYear = Math.min(...years)
     const maxYear = Math.max(...years)
     const auctionPrices = group.map(r => r.auctionPrice)
     const avgAuctionPrice = Math.round(auctionPrices.reduce((a, b) => a + b, 0) / auctionPrices.length)
-    const calculatedWholesalePrice = calculateWholesalePrice(avgAuctionPrice)
-
-    // 推定利益（小売相場との差額を推定、ここでは15-25%のマージンを想定）
-    const estimatedProfit = Math.round(avgAuctionPrice * 0.15)
+    const wholesalePriceExcludingTax = calculateWholesalePriceExcludingTax(avgAuctionPrice)
+    const wholesalePriceIncludingTax = calculateWholesalePriceIncludingTax(avgAuctionPrice)
+    const modelCode = group[0].modelCode // すべて同じ値
+    const inspectionValid = inspectionValidStr === "true"
 
     summaries.push({
       manufacturer: manufacturer as Manufacturer,
       model,
+      modelCode,
       grade,
+      color,
       yearRange: minYear === maxYear ? `${minYear}年` : `${minYear}-${maxYear}年`,
+      inspectionValid,
       avgAuctionPrice,
-      calculatedWholesalePrice,
-      estimatedProfit,
-      totalRecords: group.length,
+      wholesalePriceExcludingTax,
+      wholesalePriceIncludingTax,
       region: region as RegionId,
     })
   }
 
-  return summaries.sort((a, b) => b.totalRecords - a.totalRecords)
+  return summaries.sort((a, b) => b.wholesalePriceIncludingTax - a.wholesalePriceIncludingTax)
 }
 
 // エクスポートするデータセット

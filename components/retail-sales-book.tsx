@@ -27,7 +27,7 @@ import {
   type WholesalePriceSummary,
 } from "@/lib/retail-sales-book-data"
 
-type SortKey = "avgPrice" | "totalSales" | "avgListingDays" | "calculatedWholesalePrice" | "estimatedProfit" | "totalRecords"
+type SortKey = "avgPrice" | "totalSales" | "avgListingDays" | "wholesalePriceIncludingTax"
 
 const ITEMS_PER_PAGE = 15
 
@@ -152,7 +152,7 @@ export function RetailSalesBook() {
     if (tab === "retail") {
       setSortKey("totalSales")
     } else {
-      setSortKey("totalRecords")
+      setSortKey("wholesalePriceIncludingTax")
     }
   }
 
@@ -274,8 +274,11 @@ export function RetailSalesBook() {
                     <TableRow>
                       <TableHead>メーカー</TableHead>
                       <TableHead>車種</TableHead>
+                      <TableHead>型式</TableHead>
                       <TableHead>グレード</TableHead>
+                      <TableHead>色</TableHead>
                       <TableHead>年式</TableHead>
+                      <TableHead>車検</TableHead>
                       <TableHead>エリア</TableHead>
                       <TableHead>
                         <Button
@@ -314,13 +317,20 @@ export function RetailSalesBook() {
                   </TableHeader>
                   <TableBody>
                     {(paginatedData as RetailSalesSummary[]).map((item, idx) => (
-                      <TableRow key={`${item.manufacturer}-${item.model}-${item.grade}-${item.region}-${idx}`}>
+                      <TableRow key={`${item.manufacturer}-${item.model}-${item.modelCode}-${item.grade}-${item.color}-${item.region}-${idx}`}>
                         <TableCell className="font-medium">{item.manufacturer}</TableCell>
                         <TableCell>{item.model}</TableCell>
-                        <TableCell className="max-w-[200px] truncate" title={item.grade}>
+                        <TableCell className="text-sm text-muted-foreground">{item.modelCode}</TableCell>
+                        <TableCell className="max-w-[150px] truncate" title={item.grade}>
                           {item.grade}
                         </TableCell>
+                        <TableCell className="text-sm">{item.color}</TableCell>
                         <TableCell>{item.yearRange}</TableCell>
+                        <TableCell>
+                          <Badge variant={item.inspectionValid ? "default" : "secondary"} className="text-xs">
+                            {item.inspectionValid ? "有効" : "無"}
+                          </Badge>
+                        </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-xs">
                             {getRegionName(item.region)}
@@ -341,7 +351,7 @@ export function RetailSalesBook() {
                     ))}
                     {paginatedData.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                           条件に一致するデータがありません
                         </TableCell>
                       </TableRow>
@@ -361,13 +371,13 @@ export function RetailSalesBook() {
                 <div>
                   <CardTitle>業販価格一覧</CardTitle>
                   <CardDescription>
-                    全{wholesaleSummaries.length}件のデータ（業販価格 = オークション価格 x 1.1 + 15,000円）
+                    {wholesaleSummaries.length}件のデータ（業販価格（税抜）= オークション価格 x 1.1 + 15,000円 / 業販価格（税込）= 業販価格（税抜）x 1.1）
                     {regionFilter !== "all" && ` - ${getRegionName(regionFilter as RegionId)}`}
                   </CardDescription>
                 </div>
                 <Badge variant="secondary" className="text-sm">
                   {formatPriceInMan(
-                    wholesaleSummaries.reduce((sum, s) => sum + s.calculatedWholesalePrice, 0) / (wholesaleSummaries.length || 1)
+                    wholesaleSummaries.reduce((sum, s) => sum + s.wholesalePriceIncludingTax, 0) / (wholesaleSummaries.length || 1)
                   )} 平均
                 </Badge>
               </div>
@@ -379,78 +389,59 @@ export function RetailSalesBook() {
                     <TableRow>
                       <TableHead>メーカー</TableHead>
                       <TableHead>車種</TableHead>
+                      <TableHead>型式</TableHead>
                       <TableHead>グレード</TableHead>
+                      <TableHead>色</TableHead>
                       <TableHead>年式</TableHead>
+                      <TableHead>車検</TableHead>
                       <TableHead>エリア</TableHead>
-                      <TableHead>オークション価格</TableHead>
+                      <TableHead>業販価格（税抜）</TableHead>
                       <TableHead>
                         <Button
                           variant="ghost"
                           size="sm"
                           className="h-auto p-0 font-semibold hover:bg-transparent"
-                          onClick={() => handleSort("calculatedWholesalePrice")}
+                          onClick={() => handleSort("wholesalePriceIncludingTax")}
                         >
-                          業販価格
-                          {getSortIcon("calculatedWholesalePrice")}
-                        </Button>
-                      </TableHead>
-                      <TableHead>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-auto p-0 font-semibold hover:bg-transparent"
-                          onClick={() => handleSort("estimatedProfit")}
-                        >
-                          推定利益
-                          {getSortIcon("estimatedProfit")}
-                        </Button>
-                      </TableHead>
-                      <TableHead>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-auto p-0 font-semibold hover:bg-transparent"
-                          onClick={() => handleSort("totalRecords")}
-                        >
-                          データ件数
-                          {getSortIcon("totalRecords")}
+                          業販価格（税込）
+                          {getSortIcon("wholesalePriceIncludingTax")}
                         </Button>
                       </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {(paginatedData as WholesalePriceSummary[]).map((item, idx) => (
-                      <TableRow key={`${item.manufacturer}-${item.model}-${item.grade}-${item.region}-${idx}`}>
+                      <TableRow key={`${item.manufacturer}-${item.model}-${item.modelCode}-${item.grade}-${item.color}-${item.region}-${idx}`}>
                         <TableCell className="font-medium">{item.manufacturer}</TableCell>
                         <TableCell>{item.model}</TableCell>
-                        <TableCell className="max-w-[200px] truncate" title={item.grade}>
+                        <TableCell className="text-sm text-muted-foreground">{item.modelCode}</TableCell>
+                        <TableCell className="max-w-[150px] truncate" title={item.grade}>
                           {item.grade}
                         </TableCell>
+                        <TableCell className="text-sm">{item.color}</TableCell>
                         <TableCell>{item.yearRange}</TableCell>
+                        <TableCell>
+                          <Badge variant={item.inspectionValid ? "default" : "secondary"} className="text-xs">
+                            {item.inspectionValid ? "有効" : "無"}
+                          </Badge>
+                        </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-xs">
                             {getRegionName(item.region)}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {formatPrice(item.avgAuctionPrice)}
+                          {formatPrice(item.wholesalePriceExcludingTax)}
                         </TableCell>
                         <TableCell className="font-semibold text-primary">
-                          {formatPrice(item.calculatedWholesalePrice)}
+                          {formatPrice(item.wholesalePriceIncludingTax)}
                         </TableCell>
-                        <TableCell>
-                          <span className="text-green-600 font-medium">
-                            +{formatPriceInMan(item.estimatedProfit)}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-medium">{item.totalRecords}</span>件
                         </TableCell>
                       </TableRow>
                     ))}
                     {paginatedData.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                           条件に一致するデータがありません
                         </TableCell>
                       </TableRow>
