@@ -487,11 +487,17 @@ export function getGradesForModel(manufacturer: Manufacturer, model: string): st
 }
 
 // 価格フォーマット
-export function formatPrice(price: number): string {
+export function formatPrice(price: number | undefined | null): string {
+  if (price === undefined || price === null || isNaN(price)) {
+    return "¥---"
+  }
   return `¥${price.toLocaleString()}`
 }
 
 // 万円フォーマット
-export function formatPriceInMan(price: number): string {
+export function formatPriceInMan(price: number | undefined | null): string {
+  if (price === undefined || price === null || isNaN(price)) {
+    return "---万円"
+  }
   return `${Math.round(price / 10000)}万円`
 }
