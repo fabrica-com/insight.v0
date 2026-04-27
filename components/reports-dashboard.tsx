@@ -46,57 +46,139 @@ import {
   PolarRadiusAxis,
 } from "recharts"
 
-// ... existing data definitions ...
-// 輸出仕向地ランキング（2025年実績ベース・外部レポートより）
-// 2025年の日本からの中古車輸出台数：1,713,099台（前年比8.9%増）
-const exportDestinationRanking = [
-  { rank: 1, country: "UAE", code: "AE", volume: 253814, change: 12.0, share: 14.8, note: "中東・アフリカへの再輸出ハブ" },
-  { rank: 2, country: "ロシア", code: "RU", volume: 186583, change: -6.3, share: 10.9, note: "経済制裁の影響継続" },
-  { rank: 3, country: "タンザニア", code: "TZ", volume: 180245, change: 116.9, share: 10.5, note: "2月に首位浮上、アフリカ直送増加" },
-  { rank: 4, country: "ニュージーランド", code: "NZ", volume: 142560, change: 8.5, share: 8.3, note: "安定した需要継続" },
-  { rank: 5, country: "モンゴル", code: "MN", volume: 98320, change: 15.2, share: 5.7, note: "中央アジアルート拡大" },
-  { rank: 6, country: "スリランカ", code: "LK", volume: 85640, change: -8.5, share: 5.0, note: "ホルムズ情勢で停滞" },
-  { rank: 7, country: "ケニア", code: "KE", volume: 78450, change: 22.4, share: 4.6, note: "アフリカ東岸へのゲートウェイ" },
-  { rank: 8, country: "マレーシア", code: "MY", volume: 72180, change: -12.3, share: 4.2, note: "高価格帯車両の輸出停滞" },
-  { rank: 9, country: "ウガンダ", code: "UG", volume: 58920, change: 18.7, share: 3.4, note: "アフリカ内陸部への供給増" },
-  { rank: 10, country: "パキスタン", code: "PK", volume: 45280, change: -5.8, share: 2.6, note: "経済不安定の影響" },
+// =====================================================
+// 公開データソース: 財務省E-Stat普通貿易統計
+// データ加工元: JUMV.NET (https://jumv.net)
+// 更新頻度: 月次（毎月中旬に前月分データ公開）
+// =====================================================
+
+// 2025年通年 中古車輸出台数ランキング TOP10
+// 出典: 財務省E-Stat普通貿易統計 → JUMV.NET集計
+// 総輸出台数: 1,708,604台（前年比109.1%）
+const exportDestinationRanking2025 = [
+  { rank: 1, country: "アラブ首長国連邦", code: "AE", volume: 232408, share: 14.9, yoy: 113.0, note: "中東・アフリカへの再輸出ハブ" },
+  { rank: 2, country: "ロシア", code: "RU", volume: 170347, share: 10.9, yoy: 91.0, note: "前年比マイナス継続" },
+  { rank: 3, country: "タンザニア", code: "TZ", volume: 105566, share: 6.8, yoy: 148.3, note: "アフリカ直送ルート急成長" },
+  { rank: 4, country: "チリ", code: "CL", volume: 74548, share: 4.8, yoy: 129.9, note: "南米市場の拡大" },
+  { rank: 5, country: "ケニア", code: "KE", volume: 71105, share: 4.6, yoy: 123.0, note: "東アフリカのゲートウェイ" },
+  { rank: 6, country: "ニュージーランド", code: "NZ", volume: 65171, share: 4.2, yoy: 87.5, note: "前年比減少" },
+  { rank: 7, country: "モンゴル", code: "MN", volume: 60770, share: 3.9, yoy: 57.9, note: "大幅減少" },
+  { rank: 8, country: "南アフリカ", code: "ZA", volume: 58207, share: 3.7, yoy: 118.5, note: "アフリカ南部の成長" },
+  { rank: 9, country: "スリランカ", code: "LK", volume: 57016, share: 3.7, yoy: 69531.7, note: "輸入規制緩和で急回復" },
+  { rank: 10, country: "タイ", code: "TH", volume: 45273, share: 2.9, yoy: 103.7, note: "ASEAN需要" },
 ]
 
-const exportByModelRanking = {
-  NZ: [
-    { rank: 1, model: "アルファード", modelCode: "AGH30W", volume: 420, change: 18.5, avgPrice: 4200000 },
-    { rank: 2, model: "ハイエース", modelCode: "TRH200V", volume: 380, change: 12.3, avgPrice: 3500000 },
-    { rank: 3, model: "ランドクルーザー", modelCode: "GRJ150L", volume: 320, change: 8.7, avgPrice: 5800000 },
-    { rank: 4, model: "プリウス", modelCode: "ZVW50", volume: 290, change: 5.2, avgPrice: 2400000 },
-    { rank: 5, model: "ハリアー", modelCode: "MXUA80", volume: 260, change: 22.1, avgPrice: 3800000 },
-  ],
-  AU: [
-    { rank: 1, model: "ランドクルーザー", modelCode: "GRJ150L", volume: 380, change: 15.2, avgPrice: 6200000 },
-    { rank: 2, model: "ハイエース", modelCode: "TRH200V", volume: 350, change: 10.8, avgPrice: 3800000 },
-    { rank: 3, model: "アルファード", modelCode: "AGH30W", volume: 310, change: 12.5, avgPrice: 4500000 },
-    { rank: 4, model: "RAV4", modelCode: "MXAA54", volume: 280, change: 18.9, avgPrice: 3200000 },
-    { rank: 5, model: "カムリ", modelCode: "AXVH70", volume: 240, change: 6.3, avgPrice: 2800000 },
-  ],
-  AE: [
-    { rank: 1, model: "ランドクルーザー", modelCode: "URJ202W", volume: 450, change: 25.3, avgPrice: 7500000 },
-    { rank: 2, model: "パトロール", modelCode: "Y62", volume: 320, change: 18.7, avgPrice: 6800000 },
-    { rank: 3, model: "アルファード", modelCode: "AGH35W", volume: 280, change: 14.2, avgPrice: 5200000 },
-    { rank: 4, model: "レクサスLX", modelCode: "URJ201W", volume: 220, change: 32.1, avgPrice: 9500000 },
-    { rank: 5, model: "プラド", modelCode: "TRJ150W", volume: 180, change: 8.5, avgPrice: 4800000 },
-  ],
-}
+// 2026年1月 中古車輸出台数ランキング TOP20
+// 出典: 財務省E-Stat普通貿易統計 → JUMV.NET集計
+// 総輸出台数: 116,223台
+const exportDestinationRanking2026Jan = [
+  { rank: 1, country: "アラブ首長国連邦", code: "AE", volume: 17802, share: 15.3, yoy: 103.8 },
+  { rank: 2, country: "ロシア", code: "RU", volume: 11194, share: 9.6, yoy: 145.2 },
+  { rank: 3, country: "タンザニア", code: "TZ", volume: 8688, share: 7.5, yoy: 141.0 },
+  { rank: 4, country: "マレーシア", code: "MY", volume: 8105, share: 7.0, yoy: 141.1 },
+  { rank: 5, country: "チリ", code: "CL", volume: 7187, share: 6.2, yoy: 201.7 },
+  { rank: 6, country: "ニュージーランド", code: "NZ", volume: 5631, share: 4.8, yoy: 150.1 },
+  { rank: 7, country: "スリランカ", code: "LK", volume: 5176, share: 4.5, yoy: 172533.3 },
+  { rank: 8, country: "モンゴル", code: "MN", volume: 4711, share: 4.1, yoy: 77.3 },
+  { rank: 9, country: "南アフリカ", code: "ZA", volume: 4523, share: 3.9, yoy: 131.4 },
+  { rank: 10, country: "ケニア", code: "KE", volume: 3850, share: 3.3, yoy: 106.4 },
+  { rank: 11, country: "キプロス", code: "CY", volume: 3567, share: 3.1, yoy: 310.2 },
+  { rank: 12, country: "タイ", code: "TH", volume: 2784, share: 2.4, yoy: 69.6 },
+  { rank: 13, country: "フィリピン", code: "PH", volume: 2684, share: 2.3, yoy: 73.1 },
+  { rank: 14, country: "バングラデシュ", code: "BD", volume: 2147, share: 1.8, yoy: 168.0 },
+  { rank: 15, country: "ガイアナ", code: "GY", volume: 1915, share: 1.6, yoy: 135.1 },
+  { rank: 16, country: "イギリス", code: "GB", volume: 1763, share: 1.5, yoy: 168.4 },
+  { rank: 17, country: "ガーナ", code: "GH", volume: 1657, share: 1.4, yoy: 184.9 },
+  { rank: 18, country: "オーストラリア", code: "AU", volume: 1609, share: 1.4, yoy: 217.7 },
+  { rank: 19, country: "ウガンダ", code: "UG", volume: 1476, share: 1.3, yoy: 76.1 },
+  { rank: 20, country: "ジョージア", code: "GE", volume: 1419, share: 1.2, yoy: 198.7 },
+]
 
-const exportVolumeChangeRanking = [
-  { rank: 1, country: "モンゴル", change: 22.4, currentVolume: 1120, prevVolume: 915 },
-  { rank: 2, country: "スリランカ", change: 18.3, currentVolume: 980, prevVolume: 828 },
-  { rank: 3, country: "UAE", change: 15.8, currentVolume: 1890, prevVolume: 1632 },
-  { rank: 4, country: "タンザニア", change: 14.6, currentVolume: 720, prevVolume: 628 },
-  { rank: 5, country: "ニュージーランド", change: 12.5, currentVolume: 2850, prevVolume: 2533 },
-  { rank: 6, country: "ケニア", change: 9.1, currentVolume: 850, prevVolume: 779 },
-  { rank: 7, country: "オーストラリア", change: 8.2, currentVolume: 2340, prevVolume: 2162 },
-  { rank: 8, country: "ウガンダ", change: 7.8, currentVolume: 580, prevVolume: 538 },
-  { rank: 9, country: "パキスタン", change: -2.1, currentVolume: 450, prevVolume: 460 },
-  { rank: 10, country: "ロシア", change: -5.2, currentVolume: 1560, prevVolume: 1646 },
+// 車両タイプ別 輸出ランキング（2026年1月）- 普通車
+// 出典: 財務省E-Stat普通貿易統計 → JUMV.NET集計
+const exportByTypeRegular2026Jan = [
+  { rank: 1, country: "ロシア", volume: 9840, note: "制裁下でも回復基調" },
+  { rank: 2, country: "マレーシア", volume: 7839, note: "右ハンドル需要" },
+  { rank: 3, country: "アラブ首長国連邦", volume: 7255, note: "再輸出向け" },
+  { rank: 4, country: "タンザニア", volume: 5820, note: "アフリカ直送" },
+  { rank: 5, country: "チリ", volume: 5124, note: "南米向け好調" },
+]
+
+// 車両タイプ別 輸出ランキング（2026年1月）- ハイブリッド
+// 出典: 財務省E-Stat普通貿易統計 → JUMV.NET集計
+const exportByTypeHybrid2026Jan = [
+  { rank: 1, country: "アラブ首長国連邦", volume: 5306, note: "プリウス・アクア需要" },
+  { rank: 2, country: "モンゴル", volume: 3938, note: "ハイブリッド人気" },
+  { rank: 3, country: "ニュージーランド", volume: 2157, note: "環境規制対応" },
+  { rank: 4, country: "スリランカ", volume: 1852, note: "輸入再開で急増" },
+  { rank: 5, country: "キプロス", volume: 1680, note: "欧州向けハブ" },
+]
+
+// 車両タイプ別 輸出ランキング（2025年通年）- 軽自動車
+// 出典: 財務省E-Stat普通貿易統計 → JUMV.NET集計
+const exportByTypeKei2025 = [
+  { rank: 1, country: "アラブ首長国連邦", volume: 76994, share: 22.7, yoy: 133.9 },
+  { rank: 2, country: "モンゴル", volume: 54922, share: 16.2, yoy: 58.2 },
+  { rank: 3, country: "ニュージーランド", volume: 34602, share: 10.2, yoy: 98.3 },
+  { rank: 4, country: "バングラデシュ", volume: 15367, share: 4.5, yoy: 123.0 },
+  { rank: 5, country: "イギリス", volume: 15343, share: 4.5, yoy: 130.0 },
+]
+
+// 月別輸出台数推移（2025年 - 軽自動車）
+// 出典: 財務省E-Stat普通貿易統計 → JUMV.NET集計
+const exportMonthlyTrendKei = [
+  { month: "1月", volume: 20490, avgFOB: 107.9 },
+  { month: "2月", volume: 30628, avgFOB: 115.5 },
+  { month: "3月", volume: 32981, avgFOB: 122.7 },
+  { month: "4月", volume: 30963, avgFOB: 113.2 },
+  { month: "5月", volume: 29585, avgFOB: 113.9 },
+  { month: "6月", volume: 28734, avgFOB: 120.5 },
+  { month: "7月", volume: 28646, avgFOB: 132.1 },
+  { month: "8月", volume: 26272, avgFOB: 117.4 },
+  { month: "9月", volume: 27404, avgFOB: 122.0 },
+  { month: "10月", volume: 29122, avgFOB: 124.3 },
+  { month: "11月", volume: 26225, avgFOB: 129.7 },
+  { month: "12月", volume: 28384, avgFOB: 113.4 },
+]
+
+// 年別輸出台数推移（軽自動車）
+// 出典: 財務省E-Stat普通貿易統計 → JUMV.NET集計
+const exportYearlyTrendKei = [
+  { year: "2017", volume: 123753 },
+  { year: "2018", volume: 161681 },
+  { year: "2019", volume: 148881 },
+  { year: "2020", volume: 140312 },
+  { year: "2021", volume: 189008 },
+  { year: "2022", volume: 231662 },
+  { year: "2023", volume: 328600 },
+  { year: "2024", volume: 337310 },
+  { year: "2025", volume: 339434 },
+]
+
+// FOB価格推移（軽自動車、千円）
+// 出典: 財務省E-Stat普通貿易統計 → JUMV.NET集計
+const fobPriceTrendKei = [
+  { year: "2020", jan: 70.4, feb: 69.8, mar: 70.0, apr: 61.1, may: 58.7, jun: 59.7, jul: 61.3, aug: 62.4, sep: 62.3, oct: 62.6, nov: 63.5, dec: 65.2 },
+  { year: "2021", jan: 73.8, feb: 73.0, mar: 73.1, apr: 72.4, may: 68.2, jun: 76.7, jul: 77.7, aug: 80.0, sep: 80.5, oct: 80.3, nov: 71.4, dec: 80.1 },
+  { year: "2022", jan: 91.9, feb: 85.9, mar: 86.7, apr: 89.5, may: 88.1, jun: 94.2, jul: 105.3, aug: 114.2, sep: 117.9, oct: 123.2, nov: 119.9, dec: 113.8 },
+  { year: "2023", jan: 105.7, feb: 99.6, mar: 101.8, apr: 97.4, may: 91.8, jun: 90.7, jul: 95.5, aug: 93.4, sep: 93.7, oct: 101.6, nov: 96.6, dec: 91.5 },
+  { year: "2024", jan: 96.6, feb: 102.1, mar: 107.8, apr: 112.5, may: 110.7, jun: 115.2, jul: 125.1, aug: 121.2, sep: 110.4, oct: 108.7, nov: 110.5, dec: 107.1 },
+  { year: "2025", jan: 107.9, feb: 115.5, mar: 122.7, apr: 113.2, may: 113.9, jun: 120.5, jul: 132.1, aug: 117.4, sep: 122.0, oct: 124.3, nov: 129.7, dec: 113.4 },
+  { year: "2026", jan: 138.9, feb: 135.2, mar: 0, apr: 0, may: 0, jun: 0, jul: 0, aug: 0, sep: 0, oct: 0, nov: 0, dec: 0 },
+]
+
+// 前年比伸び率ランキング（2026年1月）
+const exportGrowthRanking2026Jan = [
+  { rank: 1, country: "スリランカ", yoy: 172533.3, note: "輸入規制解除" },
+  { rank: 2, country: "韓国", yoy: 442.6, note: "中古車輸入再開" },
+  { rank: 3, country: "中国", yoy: 1466.7, note: "試験的輸入拡大" },
+  { rank: 4, country: "キプロス", yoy: 310.2, note: "欧州経由ルート" },
+  { rank: 5, country: "オーストラリア", yoy: 217.7, note: "需要急回復" },
+  { rank: 6, country: "チリ", yoy: 201.7, note: "南米市場好調" },
+  { rank: 7, country: "ジョージア", yoy: 198.7, note: "中央アジア経由" },
+  { rank: 8, country: "ガーナ", yoy: 184.9, note: "西アフリカ需要" },
+  { rank: 9, country: "バングラデシュ", yoy: 168.0, note: "南アジア回復" },
+  { rank: 10, country: "イギリス", yoy: 168.4, note: "右ハンドル需要" },
 ]
 
 const modelVolumeChangeRanking = [
@@ -278,7 +360,7 @@ const usedCarRankingData = [
 export function ReportsDashboard() {
   const [activeTab, setActiveTab] = useState<"monthly" | "market" | "company" | "export">("monthly")
   const [selectedExportCountry, setSelectedExportCountry] = useState("NZ")
-  const [exportRankingType, setExportRankingType] = useState<"destination" | "model" | "change">("destination")
+  const [exportRankingType, setExportRankingType] = useState<"destination" | "destination2026" | "type" | "growth" | "model" | "change">("destination")
   const [expandedExportModel, setExpandedExportModel] = useState<string | null>(null)
 
   const handleDownload = (reportType: string) => {
@@ -595,12 +677,13 @@ export function ReportsDashboard() {
           </Card>
 
           {/* Summary Stats - 外部レポートより */}
+          {/* キーメトリクス - 財務省E-Stat貿易統計より */}
           <div className="grid gap-4 md:grid-cols-4">
             {[
-              { label: "2025年輸出総台数", value: "171.3万台", change: "+8.9%", positive: true, note: "5年連続増加" },
-              { label: "2月輸出台数", value: "14.4万台", change: "+5.5%", positive: true, note: "前年同月比" },
-              { label: "UAE向け（2月）", value: "1.54万台", change: "-14.5%", positive: false, note: "ホルムズ影響" },
-              { label: "タンザニア向け（2月）", value: "1.80万台", change: "+116.9%", positive: true, note: "首位浮上" },
+              { label: "2025年通年輸出台数", value: "170.9万台", change: "+9.1%", positive: true, note: "財務省E-Stat" },
+              { label: "2026年1月輸出台数", value: "11.6万台", change: "+3.8%", positive: true, note: "財務省E-Stat" },
+              { label: "軽自動車FOB価格", value: "138.9万円", change: "+28.7%", positive: true, note: "2026年1月" },
+              { label: "タンザニア（1月）", value: "8,688台", change: "+41.0%", positive: true, note: "アフリカ直送増" },
             ].map((stat, i) => (
               <Card key={i} className="border-border/50">
                 <CardHeader className="pb-2">
@@ -624,111 +707,70 @@ export function ReportsDashboard() {
             ))}
           </div>
 
-          {/* Export Trend Chart - 仕向地シフトを可視化 */}
-          <Card className="border-border/50">
-            <CardHeader>
-              <CardTitle className="text-base">月別輸出台数推移（2025年度）</CardTitle>
-              <CardDescription className="text-xs">主要仕向地別内訳 - 1-2月のUAE減・タンザニア増に注目</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={exportTrendData}>
-                    <defs>
-                      <linearGradient id="colorUAE" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="colorTZ" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="colorRU" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="colorNZ" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="month" tick={{ fill: "#6b7280", fontSize: 11 }} />
-                    <YAxis tick={{ fill: "#6b7280", fontSize: 11 }} tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "#fff",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: "8px",
-                        fontSize: "12px",
-                      }}
-                      formatter={(value: number) => [`${value.toLocaleString()}台`, ""]}
-                    />
-                    <Legend wrapperStyle={{ fontSize: "12px" }} />
-                    <Area
-                      type="monotone"
-                      dataKey="uae"
-                      name="UAE"
-                      stroke="#f59e0b"
-                      strokeWidth={2}
-                      fillOpacity={1}
-                      fill="url(#colorUAE)"
-                      stackId="1"
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="tz"
-                      name="タンザニア"
-                      stroke="#10b981"
-                      strokeWidth={2}
-                      fillOpacity={1}
-                      fill="url(#colorTZ)"
-                      stackId="1"
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="ru"
-                      name="ロシア"
-                      stroke="#ef4444"
-                      strokeWidth={2}
-                      fillOpacity={1}
-                      fill="url(#colorRU)"
-                      stackId="1"
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="nz"
-                      name="NZ"
-                      stroke="#3b82f6"
-                      strokeWidth={2}
-                      fillOpacity={1}
-                      fill="url(#colorNZ)"
-                      stackId="1"
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="other"
-                      name="その他"
-                      stroke="#8b5cf6"
-                      strokeWidth={2}
-                      fillOpacity={0.3}
-                      fill="#8b5cf6"
-                      stackId="1"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          {/* 年別・月別輸出推移チャート - 財務省E-Stat貿易統計より */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Card className="border-border/50">
+              <CardHeader>
+                <CardTitle className="text-base">年別輸出台数推移（軽自動車）</CardTitle>
+                <CardDescription className="text-xs">出典: 財務省E-Stat普通貿易統計</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[280px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={exportYearlyTrendKei}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="year" tick={{ fill: "#6b7280", fontSize: 11 }} />
+                      <YAxis tick={{ fill: "#6b7280", fontSize: 11 }} tickFormatter={(v) => `${(v / 10000).toFixed(0)}万`} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "#fff", border: "1px solid #e5e7eb", borderRadius: "8px", fontSize: "12px" }}
+                        formatter={(value: number) => [`${value.toLocaleString()}台`, "輸出台数"]}
+                      />
+                      <Bar dataKey="volume" name="輸出台数" fill={CHART_COLORS.primary} radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/50">
+              <CardHeader>
+                <CardTitle className="text-base">月別FOB価格推移（軽自動車）</CardTitle>
+                <CardDescription className="text-xs">出典: 財務省E-Stat普通貿易統計（単位: 万円）</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[280px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={exportMonthlyTrendKei}>
+                      <defs>
+                        <linearGradient id="colorFOB" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={CHART_COLORS.accent} stopOpacity={0.3} />
+                          <stop offset="95%" stopColor={CHART_COLORS.accent} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="month" tick={{ fill: "#6b7280", fontSize: 11 }} />
+                      <YAxis tick={{ fill: "#6b7280", fontSize: 11 }} domain={[100, 140]} tickFormatter={(v) => `${v}万`} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "#fff", border: "1px solid #e5e7eb", borderRadius: "8px", fontSize: "12px" }}
+                        formatter={(value: number) => [`${value}万円`, "FOB価格"]}
+                      />
+                      <Area type="monotone" dataKey="avgFOB" name="FOB価格" stroke={CHART_COLORS.accent} strokeWidth={2} fillOpacity={1} fill="url(#colorFOB)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
           {/* Ranking Type Selector */}
           <div className="flex items-center gap-4">
             <span className="text-sm font-medium">ランキング種別:</span>
             <div className="flex gap-2">
               {[
-                { value: "destination", label: "仕向地別" },
-                { value: "model", label: "車種別（国別）" },
-                { value: "change", label: "増減ランキング" },
+                { value: "destination", label: "仕向地別（2025年）" },
+                { value: "destination2026", label: "仕向地別（2026年1月）" },
+                { value: "type", label: "車両タイプ別" },
+                { value: "growth", label: "伸び率ランキング" },
               ].map((type) => (
                 <Button
                   key={type.value}
@@ -742,15 +784,15 @@ export function ReportsDashboard() {
             </div>
           </div>
 
-          {/* Destination Ranking - 外部レポートデータ反映 */}
+          {/* 2025年通年 仕向地ランキング - 財務省E-Stat貿易統計より */}
           {exportRankingType === "destination" && (
             <Card className="border-border/50">
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
                   <Globe className="h-5 w-5 text-blue-500" />
-                  仕向地（国）別 輸出台数ランキング
+                  仕向地（国）別 輸出台数ランキング - 2025年通年
                 </CardTitle>
-                <CardDescription className="text-xs">2025年通年実績 TOP10（日本中古車輸出業協同組合データ）</CardDescription>
+                <CardDescription className="text-xs">出典: 財務省E-Stat普通貿易統計（総輸出台数: 1,708,604台、前年比109.1%）</CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -765,7 +807,7 @@ export function ReportsDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {exportDestinationRanking.map((item) => (
+                    {exportDestinationRanking2025.map((item) => (
                       <TableRow key={item.rank} className="cursor-pointer hover:bg-muted/50">
                         <TableCell>
                           <div
@@ -793,15 +835,14 @@ export function ReportsDashboard() {
                         <TableCell className="text-right font-medium">{item.volume.toLocaleString()}台</TableCell>
                         <TableCell className="text-right">
                           <span
-                            className={`flex items-center justify-end gap-1 ${item.change >= 0 ? "text-green-500" : "text-red-500"}`}
+                            className={`flex items-center justify-end gap-1 ${item.yoy >= 100 ? "text-green-500" : "text-red-500"}`}
                           >
-                            {item.change >= 0 ? (
+                            {item.yoy >= 100 ? (
                               <TrendingUp className="h-3 w-3" />
                             ) : (
                               <TrendingDown className="h-3 w-3" />
                             )}
-                            {item.change >= 0 ? "+" : ""}
-                            {item.change}%
+                            {item.yoy}%
                           </span>
                         </TableCell>
                         <TableCell className="text-right">{item.share}%</TableCell>
@@ -814,309 +855,284 @@ export function ReportsDashboard() {
             </Card>
           )}
 
-          {/* 輸出市場インサイト */}
-          <Card className="border-border/50 bg-muted/30">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Zap className="h-4 w-4 text-amber-500" />
-                輸出市場インサイト
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-background rounded-lg border border-amber-200 dark:border-amber-800">
-                <h4 className="font-semibold text-sm mb-2 text-amber-700 dark:text-amber-400">仕向地ポートフォリオの再設計が急務</h4>
-                <p className="text-sm text-muted-foreground">
-                  ホルムズ海峡の通常運航の本格回復は早ければ2026年後半との見方。UAE一極集中型のロジスティクスから、アフリカ直送、モンゴル経由、東南アジア直送など複数ルートへの分散が重要に。
-                </p>
-              </div>
-              <div className="p-4 bg-background rounded-lg border border-border/50">
-                <h4 className="font-semibold text-sm mb-2">輸出向けプレミアムの変動リスク</h4>
-                <p className="text-sm text-muted-foreground">
-                  ランドクルーザー、ハイエース、SUV系の相場が一時的に緩む可能性。仕入れ価格と小売出口価格のミスマッチが起きやすい局面に入るため、車種ごとの仕入れ判断に慎重さが必要。
-                </p>
-              </div>
-              <div className="p-4 bg-background rounded-lg border border-border/50">
-                <h4 className="font-semibold text-sm mb-2">アフリカ市場の急成長</h4>
-                <p className="text-sm text-muted-foreground">
-                  タンザニア、ケニア、ウガンダなど東アフリカ諸国への直送ルートが急拡大。UAE経由の再輸出コスト増を回避する動きが加速し、仕向地構造の組み替えが進行中。
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Model Ranking by Country */}
-          {exportRankingType === "model" && (
+          {/* 2026年1月 仕向地ランキング - 財務省E-Stat貿易統計より */}
+          {exportRankingType === "destination2026" && (
             <Card className="border-border/50">
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Package className="h-5 w-5 text-green-500" />
-                      国別 車種（型式）別 輸出台数ランキング
-                    </CardTitle>
-                    <CardDescription className="text-xs">年間輸出実績 TOP5</CardDescription>
-                  </div>
-                  <Select value={selectedExportCountry} onValueChange={setSelectedExportCountry}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="国を選択" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="NZ">ニュージーランド</SelectItem>
-                      <SelectItem value="AU">オーストラリア</SelectItem>
-                      <SelectItem value="AE">UAE</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Globe className="h-5 w-5 text-blue-500" />
+                  仕向地（国）別 輸出台数ランキング - 2026年1月
+                </CardTitle>
+                <CardDescription className="text-xs">出典: 財務省E-Stat普通貿易統計（総輸出台数: 116,223台）</CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-16">順位</TableHead>
-                      <TableHead>車種</TableHead>
-                      <TableHead>型式</TableHead>
+                      <TableHead>仕向地</TableHead>
                       <TableHead className="text-right">輸出台数</TableHead>
-                      <TableHead className="text-right">前年比</TableHead>
-                      <TableHead className="text-right">平均単価</TableHead>
+                      <TableHead className="text-right">前年同月比</TableHead>
+                      <TableHead className="text-right">シェア</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {(exportByModelRanking[selectedExportCountry as keyof typeof exportByModelRanking] || []).map(
-                      (item) => {
-                        const key = `${selectedExportCountry}-${item.modelCode}`
-                        const isExpanded = expandedExportModel === key
-                        const details = isExpanded ? generateModelDetails(item.model, item.modelCode, item.avgPrice, item.volume) : []
-                        return (
-                          <React.Fragment key={item.rank}>
-                            <TableRow
-                              className="cursor-pointer hover:bg-muted/50 transition-colors"
-                              onClick={() => setExpandedExportModel(isExpanded ? null : key)}
-                              data-state={isExpanded ? "expanded" : undefined}
-                            >
-                              <TableCell>
-                                <div
-                                  className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold ${
-                                    item.rank === 1
-                                      ? "bg-yellow-500 text-white"
-                                      : item.rank === 2
-                                        ? "bg-gray-400 text-white"
-                                        : item.rank === 3
-                                          ? "bg-amber-600 text-white"
-                                          : "bg-muted"
-                                  }`}
-                                >
-                                  {item.rank}
-                                </div>
-                              </TableCell>
-                              <TableCell className="font-medium">
-                                <div className="flex items-center gap-1.5">
-                                  {isExpanded
-                                    ? <ChevronUp className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-                                    : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/40 flex-shrink-0" />
-                                  }
-                                  {item.model}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <Badge variant="outline" className="font-mono text-xs">
-                                  {item.modelCode}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="text-right font-medium">{item.volume.toLocaleString()}台</TableCell>
-                              <TableCell className="text-right">
-                                <span
-                                  className={`flex items-center justify-end gap-1 ${item.change >= 0 ? "text-green-500" : "text-red-500"}`}
-                                >
-                                  {item.change >= 0 ? (
-                                    <TrendingUp className="h-3 w-3" />
-                                  ) : (
-                                    <TrendingDown className="h-3 w-3" />
-                                  )}
-                                  {item.change >= 0 ? "+" : ""}
-                                  {item.change}%
-                                </span>
-                              </TableCell>
-                              <TableCell className="text-right">¥{(item.avgPrice / 10000).toFixed(0)}万</TableCell>
-                            </TableRow>
-                            {isExpanded && (
-                              <TableRow>
-                                <TableCell colSpan={6} className="p-0">
-                                  <div className="border-x-2 border-b-2 border-primary/20 bg-primary/[0.02] rounded-b-lg mx-2 mb-2">
-                                    <div className="px-4 py-3 border-b border-primary/10 flex items-center gap-2">
-                                      <Ship className="h-4 w-4 text-primary" />
-                                      <span className="text-sm font-semibold">{item.model} の輸出明細</span>
-                                      <Badge variant="outline" className="text-xs">{details.length}件</Badge>
-                                    </div>
-                                    <div className="overflow-x-auto">
-                                      <table className="w-full text-xs">
-                                        <thead>
-                                          <tr className="border-b border-border/50 text-muted-foreground">
-                                            <th className="px-3 py-2 text-left font-medium">��付</th>
-                                            <th className="px-3 py-2 text-left font-medium">メーカー</th>
-                                            <th className="px-3 py-2 text-left font-medium">車名</th>
-                                            <th className="px-3 py-2 text-left font-medium">年式</th>
-                                            <th className="px-3 py-2 text-left font-medium">型式</th>
-                                            <th className="px-3 py-2 text-right font-medium">走行距離</th>
-                                            <th className="px-3 py-2 text-left font-medium">カラー</th>
-                                            <th className="px-3 py-2 text-left font-medium">シフト</th>
-                                            <th className="px-3 py-2 text-left font-medium">駆動</th>
-                                            <th className="px-3 py-2 text-left font-medium">ハンドル</th>
-                                            <th className="px-3 py-2 text-right font-medium">仕入価格</th>
-                                          </tr>
-                                        </thead>
-                                        <tbody>
-                                          {details.map((v) => (
-                                            <tr key={v.id} className="border-b border-border/30 hover:bg-muted/30">
-                                              <td className="px-3 py-2 text-muted-foreground whitespace-nowrap">{v.date}</td>
-                                              <td className="px-3 py-2">{v.maker}</td>
-                                              <td className="px-3 py-2 font-medium">{v.model}</td>
-                                              <td className="px-3 py-2">{v.year}年</td>
-                                              <td className="px-3 py-2 font-mono text-muted-foreground">{v.modelCode}</td>
-                                              <td className="px-3 py-2 text-right tabular-nums">{(v.mileage / 10000).toFixed(1)}万km</td>
-                                              <td className="px-3 py-2">{v.color}</td>
-                                              <td className="px-3 py-2"><Badge variant="outline" className="text-[10px] px-1.5 py-0">{v.shift}</Badge></td>
-                                              <td className="px-3 py-2"><Badge variant="outline" className="text-[10px] px-1.5 py-0">{v.drive}</Badge></td>
-                                              <td className="px-3 py-2">{v.steering}</td>
-                                              <td className="px-3 py-2 text-right font-semibold tabular-nums">¥{(v.purchasePrice / 10000).toFixed(0)}万</td>
-                                            </tr>
-                                          ))}
-                                        </tbody>
-                                      </table>
-                                    </div>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
+                    {exportDestinationRanking2026Jan.slice(0, 15).map((item) => (
+                      <TableRow key={item.rank} className="cursor-pointer hover:bg-muted/50">
+                        <TableCell>
+                          <div
+                            className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold ${
+                              item.rank === 1
+                                ? "bg-yellow-500 text-white"
+                                : item.rank === 2
+                                  ? "bg-gray-400 text-white"
+                                  : item.rank === 3
+                                    ? "bg-amber-600 text-white"
+                                    : "bg-muted"
+                            }`}
+                          >
+                            {item.rank}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{item.country}</span>
+                            <Badge variant="outline" className="text-[10px]">
+                              {item.code}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-medium">{item.volume.toLocaleString()}台</TableCell>
+                        <TableCell className="text-right">
+                          <span
+                            className={`flex items-center justify-end gap-1 ${item.yoy >= 100 ? "text-green-500" : "text-red-500"}`}
+                          >
+                            {item.yoy >= 100 ? (
+                              <TrendingUp className="h-3 w-3" />
+                            ) : (
+                              <TrendingDown className="h-3 w-3" />
                             )}
-                          </React.Fragment>
-                        )
-                      },
-                    )}
+                            {item.yoy}%
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">{item.share}%</TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
           )}
 
-          {/* Volume Change Ranking */}
-          {exportRankingType === "change" && (
-            <div className="grid gap-6 lg:grid-cols-2">
-              {/* Country Volume Change */}
+          {/* 車両タイプ別ランキング */}
+          {exportRankingType === "type" && (
+            <div className="grid gap-6 lg:grid-cols-3">
               <Card className="border-border/50">
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-orange-500" />
-                    国別 台数増減ランキング
+                    <Package className="h-4 w-4 text-blue-500" />
+                    普通車 TOP5（2026年1月）
                   </CardTitle>
-                  <CardDescription className="text-xs">前年比増減率 TOP10</CardDescription>
+                  <CardDescription className="text-xs">財務省E-Stat貿易統計</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">順位</TableHead>
-                        <TableHead>仕向地</TableHead>
-                        <TableHead className="text-right">増減率</TableHead>
-                        <TableHead className="text-right">現在</TableHead>
-                        <TableHead className="text-right">前年</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {exportVolumeChangeRanking.map((item) => (
-                        <TableRow key={item.rank} className="cursor-pointer hover:bg-muted/50">
-                          <TableCell>
-                            <div
-                              className={`flex h-6 w-6 items-center justify-center rounded text-xs font-bold ${
-                                item.rank <= 3 ? "bg-green-500 text-white" : "bg-muted"
-                              }`}
-                            >
-                              {item.rank}
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium">{item.country}</TableCell>
-                          <TableCell className="text-right">
-                            <span
-                              className={`flex items-center justify-end gap-1 font-bold ${item.change >= 0 ? "text-green-500" : "text-red-500"}`}
-                            >
-                              {item.change >= 0 ? (
-                                <TrendingUp className="h-3 w-3" />
-                              ) : (
-                                <TrendingDown className="h-3 w-3" />
-                              )}
-                              {item.change >= 0 ? "+" : ""}
-                              {item.change}%
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right">{item.currentVolume.toLocaleString()}</TableCell>
-                          <TableCell className="text-right text-muted-foreground">
-                            {item.prevVolume.toLocaleString()}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <div className="space-y-3">
+                    {exportByTypeRegular2026Jan.map((item) => (
+                      <div key={item.rank} className="flex items-center gap-3">
+                        <div className={`flex h-6 w-6 items-center justify-center rounded text-xs font-bold ${
+                          item.rank <= 3 ? "bg-blue-500 text-white" : "bg-muted"
+                        }`}>
+                          {item.rank}
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{item.country}</div>
+                          <div className="text-xs text-muted-foreground">{item.note}</div>
+                        </div>
+                        <div className="text-sm font-mono">{item.volume.toLocaleString()}台</div>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
 
-              {/* Model Volume Change */}
               <Card className="border-border/50">
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
-                    <Activity className="h-5 w-5 text-purple-500" />
-                    車種（型式）別 台数増減ランキング
+                    <Zap className="h-4 w-4 text-green-500" />
+                    ハイブリッド TOP5（2026年1月）
                   </CardTitle>
-                  <CardDescription className="text-xs">前年比増減率 TOP10</CardDescription>
+                  <CardDescription className="text-xs">財務省E-Stat貿易統計</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">順位</TableHead>
-                        <TableHead>車種</TableHead>
-                        <TableHead>型式</TableHead>
-                        <TableHead className="text-right">増減率</TableHead>
-                        <TableHead className="text-right">現在</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {modelVolumeChangeRanking.map((item) => (
-                        <TableRow key={item.rank} className="cursor-pointer hover:bg-muted/50">
-                          <TableCell>
-                            <div
-                              className={`flex h-6 w-6 items-center justify-center rounded text-xs font-bold ${
-                                item.rank <= 3 ? "bg-purple-500 text-white" : "bg-muted"
-                              }`}
-                            >
-                              {item.rank}
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium text-sm">{item.model}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="font-mono text-[10px]">
-                              {item.modelCode}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <span
-                              className={`flex items-center justify-end gap-1 font-bold ${item.change >= 0 ? "text-green-500" : "text-red-500"}`}
-                            >
-                              {item.change >= 0 ? (
-                                <TrendingUp className="h-3 w-3" />
-                              ) : (
-                                <TrendingDown className="h-3 w-3" />
-                              )}
-                              {item.change >= 0 ? "+" : ""}
-                              {item.change}%
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right">{item.currentVolume.toLocaleString()}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <div className="space-y-3">
+                    {exportByTypeHybrid2026Jan.map((item) => (
+                      <div key={item.rank} className="flex items-center gap-3">
+                        <div className={`flex h-6 w-6 items-center justify-center rounded text-xs font-bold ${
+                          item.rank <= 3 ? "bg-green-500 text-white" : "bg-muted"
+                        }`}>
+                          {item.rank}
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{item.country}</div>
+                          <div className="text-xs text-muted-foreground">{item.note}</div>
+                        </div>
+                        <div className="text-sm font-mono">{item.volume.toLocaleString()}台</div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-border/50">
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-purple-500" />
+                    軽自動車 TOP5（2025年）
+                  </CardTitle>
+                  <CardDescription className="text-xs">財務省E-Stat貿易統計</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {exportByTypeKei2025.map((item) => (
+                      <div key={item.rank} className="flex items-center gap-3">
+                        <div className={`flex h-6 w-6 items-center justify-center rounded text-xs font-bold ${
+                          item.rank <= 3 ? "bg-purple-500 text-white" : "bg-muted"
+                        }`}>
+                          {item.rank}
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{item.country}</div>
+                          <div className="text-xs text-muted-foreground">シェア {item.share}%</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-mono">{item.volume.toLocaleString()}台</div>
+                          <div className={`text-xs ${item.yoy >= 100 ? "text-green-500" : "text-red-500"}`}>
+                            {item.yoy}%
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             </div>
           )}
+
+          {/* 伸び率ランキング */}
+          {exportRankingType === "growth" && (
+            <Card className="border-border/50">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-green-500" />
+                  前年同月比 伸び率ランキング（2026年1月）
+                </CardTitle>
+                <CardDescription className="text-xs">出典: 財務省E-Stat普通貿易統計 - 成長市場の発見に活用</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-16">順位</TableHead>
+                      <TableHead>仕向地</TableHead>
+                      <TableHead className="text-right">前年同月比</TableHead>
+                      <TableHead className="w-[250px]">備考</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {exportGrowthRanking2026Jan.map((item) => (
+                      <TableRow key={item.rank}>
+                        <TableCell>
+                          <div className={`flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold ${
+                            item.rank <= 3 ? "bg-green-500 text-white" : "bg-muted"
+                          }`}>
+                            {item.rank}
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-medium">{item.country}</TableCell>
+                        <TableCell className="text-right">
+                          <span className="text-green-500 font-bold">
+                            {item.yoy > 1000 ? `${(item.yoy / 100).toFixed(0)}倍` : `+${(item.yoy - 100).toFixed(1)}%`}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{item.note}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* データソース情報 */}
+          <Card className="border-border/50 bg-blue-50 dark:bg-blue-950/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Globe className="h-4 w-4 text-blue-500" />
+                データソース情報
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="p-3 bg-background rounded-lg border border-border/50">
+                  <h4 className="font-semibold text-sm mb-1">財務省E-Stat普通貿易統計</h4>
+                  <p className="text-xs text-muted-foreground">
+                    政府統計の総合窓口で公開される公式データ。毎月中旬に前月分が更新されます。
+                  </p>
+                  <a href="https://www.e-stat.go.jp" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline">
+                    e-stat.go.jp
+                  </a>
+                </div>
+                <div className="p-3 bg-background rounded-lg border border-border/50">
+                  <h4 className="font-semibold text-sm mb-1">JUMV.NET（データ加工元）</h4>
+                  <p className="text-xs text-muted-foreground">
+                    財務省E-Statデータを可視化・集計。国別・車種別・月別のランキングを提供。
+                  </p>
+                  <a href="https://jumv.net" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline">
+                    jumv.net
+                  </a>
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded">
+                更新頻度: 月次（毎月中旬に前月分データ公開） / 最終更新: 2026年1月分まで反映
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 輸出市場インサイト */}
+          <Card className="border-border/50 bg-muted/30">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Zap className="h-4 w-4 text-amber-500" />
+                輸出市場インサイト（データ分析）
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-4 bg-background rounded-lg border border-green-200 dark:border-green-800">
+                <h4 className="font-semibold text-sm mb-2 text-green-700 dark:text-green-400">タンザニアの急成長（前年比+48.3%）</h4>
+                <p className="text-sm text-muted-foreground">
+                  2025年通年で105,566台（シェア6.8%）を記録。アフリカ直送ルートの拡大により、UAE経由の再輸出に依存しない物流が確立されつつあります。
+                </p>
+              </div>
+              <div className="p-4 bg-background rounded-lg border border-amber-200 dark:border-amber-800">
+                <h4 className="font-semibold text-sm mb-2 text-amber-700 dark:text-amber-400">軽自動車FOB価格の高騰</h4>
+                <p className="text-sm text-muted-foreground">
+                  2026年1月のFOB価格は138.9万円で、2020年（約65万円）から2倍以上に上昇。国内中古車価格上昇と円安が継続しており、輸出採算は改善傾向。
+                </p>
+              </div>
+              <div className="p-4 bg-background rounded-lg border border-red-200 dark:border-red-800">
+                <h4 className="font-semibold text-sm mb-2 text-red-700 dark:text-red-400">ロシア向け減少傾向の継続</h4>
+                <p className="text-sm text-muted-foreground">
+                  2025年通年で前年比91.0%と減少。ただし2026年1月は前年同月比145.2%と回復の兆し。制裁下でも一定の需要は存在。
+                </p>
+              </div>
+              <div className="p-4 bg-background rounded-lg border border-border/50">
+                <h4 className="font-semibold text-sm mb-2">スリランカの輸入再開</h4>
+                <p className="text-sm text-muted-foreground">
+                  輸入規制緩和により2025年は前年比69,531.7%（ほぼゼロからの回復）。2026年1月も5,176台と好調を維持。南アジア市場の回復に注目。
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Download Reports */}
           <div className="grid gap-4 md:grid-cols-3">
