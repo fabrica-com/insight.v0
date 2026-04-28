@@ -126,10 +126,12 @@ export interface AuctionRecord {
   id: string
   manufacturer: Manufacturer
   model: string
+  modelCode: string // 型式
   grade: string
   year: number
   mileage: number
   color: string
+  hasInspection: boolean // 車検有無
   region: RegionId
   auctionPrice: number
   auctionDate: string
@@ -159,12 +161,13 @@ export interface RetailSalesSummary {
 export interface WholesalePriceSummary {
   manufacturer: Manufacturer
   model: string
+  modelCode: string // 型式
   grade: string
-  yearRange: string
+  color: string // 色
+  year: number // 年式（単一）
+  hasInspection: boolean // 車検有無
   avgAuctionPrice: number
   calculatedWholesalePrice: number
-  estimatedProfit: number
-  totalRecords: number
   region: RegionId
 }
 
@@ -193,6 +196,47 @@ const AUCTION_NAMES = [
   "JU東京",
   "JU愛知",
 ]
+
+// 型式コードマッピング
+const MODEL_CODES: Record<string, string> = {
+  "アルファード": "AGH30W",
+  "ハリアー": "MXUA80",
+  "プリウス": "ZVW50",
+  "ランドクルーザー": "VJA300W",
+  "クラウン": "AZSH20",
+  "ヴォクシー": "ZWR90W",
+  "ヴェゼル": "RV5",
+  "ステップワゴン": "RP8",
+  "フリード": "GB7",
+  "N-BOX": "JF5",
+  "セレナ": "C28",
+  "エクストレイル": "T33",
+  "ノート": "E13",
+  "CX-5": "KF5P",
+  "CX-8": "KG5P",
+  "MAZDA3": "BP8P",
+  "フォレスター": "SK9",
+  "レヴォーグ": "VN5",
+  "アウトバック": "BT5",
+  "アウトランダー": "GN0W",
+  "デリカD:5": "CV1W",
+  "ジムニー": "JB64W",
+  "スイフト": "ZC33S",
+  "ハスラー": "MR52S",
+  "タント": "LA650S",
+  "ロッキー": "A200S",
+  "NX": "AAZH26",
+  "RX": "AALH16",
+  "LX": "VJA310W",
+  "3シリーズ": "G20",
+  "X3": "G01",
+  "X5": "G05",
+  "Cクラス": "W206",
+  "Eクラス": "W214",
+  "GLC": "X254",
+  "A4": "8W",
+  "Q5": "FY",
+}
 
 // 小売実績データ生成
 function generateRetailSalesData(): RetailSalesRecord[] {
@@ -254,10 +298,12 @@ function generateAuctionData(): AuctionRecord[] {
             id: `AU${String(idCounter++).padStart(5, "0")}`,
             manufacturer,
             model: modelData.name,
+            modelCode: MODEL_CODES[modelData.name] || "不明",
             grade,
             year,
             mileage: Math.floor(rand() * 80000) + 5000,
             color: COLORS[Math.floor(rand() * COLORS.length)],
+            hasInspection: rand() > 0.3, // 70%の確率で車検あり
             region: REGIONS[Math.floor(rand() * REGIONS.length)].id,
             auctionPrice,
             auctionDate: generateRandomDate(rand),
