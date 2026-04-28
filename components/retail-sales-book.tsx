@@ -96,6 +96,7 @@ export function RetailSalesBook() {
       model: modelFilter !== "all" ? modelFilter : undefined,
       region: regionFilter !== "all" ? regionFilter as RegionId : undefined,
     })
+    console.log("[v0] First wholesale summary equipment:", summaries[0]?.equipment)
 
     // 検索フィルター
     let filtered = summaries
@@ -361,7 +362,7 @@ export function RetailSalesBook() {
                     {paginatedData.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
-                          条件に���致するデータがありません
+                          条件に�����致するデータがありません
                         </TableCell>
                       </TableRow>
                     )}
