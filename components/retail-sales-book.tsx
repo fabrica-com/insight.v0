@@ -25,9 +25,10 @@ import {
   type RegionId,
   type RetailSalesSummary,
   type WholesalePriceSummary,
+  type EquipmentFeatures,
 } from "@/lib/retail-sales-book-data"
 
-type SortKey = "avgPrice" | "totalSales" | "avgListingDays" | "calculatedWholesalePrice" | "year"
+type SortKey = "avgPrice" | "avgListingPrice" | "avgListingDays" | "calculatedWholesalePrice" | "year"
 
 const ITEMS_PER_PAGE = 15
 
@@ -41,7 +42,7 @@ export function RetailSalesBook() {
   const [searchQuery, setSearchQuery] = useState<string>("")
   
   // ソート状態
-  const [sortKey, setSortKey] = useState<SortKey>("totalSales")
+  const [sortKey, setSortKey] = useState<SortKey>("avgPrice")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   
   // ページネーション
@@ -150,7 +151,7 @@ export function RetailSalesBook() {
     setCurrentPage(1)
     // 小売/業販で適切なデフォルトソートを設定
     if (tab === "retail") {
-      setSortKey("totalSales")
+      setSortKey("avgPrice")
     } else {
       setSortKey("calculatedWholesalePrice")
     }
@@ -280,18 +281,22 @@ export function RetailSalesBook() {
                     <TableRow>
                       <TableHead>メーカー</TableHead>
                       <TableHead>車種</TableHead>
+                      <TableHead>型式</TableHead>
                       <TableHead>グレード</TableHead>
+                      <TableHead>色</TableHead>
                       <TableHead>年式</TableHead>
+                      <TableHead>車検</TableHead>
+                      <TableHead>車検満了</TableHead>
                       <TableHead>エリア</TableHead>
                       <TableHead>
                         <Button
                           variant="ghost"
                           size="sm"
                           className="h-auto p-0 font-semibold hover:bg-transparent"
-                          onClick={() => handleSort("avgPrice")}
+                          onClick={() => handleSort("avgListingPrice")}
                         >
-                          平均価格
-                          {getSortIcon("avgPrice")}
+                          平均掲載価格
+                          {getSortIcon("avgListingPrice")}
                         </Button>
                       </TableHead>
                       <TableHead>
@@ -299,10 +304,10 @@ export function RetailSalesBook() {
                           variant="ghost"
                           size="sm"
                           className="h-auto p-0 font-semibold hover:bg-transparent"
-                          onClick={() => handleSort("totalSales")}
+                          onClick={() => handleSort("avgPrice")}
                         >
-                          成約台数
-                          {getSortIcon("totalSales")}
+                          成約価格
+                          {getSortIcon("avgPrice")}
                         </Button>
                       </TableHead>
                       <TableHead>
@@ -312,7 +317,7 @@ export function RetailSalesBook() {
                           className="h-auto p-0 font-semibold hover:bg-transparent"
                           onClick={() => handleSort("avgListingDays")}
                         >
-                          平均掲載日数
+                          掲載日数
                           {getSortIcon("avgListingDays")}
                         </Button>
                       </TableHead>
@@ -323,20 +328,28 @@ export function RetailSalesBook() {
                       <TableRow key={`${item.manufacturer}-${item.model}-${item.grade}-${item.region}-${idx}`}>
                         <TableCell className="font-medium">{item.manufacturer}</TableCell>
                         <TableCell>{item.model}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{item.modelCode}</TableCell>
                         <TableCell className="max-w-[200px] truncate" title={item.grade}>
                           {item.grade}
                         </TableCell>
-                        <TableCell>{item.yearRange}</TableCell>
+                        <TableCell>{item.color}</TableCell>
+                        <TableCell>{item.year}年</TableCell>
+                        <TableCell>
+                          <Badge variant={item.hasInspection ? "default" : "secondary"} className="text-xs">
+                            {item.hasInspection ? "有" : "無"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs">{item.inspectionExpiry}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-xs">
                             {getRegionName(item.region)}
                           </Badge>
                         </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {formatPrice(item.avgListingPrice)}
+                        </TableCell>
                         <TableCell className="font-semibold text-primary">
                           {formatPrice(item.avgPrice)}
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-medium">{item.totalSales}</span>台
                         </TableCell>
                         <TableCell>
                           <span className={item.avgListingDays <= 30 ? "text-green-600" : item.avgListingDays <= 60 ? "text-amber-600" : "text-red-600"}>
@@ -347,7 +360,7 @@ export function RetailSalesBook() {
                     ))}
                     {paginatedData.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
                           条件に一致するデータがありません
                         </TableCell>
                       </TableRow>
@@ -390,6 +403,8 @@ export function RetailSalesBook() {
                       <TableHead>色</TableHead>
                       <TableHead>年式</TableHead>
                       <TableHead>車検</TableHead>
+                      <TableHead>車検満了</TableHead>
+                      <TableHead>装備</TableHead>
                       <TableHead>エリア</TableHead>
                       <TableHead>業販価格（税抜）</TableHead>
                       <TableHead>
@@ -421,6 +436,35 @@ export function RetailSalesBook() {
                             {item.hasInspection ? "有" : "無"}
                           </Badge>
                         </TableCell>
+                        <TableCell className="text-xs">{item.inspectionExpiry}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            <Badge 
+                              variant={item.equipment.hasSunroof ? "default" : "outline"} 
+                              className={`text-xs ${item.equipment.hasSunroof ? "bg-blue-500" : "text-muted-foreground"}`}
+                            >
+                              SR
+                            </Badge>
+                            <Badge 
+                              variant={item.equipment.hasLeatherSeats ? "default" : "outline"} 
+                              className={`text-xs ${item.equipment.hasLeatherSeats ? "bg-amber-500" : "text-muted-foreground"}`}
+                            >
+                              革
+                            </Badge>
+                            <Badge 
+                              variant={item.equipment.hasGenuineAlloy ? "default" : "outline"} 
+                              className={`text-xs ${item.equipment.hasGenuineAlloy ? "bg-slate-600" : "text-muted-foreground"}`}
+                            >
+                              純アルミ
+                            </Badge>
+                            <Badge 
+                              variant={item.equipment.hasNavigation ? "default" : "outline"} 
+                              className={`text-xs ${item.equipment.hasNavigation ? "bg-green-500" : "text-muted-foreground"}`}
+                            >
+                              ナビ
+                            </Badge>
+                          </div>
+                        </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-xs">
                             {getRegionName(item.region)}
@@ -436,7 +480,7 @@ export function RetailSalesBook() {
                     ))}
                     {paginatedData.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                        <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
                           条件に一致するデータがありません
                         </TableCell>
                       </TableRow>
