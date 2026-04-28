@@ -160,25 +160,17 @@ export function RetailSalesBook() {
     <div className="space-y-6">
       {/* タブ切り替え */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid w-full max-w-2xl grid-cols-2 bg-slate-100 dark:bg-slate-900 h-auto gap-2 p-2 border-0">
+        <TabsList className="grid w-full max-w-2xl grid-cols-2 bg-slate-100 dark:bg-slate-900 h-auto gap-2 p-2">
           <TabsTrigger 
             value="retail" 
-            className={`flex items-center justify-center gap-3 py-3 px-6 text-base font-semibold rounded-lg transition-all border-0 ${
-              activeTab === "retail"
-                ? "bg-blue-500 text-white shadow-lg dark:bg-blue-600"
-                : "bg-white text-gray-700 dark:bg-slate-800 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
-            }`}
+            className="flex items-center justify-center gap-3 py-3 px-6 text-base font-semibold rounded-lg transition-all bg-white text-gray-700 hover:bg-gray-50 dark:bg-slate-800 dark:text-gray-300 dark:hover:bg-slate-700 data-[state=active]:bg-blue-500 data-[state=active]:text-white data-[state=active]:shadow-lg dark:data-[state=active]:bg-blue-600 dark:data-[state=active]:text-white"
           >
             <ShoppingBag className="h-5 w-5" />
             小売実績
           </TabsTrigger>
           <TabsTrigger 
             value="wholesale" 
-            className={`flex items-center justify-center gap-3 py-3 px-6 text-base font-semibold rounded-lg transition-all border-0 ${
-              activeTab === "wholesale"
-                ? "bg-amber-500 text-white shadow-lg dark:bg-amber-600"
-                : "bg-white text-gray-700 dark:bg-slate-800 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
-            }`}
+            className="flex items-center justify-center gap-3 py-3 px-6 text-base font-semibold rounded-lg transition-all bg-white text-gray-700 hover:bg-gray-50 dark:bg-slate-800 dark:text-gray-300 dark:hover:bg-slate-700 data-[state=active]:bg-amber-500 data-[state=active]:text-white data-[state=active]:shadow-lg dark:data-[state=active]:bg-amber-600 dark:data-[state=active]:text-white"
           >
             <Store className="h-5 w-5" />
             業販価格
