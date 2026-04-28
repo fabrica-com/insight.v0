@@ -111,14 +111,26 @@ export interface RetailSalesRecord {
   id: string
   manufacturer: Manufacturer
   model: string
+  modelCode: string // 型式
   grade: string
   year: number
   mileage: number
   color: string
+  hasInspection: boolean // 車検有無
+  inspectionExpiry: string // 車検満了月（例: "2025/06"）
   region: RegionId
   soldPrice: number
+  listingPrice: number // 掲載価格
   listingDays: number
   soldDate: string
+}
+
+// 装備情報の型定義
+export interface EquipmentFeatures {
+  hasSunroof: boolean // SR（サンルーフ）
+  hasLeatherSeats: boolean // 革シート
+  hasGenuineAlloy: boolean // 純正アルミ
+  hasNavigation: boolean // ナビ
 }
 
 // オークション落札データの型定義
@@ -126,10 +138,14 @@ export interface AuctionRecord {
   id: string
   manufacturer: Manufacturer
   model: string
+  modelCode: string // 型式
   grade: string
   year: number
   mileage: number
   color: string
+  hasInspection: boolean // 車検有無
+  inspectionExpiry: string // 車検満了月（例: "2025/06"）
+  equipment: EquipmentFeatures // 装備情報
   region: RegionId
   auctionPrice: number
   auctionDate: string
@@ -145,12 +161,14 @@ export function calculateWholesalePrice(auctionPrice: number): number {
 export interface RetailSalesSummary {
   manufacturer: Manufacturer
   model: string
+  modelCode: string // 型式
   grade: string
-  yearRange: string
-  avgPrice: number
-  minPrice: number
-  maxPrice: number
-  totalSales: number
+  color: string // 色
+  year: number // 年式（単一）
+  hasInspection: boolean // 車検有無
+  inspectionExpiry: string // 車検満了月
+  avgPrice: number // 平均成約価格
+  avgListingPrice: number // 平均掲載価格
   avgListingDays: number
   region: RegionId
 }
@@ -159,12 +177,15 @@ export interface RetailSalesSummary {
 export interface WholesalePriceSummary {
   manufacturer: Manufacturer
   model: string
+  modelCode: string // 型式
   grade: string
-  yearRange: string
+  color: string // 色
+  year: number // 年式（単一）
+  hasInspection: boolean // 車検有無
+  inspectionExpiry: string // 車検満了月
+  equipment: EquipmentFeatures // 装備情報
   avgAuctionPrice: number
   calculatedWholesalePrice: number
-  estimatedProfit: number
-  totalRecords: number
   region: RegionId
 }
 
@@ -194,6 +215,47 @@ const AUCTION_NAMES = [
   "JU愛知",
 ]
 
+// 型式コードマッピング
+const MODEL_CODES: Record<string, string> = {
+  "アルファード": "AGH30W",
+  "ハリアー": "MXUA80",
+  "プリウス": "ZVW50",
+  "ランドクルーザー": "VJA300W",
+  "クラウン": "AZSH20",
+  "ヴォクシー": "ZWR90W",
+  "ヴェゼル": "RV5",
+  "ステップワゴン": "RP8",
+  "フリード": "GB7",
+  "N-BOX": "JF5",
+  "セレナ": "C28",
+  "エクストレイル": "T33",
+  "ノート": "E13",
+  "CX-5": "KF5P",
+  "CX-8": "KG5P",
+  "MAZDA3": "BP8P",
+  "フォレスター": "SK9",
+  "レヴォーグ": "VN5",
+  "アウトバック": "BT5",
+  "アウトランダー": "GN0W",
+  "デリカD:5": "CV1W",
+  "ジムニー": "JB64W",
+  "スイフト": "ZC33S",
+  "ハスラー": "MR52S",
+  "タント": "LA650S",
+  "ロッキー": "A200S",
+  "NX": "AAZH26",
+  "RX": "AALH16",
+  "LX": "VJA310W",
+  "3シリーズ": "G20",
+  "X3": "G01",
+  "X5": "G05",
+  "Cクラス": "W206",
+  "Eクラス": "W214",
+  "GLC": "X254",
+  "A4": "8W",
+  "Q5": "FY",
+}
+
 // 小売実績データ生成
 function generateRetailSalesData(): RetailSalesRecord[] {
   const rand = seededRandom(123)
@@ -212,16 +274,23 @@ function generateRetailSalesData(): RetailSalesRecord[] {
           const priceVariation = (rand() - 0.5) * basePrice * 0.15
           const soldPrice = Math.round((basePrice + priceVariation) / 10000) * 10000
 
+          const hasInspection = rand() > 0.3 // 70%の確率で車検あり
+          const listingPrice = Math.round((soldPrice * (1.05 + rand() * 0.1)) / 10000) * 10000 // 掲載価格は成約価格より5-15%高め
+
           records.push({
             id: `RS${String(idCounter++).padStart(5, "0")}`,
             manufacturer,
             model: modelData.name,
+            modelCode: MODEL_CODES[modelData.name] || "不明",
             grade,
             year,
             mileage: Math.floor(rand() * 80000) + 5000,
             color: COLORS[Math.floor(rand() * COLORS.length)],
+            hasInspection,
+            inspectionExpiry: generateInspectionExpiry(rand, hasInspection),
             region: REGIONS[Math.floor(rand() * REGIONS.length)].id,
             soldPrice,
+            listingPrice,
             listingDays: Math.floor(rand() * 60) + 5,
             soldDate: generateRandomDate(rand),
           })
@@ -250,14 +319,20 @@ function generateAuctionData(): AuctionRecord[] {
           // オークション価格は小売価格より10-20%低い
           const auctionPrice = Math.round((basePrice * (0.75 + rand() * 0.1)) / 10000) * 10000
 
+          const hasInspection = rand() > 0.3 // 70%の確率で車検あり
+
           records.push({
             id: `AU${String(idCounter++).padStart(5, "0")}`,
             manufacturer,
             model: modelData.name,
+            modelCode: MODEL_CODES[modelData.name] || "不明",
             grade,
             year,
             mileage: Math.floor(rand() * 80000) + 5000,
             color: COLORS[Math.floor(rand() * COLORS.length)],
+            hasInspection,
+            inspectionExpiry: generateInspectionExpiry(rand, hasInspection),
+            equipment: generateEquipment(rand, grade),
             region: REGIONS[Math.floor(rand() * REGIONS.length)].id,
             auctionPrice,
             auctionDate: generateRandomDate(rand),
@@ -271,7 +346,7 @@ function generateAuctionData(): AuctionRecord[] {
   return records
 }
 
-// ベース価格の計算（メーカー・車種・グレード・年式に基づく）
+// ��ース価格の計算（メーカー・車種・グレード・年式に基づく）
 function getBasePrice(manufacturer: Manufacturer, model: string, grade: string, year: number, rand: () => number): number {
   // メーカー係数
   const manufacturerMultiplier: Record<string, number> = {
@@ -351,6 +426,34 @@ function generateRandomDate(rand: () => number): string {
   return date.toISOString().split("T")[0]
 }
 
+// 車検満了月を生成（車検ありの場合は将来の日付、なしの場合は過去または空）
+function generateInspectionExpiry(rand: () => number, hasInspection: boolean): string {
+  if (!hasInspection) {
+    return "-"
+  }
+  const year = 2025 + Math.floor(rand() * 2) // 2025-2026
+  const month = Math.floor(rand() * 12) + 1
+  return `${year}/${String(month).padStart(2, "0")}`
+}
+
+// 装備情報を生成（グレードに基づいて確率を調整）
+function generateEquipment(rand: () => number, grade: string): EquipmentFeatures {
+  // 上位グレードほど装備が充実している確率が高い
+  const isHighGrade = grade.includes("Lパッケージ") || grade.includes("レザー") || 
+                       grade.includes("エグゼクティブ") || grade.includes("Fスポーツ") ||
+                       grade.includes("AMG") || grade.includes("Sライン") ||
+                       grade.includes("カスタム") || grade.includes("スパーダ")
+  
+  const baseProb = isHighGrade ? 0.7 : 0.3
+  
+  return {
+    hasSunroof: rand() < (isHighGrade ? 0.5 : 0.15),
+    hasLeatherSeats: rand() < baseProb,
+    hasGenuineAlloy: rand() < (isHighGrade ? 0.9 : 0.6),
+    hasNavigation: rand() < 0.85, // ほとんどの車にナビあり
+  }
+}
+
 // 小売実績を集計
 export function aggregateRetailSales(
   records: RetailSalesRecord[],
@@ -372,43 +475,26 @@ export function aggregateRetailSales(
     filtered = filtered.filter(r => r.region === filters.region)
   }
 
-  // グループ化キー: manufacturer + model + grade + region
-  const groups = new Map<string, RetailSalesRecord[]>()
-  for (const record of filtered) {
-    const key = `${record.manufacturer}|${record.model}|${record.grade}|${record.region}`
-    if (!groups.has(key)) {
-      groups.set(key, [])
-    }
-    groups.get(key)!.push(record)
-  }
+  // 各レコードを個別の車両として扱う
+  const summaries: RetailSalesSummary[] = filtered.map(record => ({
+    manufacturer: record.manufacturer,
+    model: record.model,
+    modelCode: record.modelCode,
+    grade: record.grade,
+    color: record.color,
+    year: record.year,
+    hasInspection: record.hasInspection,
+    inspectionExpiry: record.inspectionExpiry,
+    avgPrice: record.soldPrice,
+    avgListingPrice: record.listingPrice,
+    avgListingDays: record.listingDays,
+    region: record.region,
+  }))
 
-  const summaries: RetailSalesSummary[] = []
-  for (const [key, group] of groups) {
-    const [manufacturer, model, grade, region] = key.split("|")
-    const years = group.map(r => r.year)
-    const minYear = Math.min(...years)
-    const maxYear = Math.max(...years)
-    const prices = group.map(r => r.soldPrice)
-    const listingDays = group.map(r => r.listingDays)
-
-    summaries.push({
-      manufacturer: manufacturer as Manufacturer,
-      model,
-      grade,
-      yearRange: minYear === maxYear ? `${minYear}年` : `${minYear}-${maxYear}年`,
-      avgPrice: Math.round(prices.reduce((a, b) => a + b, 0) / prices.length),
-      minPrice: Math.min(...prices),
-      maxPrice: Math.max(...prices),
-      totalSales: group.length,
-      avgListingDays: Math.round(listingDays.reduce((a, b) => a + b, 0) / listingDays.length),
-      region: region as RegionId,
-    })
-  }
-
-  return summaries.sort((a, b) => b.totalSales - a.totalSales)
+  return summaries.sort((a, b) => b.avgPrice - a.avgPrice)
 }
 
-// オークションデータから業販価格を集計
+// オークションデータから業販価格を集計（各レコードを個別の車両として扱う）
 export function aggregateWholesalePrices(
   records: AuctionRecord[],
   filters: {
@@ -429,42 +515,23 @@ export function aggregateWholesalePrices(
     filtered = filtered.filter(r => r.region === filters.region)
   }
 
-  const groups = new Map<string, AuctionRecord[]>()
-  for (const record of filtered) {
-    const key = `${record.manufacturer}|${record.model}|${record.grade}|${record.region}`
-    if (!groups.has(key)) {
-      groups.set(key, [])
-    }
-    groups.get(key)!.push(record)
-  }
+  // 各レコードを個別の車両として扱う
+  const summaries: WholesalePriceSummary[] = filtered.map(record => ({
+    manufacturer: record.manufacturer,
+    model: record.model,
+    modelCode: record.modelCode,
+    grade: record.grade,
+    color: record.color,
+    year: record.year,
+    hasInspection: record.hasInspection,
+    inspectionExpiry: record.inspectionExpiry,
+    equipment: record.equipment,
+    avgAuctionPrice: record.auctionPrice,
+    calculatedWholesalePrice: calculateWholesalePrice(record.auctionPrice),
+    region: record.region,
+  }))
 
-  const summaries: WholesalePriceSummary[] = []
-  for (const [key, group] of groups) {
-    const [manufacturer, model, grade, region] = key.split("|")
-    const years = group.map(r => r.year)
-    const minYear = Math.min(...years)
-    const maxYear = Math.max(...years)
-    const auctionPrices = group.map(r => r.auctionPrice)
-    const avgAuctionPrice = Math.round(auctionPrices.reduce((a, b) => a + b, 0) / auctionPrices.length)
-    const calculatedWholesalePrice = calculateWholesalePrice(avgAuctionPrice)
-
-    // 推定利益（小売相場との差額を推定、ここでは15-25%のマージンを想定）
-    const estimatedProfit = Math.round(avgAuctionPrice * 0.15)
-
-    summaries.push({
-      manufacturer: manufacturer as Manufacturer,
-      model,
-      grade,
-      yearRange: minYear === maxYear ? `${minYear}年` : `${minYear}-${maxYear}年`,
-      avgAuctionPrice,
-      calculatedWholesalePrice,
-      estimatedProfit,
-      totalRecords: group.length,
-      region: region as RegionId,
-    })
-  }
-
-  return summaries.sort((a, b) => b.totalRecords - a.totalRecords)
+  return summaries.sort((a, b) => b.calculatedWholesalePrice - a.calculatedWholesalePrice)
 }
 
 // エクスポートするデータセット
