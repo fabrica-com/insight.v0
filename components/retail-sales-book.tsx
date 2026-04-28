@@ -362,7 +362,7 @@ export function RetailSalesBook() {
                     {paginatedData.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
-                          条件に�����致するデータがありません
+                          条件に�����致するデータ���ありません
                         </TableCell>
                       </TableRow>
                     )}
@@ -438,9 +438,9 @@ export function RetailSalesBook() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-xs">{item.inspectionExpiry}</TableCell>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           {item.equipment && (
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex items-center gap-1">
                               <Badge 
                                 variant={item.equipment.hasSunroof ? "default" : "outline"} 
                                 className={`text-xs ${item.equipment.hasSunroof ? "bg-blue-500" : "text-muted-foreground"}`}
