@@ -361,7 +361,7 @@ export function RetailSalesBook() {
                     {paginatedData.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
-                          条件に一致するデータがありません
+                          条件に���致するデータがありません
                         </TableCell>
                       </TableRow>
                     )}
@@ -438,32 +438,34 @@ export function RetailSalesBook() {
                         </TableCell>
                         <TableCell className="text-xs">{item.inspectionExpiry}</TableCell>
                         <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            <Badge 
-                              variant={item.equipment.hasSunroof ? "default" : "outline"} 
-                              className={`text-xs ${item.equipment.hasSunroof ? "bg-blue-500" : "text-muted-foreground"}`}
-                            >
-                              SR
-                            </Badge>
-                            <Badge 
-                              variant={item.equipment.hasLeatherSeats ? "default" : "outline"} 
-                              className={`text-xs ${item.equipment.hasLeatherSeats ? "bg-amber-500" : "text-muted-foreground"}`}
-                            >
-                              革
-                            </Badge>
-                            <Badge 
-                              variant={item.equipment.hasGenuineAlloy ? "default" : "outline"} 
-                              className={`text-xs ${item.equipment.hasGenuineAlloy ? "bg-slate-600" : "text-muted-foreground"}`}
-                            >
-                              純アルミ
-                            </Badge>
-                            <Badge 
-                              variant={item.equipment.hasNavigation ? "default" : "outline"} 
-                              className={`text-xs ${item.equipment.hasNavigation ? "bg-green-500" : "text-muted-foreground"}`}
-                            >
-                              ナビ
-                            </Badge>
-                          </div>
+                          {item.equipment && (
+                            <div className="flex flex-wrap gap-1">
+                              <Badge 
+                                variant={item.equipment.hasSunroof ? "default" : "outline"} 
+                                className={`text-xs ${item.equipment.hasSunroof ? "bg-blue-500" : "text-muted-foreground"}`}
+                              >
+                                SR
+                              </Badge>
+                              <Badge 
+                                variant={item.equipment.hasLeatherSeats ? "default" : "outline"} 
+                                className={`text-xs ${item.equipment.hasLeatherSeats ? "bg-amber-500" : "text-muted-foreground"}`}
+                              >
+                                革
+                              </Badge>
+                              <Badge 
+                                variant={item.equipment.hasGenuineAlloy ? "default" : "outline"} 
+                                className={`text-xs ${item.equipment.hasGenuineAlloy ? "bg-slate-600" : "text-muted-foreground"}`}
+                              >
+                                純アルミ
+                              </Badge>
+                              <Badge 
+                                variant={item.equipment.hasNavigation ? "default" : "outline"} 
+                                className={`text-xs ${item.equipment.hasNavigation ? "bg-green-500" : "text-muted-foreground"}`}
+                              >
+                                ナビ
+                              </Badge>
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-xs">
