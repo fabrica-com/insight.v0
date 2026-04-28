@@ -317,7 +317,7 @@ function generateAuctionData(): AuctionRecord[] {
   return records
 }
 
-// ベース価格の計算（メーカー・車種・グレード・年式に基づく）
+// ��ース価格の計算（メーカー・車種・グレード・年式に基づく）
 function getBasePrice(manufacturer: Manufacturer, model: string, grade: string, year: number, rand: () => number): number {
   // メーカー係数
   const manufacturerMultiplier: Record<string, number> = {
@@ -454,7 +454,7 @@ export function aggregateRetailSales(
   return summaries.sort((a, b) => b.totalSales - a.totalSales)
 }
 
-// オークションデータから業販価格を集計
+// オークションデータから業販価格を集計（各レコードを個別の車両として扱う）
 export function aggregateWholesalePrices(
   records: AuctionRecord[],
   filters: {
@@ -475,42 +475,21 @@ export function aggregateWholesalePrices(
     filtered = filtered.filter(r => r.region === filters.region)
   }
 
-  const groups = new Map<string, AuctionRecord[]>()
-  for (const record of filtered) {
-    const key = `${record.manufacturer}|${record.model}|${record.grade}|${record.region}`
-    if (!groups.has(key)) {
-      groups.set(key, [])
-    }
-    groups.get(key)!.push(record)
-  }
+  // 各レコードを個別の車両として扱う
+  const summaries: WholesalePriceSummary[] = filtered.map(record => ({
+    manufacturer: record.manufacturer,
+    model: record.model,
+    modelCode: record.modelCode,
+    grade: record.grade,
+    color: record.color,
+    year: record.year,
+    hasInspection: record.hasInspection,
+    avgAuctionPrice: record.auctionPrice,
+    calculatedWholesalePrice: calculateWholesalePrice(record.auctionPrice),
+    region: record.region,
+  }))
 
-  const summaries: WholesalePriceSummary[] = []
-  for (const [key, group] of groups) {
-    const [manufacturer, model, grade, region] = key.split("|")
-    const years = group.map(r => r.year)
-    const minYear = Math.min(...years)
-    const maxYear = Math.max(...years)
-    const auctionPrices = group.map(r => r.auctionPrice)
-    const avgAuctionPrice = Math.round(auctionPrices.reduce((a, b) => a + b, 0) / auctionPrices.length)
-    const calculatedWholesalePrice = calculateWholesalePrice(avgAuctionPrice)
-
-    // 推定利益（小売相場との差額を推定、ここでは15-25%のマージンを想定）
-    const estimatedProfit = Math.round(avgAuctionPrice * 0.15)
-
-    summaries.push({
-      manufacturer: manufacturer as Manufacturer,
-      model,
-      grade,
-      yearRange: minYear === maxYear ? `${minYear}年` : `${minYear}-${maxYear}年`,
-      avgAuctionPrice,
-      calculatedWholesalePrice,
-      estimatedProfit,
-      totalRecords: group.length,
-      region: region as RegionId,
-    })
-  }
-
-  return summaries.sort((a, b) => b.totalRecords - a.totalRecords)
+  return summaries.sort((a, b) => b.calculatedWholesalePrice - a.calculatedWholesalePrice)
 }
 
 // エクスポートするデータセット
