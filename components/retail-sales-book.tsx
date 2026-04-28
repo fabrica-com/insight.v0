@@ -436,7 +436,6 @@ export function RetailSalesBook() {
                         <TableCell className="font-semibold text-primary">
                           {formatPrice(item.wholesalePriceIncludingTax)}
                         </TableCell>
-                        </TableCell>
                       </TableRow>
                     ))}
                     {paginatedData.length === 0 && (
