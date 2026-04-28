@@ -160,10 +160,10 @@ export function RetailSalesBook() {
     <div className="space-y-6">
       {/* タブ切り替え */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid w-full max-w-2xl grid-cols-2 bg-slate-100 dark:bg-slate-900 h-auto gap-2 p-2">
+        <TabsList className="grid w-full max-w-2xl grid-cols-2 bg-slate-100 dark:bg-slate-900 h-auto gap-2 p-2 border-0">
           <TabsTrigger 
             value="retail" 
-            className={`flex items-center justify-center gap-3 py-3 px-6 text-base font-semibold rounded-lg transition-all ${
+            className={`flex items-center justify-center gap-3 py-3 px-6 text-base font-semibold rounded-lg transition-all border-0 ${
               activeTab === "retail"
                 ? "bg-blue-500 text-white shadow-lg dark:bg-blue-600"
                 : "bg-white text-gray-700 dark:bg-slate-800 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
@@ -174,7 +174,7 @@ export function RetailSalesBook() {
           </TabsTrigger>
           <TabsTrigger 
             value="wholesale" 
-            className={`flex items-center justify-center gap-3 py-3 px-6 text-base font-semibold rounded-lg transition-all ${
+            className={`flex items-center justify-center gap-3 py-3 px-6 text-base font-semibold rounded-lg transition-all border-0 ${
               activeTab === "wholesale"
                 ? "bg-amber-500 text-white shadow-lg dark:bg-amber-600"
                 : "bg-white text-gray-700 dark:bg-slate-800 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
